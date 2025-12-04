@@ -102,7 +102,7 @@ const Services = () => {
         <div className="container mx-auto px-4">
           <div className="space-y-12 max-w-6xl mx-auto">
             {services.map((service, index) => (
-              <Card key={index} className="shadow-medium hover:shadow-large transition-all overflow-hidden">
+              <Card key={index} className="shadow-medium hover:shadow-large transition-all overflow-hidden py-0">
                 <div className={`h-2 bg-gradient-${service.color}`} />
                 <CardHeader>
                   <div className="flex items-start justify-between flex-wrap gap-4">

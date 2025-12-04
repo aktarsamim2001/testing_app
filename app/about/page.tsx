@@ -196,7 +196,7 @@ const About = () => {
       {/* CTA */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <Card className="max-w-3xl mx-auto shadow-large overflow-hidden">
+          <Card className="max-w-3xl mx-auto shadow-large overflow-hidden py-0">
             <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
               <h2 className="text-3xl font-bold mb-4">
                 Let's Grow Together

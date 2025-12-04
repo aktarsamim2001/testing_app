@@ -52,7 +52,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Outfit", "system-ui", "sans-serif"],
+        sans: ["Outfit", "system-ui"],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",

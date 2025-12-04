@@ -1,9 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, TrendingUp, Users, Target, Sparkles, BarChart3, CheckCircle2 } from "lucide-react";
-import heroImage from "../public/hero-bg.jpg";
 
 const Home = () => {
   const stats = [
@@ -45,8 +45,14 @@ const Home = () => {
       {/* Hero Section */}
       <section className="relative pt-24 pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-subtle -z-10" />
-        <div className="absolute inset-0 opacity-5 -z-10">
-          <img src={heroImage} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 -z-10">
+          <Image 
+            src="/hero-bg.jpg" 
+            alt="hero background" 
+            fill
+            className="w-full h-full object-cover opacity-5"
+            priority
+          />
         </div>
         
         <div className="container mx-auto px-4">
@@ -198,7 +204,7 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <Card className="max-w-4xl mx-auto shadow-large overflow-hidden">
+          <Card className="max-w-4xl mx-auto shadow-large overflow-hidden py-0">
             <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 Ready to Scale Your SaaS?
