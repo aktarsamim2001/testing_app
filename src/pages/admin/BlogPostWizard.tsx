@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
@@ -22,9 +23,10 @@ export default function BlogPostWizard() {
   const [step, setStep] = useState(1);
   const [authorDialogOpen, setAuthorDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -133,9 +135,18 @@ export default function BlogPostWizard() {
     { number: 3, title: 'FAQ & SEO', description: 'Add FAQs and optimize for search' }
   ];
 
+  if (loading) {
+    return null;
+  }
+
+  if (!user || !isAdmin) {
+    router.push('/auth');
+    return null;
+  }
+
   return (
     <AdminLayout>
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="container mx-auto py-8 px-4 max-w-4xl">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="sm" onClick={() => router.push('/admin/blog')}>
             <ArrowLeft className="w-4 h-4 mr-2" />

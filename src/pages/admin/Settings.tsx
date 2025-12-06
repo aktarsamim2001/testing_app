@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,8 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import AdminLayout from '@/components/admin/AdminLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
+import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
 interface UserWithRole {
   id: string;
@@ -20,14 +23,25 @@ interface UserWithRole {
 }
 
 export default function Settings() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
   const [users, setUsers] = useState<UserWithRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (user && isAdmin) {
+      fetchUsers();
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.push('/auth');
+    }
+  }, [user, isAdmin, loading, router]);
 
   const fetchUsers = async () => {
     const { data: profilesData, error } = await supabase
@@ -37,7 +51,7 @@ export default function Settings() {
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      setLoading(false);
+      setDataLoading(false);
       return;
     }
 
@@ -53,7 +67,7 @@ export default function Settings() {
     })) || [];
 
     setUsers(usersWithRoles);
-    setLoading(false);
+    setDataLoading(false);
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -74,6 +88,18 @@ export default function Settings() {
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -89,8 +115,13 @@ export default function Settings() {
               <CardDescription>View and manage platform users</CardDescription>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              {dataLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
               ) : users.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No users found</div>
               ) : (

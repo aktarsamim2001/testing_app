@@ -48,7 +48,7 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect }: Aut
       .order('name');
 
     if (!error && data) setAuthors(data as unknown as Author[]);
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

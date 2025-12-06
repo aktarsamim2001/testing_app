@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Users, DollarSign, TrendingUp, Megaphone } from 'lucide-react';
 
 interface CampaignStats {
@@ -37,6 +41,9 @@ interface PlatformMetrics {
 }
 
 export default function Analytics() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
   const [campaignsByType, setCampaignsByType] = useState<CampaignStats[]>([]);
   const [campaignsByStatus, setCampaignsByStatus] = useState<StatusStats[]>([]);
   const [partnersByChannel, setPartnersByChannel] = useState<CampaignStats[]>([]);
@@ -50,11 +57,19 @@ export default function Analytics() {
   });
   const [userGrowth, setUserGrowth] = useState<UserGrowth[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (user && isAdmin) {
+      fetchAnalytics();
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.push('/auth');
+    }
+  }, [user, isAdmin, loading, router]);
 
   const fetchAnalytics = async () => {
     const [campaigns, partners, profiles, payments, earnings] = await Promise.all([
@@ -176,8 +191,20 @@ export default function Analytics() {
       );
     }
 
-    setLoading(false);
+    setDataLoading(false);
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
@@ -203,8 +230,13 @@ export default function Analytics() {
           <p className="text-muted-foreground">Comprehensive platform metrics, user growth, and revenue insights</p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading analytics...</div>
+        {dataLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Platform Metrics Cards */}

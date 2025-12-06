@@ -1,11 +1,12 @@
 "use client";
 
-import { ReactNode } from 'react';
-import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, Users, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText } from 'lucide-react';
+import { ReactNode, useState } from 'react';
+import { LayoutDashboard, Users, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import AdminHeader from './AdminHeader';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -25,59 +26,70 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/admin') return pathname === path;
     return pathname.startsWith(path);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/auth');
+  };
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar className="border-r">
-          <div className="p-4 border-b">
-            <h2 className="font-bold text-lg">Admin Panel</h2>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
-          </div>
-          
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.path}>
-                      <SidebarMenuButton
-                        onClick={() => router.push(item.path)}
-                        isActive={isActive(item.path)}
-                        className="w-full"
-                      >
-                        <item.icon className="w-4 h-4 mr-2" />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
+    <div className="flex h-screen flex-col">
+      {/* Header */}
+      <AdminHeader 
+        isCollapsed={isCollapsed} 
+        onToggleSidebar={() => setIsCollapsed(!isCollapsed)} 
+      />
 
-          <div className="mt-auto p-4 border-t">
-            <Button variant="ghost" size="sm" onClick={signOut} className="w-full">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+      {/* Main Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside className={`${isCollapsed ? 'w-18' : 'w-64'} border-r bg-background transition-all duration-300 flex flex-col flex-shrink-0`}>
+
+          {/* Menu Items */}
+          <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-2`}>
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg transition-colors ${
+                  isActive(item.path)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted text-foreground'
+                }`}
+                title={item.title}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!isCollapsed && <span className="truncate text-sm font-medium">{item.title}</span>}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Sign Out Button */}
+          {/* <div className="p-4 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className={`w-full justify-${isCollapsed ? 'center' : 'start'}`}
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+              {!isCollapsed && <span className="ml-2">Sign Out</span>}
             </Button>
-          </div>
-        </Sidebar>
+          </div> */}
+        </aside>
 
-        <div className="flex-1 flex flex-col">
-          <header className="h-14 border-b flex items-center px-4 bg-background">
-            <SidebarTrigger />
-          </header>
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from "next/navigation";
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
 interface BlogPost {
   id: string;
@@ -31,13 +33,14 @@ interface BlogPost {
 }
 
 export default function BlogPosts() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
-  const { user } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -51,8 +54,16 @@ export default function BlogPosts() {
   });
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (user && isAdmin) {
+      fetchPosts();
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.push('/auth');
+    }
+  }, [user, isAdmin, loading, router]);
 
   const fetchPosts = async () => {
     try {
@@ -70,7 +81,7 @@ export default function BlogPosts() {
         variant: 'destructive'
       });
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -195,8 +206,24 @@ export default function BlogPosts() {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-muted-foreground">Loading...</div>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
+
+  if (dataLoading) {
+    return (
+      <AdminLayout>
+        <div className="container mx-auto py-8 px-4">
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
         </div>
       </AdminLayout>
     );
@@ -204,9 +231,12 @@ export default function BlogPosts() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Blog Posts</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Blog Posts</h1>
+            <p className="text-muted-foreground">Manage your blog content</p>
+          </div>
           <Button onClick={() => router.push('/admin/blog/new')}>
             <Plus className="w-4 h-4 mr-2" />
             New Post

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import ClientDialog from '@/components/admin/ClientDialog';
 
 interface Client {
@@ -24,8 +28,11 @@ interface Client {
 }
 
 export default function Clients() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const { toast } = useToast();
@@ -41,12 +48,20 @@ export default function Clients() {
     } else {
       setClients(data || []);
     }
-    setLoading(false);
+    setDataLoading(false);
   };
 
   useEffect(() => {
-    fetchClients();
-  }, []);
+    if (user && isAdmin) {
+      fetchClients();
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.push('/auth');
+    }
+  }, [user, isAdmin, loading, router]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this client?')) return;
@@ -81,6 +96,18 @@ export default function Clients() {
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -101,8 +128,13 @@ export default function Clients() {
             <CardDescription>View and manage client accounts</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            {dataLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
             ) : clients.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No clients yet. Click "Add Client" to get started.

@@ -9,7 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import CampaignDialog from '@/components/admin/CampaignDialog';
 
 interface Campaign {
@@ -26,12 +29,14 @@ interface Campaign {
 }
 
 export default function Campaigns() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
 
   const fetchCampaigns = async () => {
     const { data, error } = await supabase
@@ -44,12 +49,20 @@ export default function Campaigns() {
     } else {
       setCampaigns(data || []);
     }
-    setLoading(false);
+    setDataLoading(false);
   };
 
   useEffect(() => {
-    fetchCampaigns();
-  }, []);
+    if (user && isAdmin) {
+      fetchCampaigns();
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.push('/auth');
+    }
+  }, [user, isAdmin, loading, router]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this campaign?')) return;
@@ -107,6 +120,18 @@ export default function Campaigns() {
     }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -127,8 +152,13 @@ export default function Campaigns() {
             <CardDescription>View and manage active campaigns</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            {dataLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
             ) : campaigns.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No campaigns yet. Click "Add Campaign" to get started.

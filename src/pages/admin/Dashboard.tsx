@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, BarChart3, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -47,9 +48,9 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
     );
   }
 
@@ -95,7 +96,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <h3 className="font-semibold">Phase 1 - Foundation:</h3>
+              <CardTitle className="font-semibold">Phase 1 - Foundation:</CardTitle>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Lovable Cloud backend enabled</li>
                 <li>User authentication & role-based access</li>
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
               </ul>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold">Phase 2 - Core Management:</h3>
+              <CardTitle className="font-semibold">Phase 2 - Core Management:</CardTitle>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Client management (SAAS companies)</li>
                 <li>Partner directory (bloggers, LinkedIn influencers, YouTubers)</li>
@@ -112,7 +113,7 @@ export default function AdminDashboard() {
               </ul>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold">Phase 3 - Advanced Features:</h3>
+              <CardTitle className="font-semibold">Phase 3 - Advanced Features:</CardTitle>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Campaign-partner assignment & management</li>
                 <li>Analytics dashboard with visual charts</li>

@@ -1,30 +1,28 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFooter from "@/components/admin/AdminFooter";
+import BrandHeader from "@/components/brand/BrandHeader";
+import BrandFooter from "@/components/brand/BrandFooter";
+import CreatorHeader from "@/components/creator/CreatorHeader";
+import CreatorFooter from "@/components/creator/CreatorFooter";
 import { Providers } from "@/components/Providers";
 import "@/index.css";
-
-export const metadata = {
-  title: "PartnerScale - Scale Your SaaS Through Strategic Partnerships",
-  description: "Grow your SaaS business through targeted blogger outreach, LinkedIn influencer marketing, and YouTube campaigns. Data-driven partnership strategies that scale.",
-  authors: [{ name: "PartnerScale" }],
-  openGraph: {
-    title: "PartnerScale - Scale Your SaaS Through Strategic Partnerships",
-    description: "Grow your SaaS business through targeted blogger outreach, LinkedIn influencer marketing, and YouTube campaigns.",
-    type: "website",
-    images: ["https://lovable.dev/opengraph-image-p98pqg.png"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@PartnerScale",
-    images: ["https://lovable.dev/opengraph-image-p98pqg.png"],
-  },
-};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname?.startsWith("/auth");
+  const isAdminPage = pathname?.startsWith("/admin");
+  const isBrandPage = pathname?.startsWith("/brand");
+  const isCreatorPage = pathname?.startsWith("/creator");
+
   return (
     <html lang="en">
       <head>
@@ -35,11 +33,17 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="flex flex-col min-h-screen">
-            <Navigation />
-            <main className="flex-1">
+            {isAdminPage && <AdminHeader />}
+            {isBrandPage && <BrandHeader />}
+            {isCreatorPage && <CreatorHeader />}
+            {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Navigation />}
+            <main className="flex-1 pt-16">
               {children}
             </main>
-            <Footer />
+            {isAdminPage && <AdminFooter />}
+            {isBrandPage && <BrandFooter />}
+            {isCreatorPage && <CreatorFooter />}
+            {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Footer />}
           </div>
         </Providers>
       </body>
