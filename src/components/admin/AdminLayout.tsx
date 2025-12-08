@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from 'react';
-import { LayoutDashboard, Users, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users,UserCircle, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,10 @@ interface AdminLayoutProps {
 
 const menuItems = [
   { title: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+  { title: 'Pages', path: '/admin/pages', icon: FileText },
   { title: 'Clients', path: '/admin/clients', icon: Building2 },
   { title: 'Partners', path: '/admin/partners', icon: Users },
+  { title: 'Authors', path: '/admin/authors', icon: UserCircle },
   { title: 'Campaigns', path: '/admin/campaigns', icon: Megaphone },
   { title: 'Blog Posts', path: '/admin/blog', icon: FileText },
   { title: 'Analytics', path: '/admin/analytics', icon: TrendingUp },
