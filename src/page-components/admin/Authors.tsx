@@ -15,13 +15,17 @@ import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import AuthorDialog from '@/components/admin/AuthorDialog';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Author {
   id: string;
   name: string;
   avatar_url: string | null;
-  status: 'active' | 'inactive' | null;
+  email: string | null;
+  bio: string | null;
+  social_links: Json;
   created_at: string;
+  updated_at: string;
 }
 
 export default function Authors() {
@@ -142,7 +146,7 @@ export default function Authors() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -151,10 +155,8 @@ export default function Authors() {
                   {authors.map((author) => (
                     <TableRow key={author.id}>
                       <TableCell className="font-medium">{author.name}</TableCell>
-                      <TableCell>
-                        <Badge variant={author.status === 'active' ? 'default' : 'secondary'}>
-                          {author.status || 'inactive'}
-                        </Badge>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {author.email || 'N/A'}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(author.created_at).toLocaleDateString()}

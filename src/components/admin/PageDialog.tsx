@@ -217,7 +217,7 @@ export default function PageDialog({ open, onOpenChange, page }: PageDialogProps
         title: formData.title,
         slug: formData.slug,
         template: formData.template,
-        sections: sections,
+        sections: sections as any,
         status: formData.status,
       };
 

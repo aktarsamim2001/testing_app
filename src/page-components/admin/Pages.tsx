@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit2, Eye, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import type { Json } from '@/integrations/supabase/types';
 
 interface SectionData {
   id: string;
@@ -45,7 +46,7 @@ export default function Pages() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPages(data || []);
+      setPages((data as unknown as PageData[]) || []);
     } catch (error) {
       toast({
         title: 'Error',

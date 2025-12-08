@@ -152,17 +152,17 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
           title: data.title || '',
           slug: data.slug || '',
           template: data.template || 'home',
-          status: data.status || 'draft',
+          status: (data.status as 'draft' | 'published') || 'draft',
         });
-        setSections(data.sections || []);
-        setSeoData(data.seo || {
+        setSections((data.sections as unknown as SectionData[]) || []);
+        setSeoData({
           title: '',
           author: '',
           description: '',
           keywords: '',
           image: '',
         });
-        setActiveSection(data.sections?.[0]?.id || 'hero');
+        setActiveSection((data.sections as unknown as SectionData[])?.[0]?.id || 'hero');
       }
     } catch (error) {
       toast({
@@ -283,9 +283,8 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
         title: formData.title,
         slug: formData.slug,
         template: formData.template,
-        sections: sections,
+        sections: sections as unknown as any,
         status: formData.status,
-        seo: seoData,
       };
 
       if (isEditMode && pageId) {

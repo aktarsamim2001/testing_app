@@ -6,12 +6,17 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Author {
   id: string;
   name: string;
-  avatar_url: string;
-  status: 'active' | 'inactive';
+  email: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  social_links: Json;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthorDialogProps {
@@ -31,7 +36,8 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
 
   const [formData, setFormData] = useState({
     name: '',
-    status: 'active' as 'active' | 'inactive'
+    email: '',
+    bio: ''
   });
 
   const isEditMode = !!author;
@@ -45,13 +51,15 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
           // Edit mode - populate form with author data
           setFormData({
             name: author.name || '',
-            status: author.status || 'active'
+            email: author.email || '',
+            bio: author.bio || ''
           });
         } else {
           // Create mode - empty form
           setFormData({
             name: '',
-            status: 'active'
+            email: '',
+            bio: ''
           });
         }
         setShowForm(true);
@@ -79,7 +87,8 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
     try {
       const data = {
         name: formData.name,
-        status: formData.status
+        email: formData.email || null,
+        bio: formData.bio || null
       };
 
       if (isEditMode && author) {
@@ -115,7 +124,7 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
         }
       }
 
-      setFormData({ name: '', status: 'active' });
+      setFormData({ name: '', email: '', bio: '' });
       setShowForm(false);
       onOpenChange(false);
     } catch (error: any) {
@@ -160,16 +169,22 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'active' | 'inactive' })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Input
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                placeholder="Short bio or description"
+              />
             </div>
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={loading} className="flex-1">
@@ -220,16 +235,22 @@ export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, autho
               />
             </div>
             <div>
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'active' | 'inactive' })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bio">Bio</Label>
+              <Input
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                placeholder="Short bio or description"
+              />
             </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={loading} className="flex-1">
