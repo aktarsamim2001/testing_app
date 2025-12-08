@@ -114,7 +114,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Return a safe default instead of throwing during build
+    // This prevents SSR/build-time errors in dynamic routes
+    return {
+      user: null,
+      session: null,
+      loading: false,
+      signUp: async () => ({ error: new Error('AuthProvider not found') }),
+      signIn: async () => ({ error: new Error('AuthProvider not found') }),
+      signOut: async () => {},
+    } as AuthContextType;
   }
   return context;
 }

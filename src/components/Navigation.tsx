@@ -46,31 +46,31 @@ const Navigation = () => {
   // Don't show this Navigation on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
                           pathname?.startsWith("/brand") || 
-                          pathname?.startsWith("/creator");
+                          (pathname?.startsWith("/creator") && pathname !== "/creators");
 
   if (isDashboardPage) return null;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-gradient-primary rounded-lg shadow-soft group-hover:shadow-medium transition-all">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
+            <div className="p-1.5 sm:p-2 bg-gradient-primary rounded-lg shadow-soft group-hover:shadow-medium transition-all">
+              <Zap className="w-4 sm:w-5 h-4 sm:h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <span className="text-sm sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               PartnerScale
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 href={link.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
                   isActive(link.path) ? "text-primary" : "text-foreground"
                 }`}
               >
@@ -80,7 +80,7 @@ const Navigation = () => {
             {mounted && user && isAdmin && (
               <Link
                 href="/admin"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
                   isActive("/admin") ? "text-primary" : "text-foreground"
                 }`}
               >
@@ -89,24 +89,24 @@ const Navigation = () => {
             )}
             {!mounted ? (
               <Link href="/auth">
-                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium">
+                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
                   Sign In / Sign Up
                 </Button>
               </Link>
             ) : user ? (
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => router.push(userDashboardPath)}>
-                  <User className="w-4 h-4 mr-2" />
+              <div className="flex items-center gap-1 lg:gap-2">
+                <Button variant="ghost" size="sm" onClick={() => router.push(userDashboardPath)} className="text-xs lg:text-sm h-8 lg:h-9 px-2 lg:px-3">
+                  <User className="w-3 lg:w-4 h-3 lg:h-4 mr-1 lg:mr-2" />
                   Dashboard
                 </Button>
-                <Button variant="outline" size="sm" onClick={signOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={signOut} className="text-xs lg:text-sm h-8 lg:h-9 px-2 lg:px-3">
+                  <LogOut className="w-3 lg:w-4 h-3 lg:h-4 mr-1 lg:mr-2" />
                   Sign Out
                 </Button>
               </div>
             ) : (
               <Link href="/auth">
-                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium">
+                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
                   Sign In / Sign Up
                 </Button>
               </Link>
@@ -119,18 +119,18 @@ const Navigation = () => {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 animate-fade-in">
+          <div className="md:hidden py-3 sm:py-4 animate-fade-in border-t border-border">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 href={link.path}
-                className={`block py-3 text-sm font-medium transition-colors hover:text-primary ${
+                className={`block py-2 sm:py-3 text-sm font-medium transition-colors hover:text-primary ${
                   isActive(link.path) ? "text-primary" : "text-foreground"
                 }`}
                 onClick={() => setIsOpen(false)}
@@ -141,7 +141,7 @@ const Navigation = () => {
             {mounted && user && isAdmin && (
               <Link
                 href="/admin"
-                className={`block py-3 text-sm font-medium transition-colors hover:text-primary ${
+                className={`block py-2 sm:py-3 text-sm font-medium transition-colors hover:text-primary ${
                   isActive("/admin") ? "text-primary" : "text-foreground"
                 }`}
                 onClick={() => setIsOpen(false)}
@@ -151,26 +151,26 @@ const Navigation = () => {
             )}
             {!mounted ? (
               <Link href="/auth" onClick={() => setIsOpen(false)}>
-                <Button size="sm" className="w-full mt-4 bg-gradient-primary">
+                <Button size="sm" className="w-full mt-3 sm:mt-4 bg-gradient-primary text-xs sm:text-sm">
                   Sign In / Sign Up
                 </Button>
               </Link>
             ) : user ? (
-              <div className="pt-3 mt-3 border-t space-y-2">
-                <div className="text-sm text-muted-foreground mb-2">{user.email}</div>
+              <div className="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-border space-y-2">
+                <div className="text-xs sm:text-sm text-muted-foreground mb-2 px-2">{user.email}</div>
                 <Button
                   size="sm"
                   className="w-full"
                   variant="outline"
                   onClick={() => { signOut(); setIsOpen(false); }}
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
+                  <LogOut className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
                   Sign Out
                 </Button>
               </div>
             ) : (
               <Link href="/auth" onClick={() => setIsOpen(false)}>
-                <Button size="sm" className="w-full mt-4 bg-gradient-primary">
+                <Button size="sm" className="w-full mt-3 sm:mt-4 bg-gradient-primary text-xs sm:text-sm">
                   Sign In / Sign Up
                 </Button>
               </Link>

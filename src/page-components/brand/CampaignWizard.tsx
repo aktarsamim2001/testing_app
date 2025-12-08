@@ -19,8 +19,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandSidebar } from "@/components/brand/BrandSidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const campaignSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(100),
@@ -235,21 +234,26 @@ export default function CampaignWizard() {
 
   const progress = (currentStep / steps.length) * 100;
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <BrandSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Create New Campaign</h2>
-          </header>
+  if (loading && !clientId) {
+    return (
+      <div className="flex-1 p-6 max-w-4xl mx-auto">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="h-12 mb-8" />
+        <div className="grid gap-4">
+          <Skeleton className="h-12" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-12" />
+        </div>
+      </div>
+    );
+  }
 
-          <main className="p-6 max-w-4xl mx-auto">
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between mb-4">
+  return (
+    <div className="flex-1 p-6 max-w-4xl mx-auto">
+      <div>
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between mb-4">
                 {steps.map((step) => {
                   const StepIcon = step.icon;
                   const isCompleted = currentStep > step.id;
@@ -606,9 +610,7 @@ export default function CampaignWizard() {
                 </div>
               </CardContent>
             </Card>
-          </main>
-        </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

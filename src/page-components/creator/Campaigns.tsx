@@ -8,8 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { Briefcase, Eye } from "lucide-react";
 
 export default function CreatorCampaigns() {
@@ -96,24 +94,14 @@ export default function CreatorCampaigns() {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">My Campaigns</h2>
-          </header>
-
-          <main className="p-6">
-            <Tabs defaultValue="all" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="all">All Campaigns</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="planning">Planning</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-              </TabsList>
+    <div className="flex-1 p-6">
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="all">All Campaigns</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="planning">Planning</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
 
               {['all', 'active', 'planning', 'completed'].map((tab) => (
                 <TabsContent key={tab} value={tab} className="space-y-4">
@@ -187,10 +175,7 @@ export default function CreatorCampaigns() {
                   )}
                 </TabsContent>
               ))}
-            </Tabs>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+      </Tabs>
+    </div>
   );
 }

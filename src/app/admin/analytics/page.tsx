@@ -1,5 +1,9 @@
-import Analytics from "@/pages/admin/Analytics";
+"use client";
+
+import Analytics from "@/page-components/admin/Analytics";
 import AdminRoute from "@/components/AdminRoute";
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
@@ -8,3 +12,4 @@ export default function Page() {
     </AdminRoute>
   );
 }
+

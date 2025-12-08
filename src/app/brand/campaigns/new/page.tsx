@@ -1,5 +1,6 @@
-import BrandCampaignWizard from "@/pages/brand/CampaignWizard";
+import BrandCampaignWizard from "@/page-components/brand/CampaignWizard";
 
 export default function Page() {
   return <BrandCampaignWizard />;
 }
+

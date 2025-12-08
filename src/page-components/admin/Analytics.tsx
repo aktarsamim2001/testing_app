@@ -9,6 +9,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Users, DollarSign, TrendingUp, Megaphone } from 'lucide-react';
 
 interface CampaignStats {

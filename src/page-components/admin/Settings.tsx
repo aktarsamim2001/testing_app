@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';

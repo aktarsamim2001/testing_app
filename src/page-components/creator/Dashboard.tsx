@@ -9,8 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { Briefcase, DollarSign, TrendingUp, Eye } from "lucide-react";
 
 export default function CreatorDashboard() {
@@ -126,37 +124,19 @@ export default function CreatorDashboard() {
 
   if (loading || rolesLoading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <CreatorSidebar />
-          <div className="flex-1">
-            <header className="h-16 border-b flex items-center px-6">
-              <SidebarTrigger />
-            </header>
-            <div className="p-6">
-              <Skeleton className="h-8 w-64 mb-8" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-              </div>
-            </div>
-          </div>
+      <div className="flex-1 p-6">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Creator Dashboard</h2>
-          </header>
+    <div className="flex-1 p-6">
 
           <main className="p-6">
             <div className="mb-8">
@@ -274,7 +254,5 @@ export default function CreatorDashboard() {
             </Card>
           </main>
         </div>
-      </div>
-    </SidebarProvider>
-  );
+    );
 }

@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from "next/navigation";
+import { Skeleton } from '@/components/ui/skeleton';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
 interface BlogPost {

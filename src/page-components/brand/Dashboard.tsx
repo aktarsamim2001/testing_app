@@ -11,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, TrendingUp, Users, DollarSign, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandSidebar } from "@/components/brand/BrandSidebar";
 
 export default function BrandDashboard() {
   const { user } = useAuth();
@@ -114,39 +112,19 @@ export default function BrandDashboard() {
 
   if (loading || rolesLoading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <BrandSidebar />
-          <div className="flex-1">
-            <header className="h-16 border-b flex items-center px-6">
-              <SidebarTrigger />
-            </header>
-            <div className="p-6">
-              <Skeleton className="h-8 w-64 mb-8" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-                <Skeleton className="h-32" />
-              </div>
-            </div>
-          </div>
+      <div className="flex-1 p-6">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <BrandSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Brand Dashboard</h2>
-          </header>
-
-          <main className="p-6">
+    <div className="flex-1 p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Welcome back, {clientData?.company_name}</h1>
         <p className="text-muted-foreground mt-1">Manage your influencer marketing campaigns</p>
@@ -325,9 +303,6 @@ export default function BrandDashboard() {
           </TabsContent>
         ))}
       </Tabs>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    </div>
   );
 }

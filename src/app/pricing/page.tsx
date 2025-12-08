@@ -1,5 +1,6 @@
-import Pricing from "@/pages/Pricing";
+import Pricing from "@/page-components/Pricing";
 
 export default function Page() {
   return <Pricing />;
 }
+

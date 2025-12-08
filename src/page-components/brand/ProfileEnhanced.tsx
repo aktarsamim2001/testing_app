@@ -14,8 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Globe, Users, Mail, Phone, FileText, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandSidebar } from "@/components/brand/BrandSidebar";
 
 export default function BrandProfile() {
   const { user } = useAuth();
@@ -97,39 +95,19 @@ export default function BrandProfile() {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <BrandSidebar />
-          <div className="flex-1">
-            <header className="h-16 border-b flex items-center px-6">
-              <SidebarTrigger />
-            </header>
-            <div className="p-6">
-              <Skeleton className="h-8 w-64 mb-8" />
-              <Skeleton className="h-96" />
-            </div>
-          </div>
-        </div>
-      </SidebarProvider>
+      <div className="flex-1 p-6">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="h-96" />
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <BrandSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Company Profile</h2>
-          </header>
-
-          <main className="p-6 max-w-4xl">
-            <Tabs defaultValue="company" className="space-y-6">
-              <TabsList>
-                <TabsTrigger value="company">
-                  <Building2 className="w-4 h-4 mr-2" />
+    <div className="flex-1 p-6 max-w-4xl">
+      <Tabs defaultValue="company" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="company">
+            <Building2 className="w-4 h-4 mr-2" />
                   Company Info
                 </TabsTrigger>
                 <TabsTrigger value="account">
@@ -329,10 +307,7 @@ export default function BrandProfile() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+      </Tabs>
+    </div>
   );
 }

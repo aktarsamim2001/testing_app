@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -17,11 +18,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const isAuthPage = pathname?.startsWith("/auth");
   const isAdminPage = pathname?.startsWith("/admin");
   const isBrandPage = pathname?.startsWith("/brand");
-  const isCreatorPage = pathname?.startsWith("/creator");
+  const isCreatorPage = pathname?.startsWith("/creator") && pathname !== "/creators";
+
+  const handleToggleSidebar = () => {
+    setIsCollapsed((prev) => !prev);
+  };
 
   return (
     <html lang="en">
@@ -33,9 +39,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="flex flex-col min-h-screen">
-            {isAdminPage && <AdminHeader />}
-            {isBrandPage && <BrandHeader />}
-            {isCreatorPage && <CreatorHeader />}
+            {isAdminPage && <AdminHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
+            {isBrandPage && <BrandHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
+            {isCreatorPage && <CreatorHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
             {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Navigation />}
             <main className="flex-1 pt-16">
               {children}
@@ -50,3 +56,4 @@ export default function RootLayout({
     </html>
   );
 }
+

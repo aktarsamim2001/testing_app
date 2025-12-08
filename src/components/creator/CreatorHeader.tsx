@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Zap, LogOut, User } from "lucide-react";
+import { Zap, LogOut, User, Menu, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
-const CreatorHeader = () => {
+interface CreatorHeaderProps {
+  isCollapsed: boolean;
+  onToggleSidebar: () => void;
+}
+
+const CreatorHeader = ({ isCollapsed, onToggleSidebar }: CreatorHeaderProps) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -26,6 +31,13 @@ const CreatorHeader = () => {
         </Link>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 hover:bg-muted rounded-md transition-colors"
+            aria-label="Toggle sidebar"
+          >
+            {isCollapsed ? <Menu className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
+          </button>
           <div className="text-sm text-muted-foreground">{user?.email}</div>
           <Button variant="ghost" size="sm" onClick={() => router.push("/creator")}>
             <User className="w-4 h-4 mr-2" />

@@ -1,5 +1,6 @@
-import Creators from "@/pages/Creators";
+import ForCreators from "@/page-components/ForCreators";
 
 export default function Page() {
-  return <Creators />;
+  return <ForCreators />;
 }
+

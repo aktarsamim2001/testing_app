@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Zap, LogOut, User } from "lucide-react";
+import { Zap, LogOut, User, Menu, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
-const BrandHeader = () => {
+interface BrandHeaderProps {
+  isCollapsed: boolean;
+  onToggleSidebar: () => void;
+}
+
+const BrandHeader = ({ isCollapsed, onToggleSidebar }: BrandHeaderProps) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -26,6 +31,13 @@ const BrandHeader = () => {
         </Link>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 hover:bg-muted rounded-md transition-colors"
+            aria-label="Toggle sidebar"
+          >
+            {isCollapsed ? <Menu className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
+          </button>
           <div className="text-sm text-muted-foreground">{user?.email}</div>
           <Button variant="ghost" size="sm" onClick={() => router.push("/brand")}>
             <User className="w-4 h-4 mr-2" />

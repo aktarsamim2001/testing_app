@@ -9,8 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -106,35 +104,15 @@ export default function CreatorProfile() {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <CreatorSidebar />
-          <div className="flex-1">
-            <header className="h-16 border-b flex items-center px-6">
-              <SidebarTrigger />
-            </header>
-            <div className="p-6">
-              <Skeleton className="h-8 w-64 mb-8" />
-              <Skeleton className="h-96" />
-            </div>
-          </div>
-        </div>
-      </SidebarProvider>
+      <div className="flex-1 p-6">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="h-96" />
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Creator Profile</h2>
-          </header>
-
-          <main className="p-6 max-w-2xl">
+    <div className="flex-1 p-6 max-w-2xl">
             <Card>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
@@ -235,9 +213,6 @@ export default function CreatorProfile() {
                 </form>
               </CardContent>
             </Card>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    </div>
   );
 }

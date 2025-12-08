@@ -1,59 +1,61 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { useRouter } from "next/navigation";
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
-import ClientDialog from '@/components/admin/ClientDialog';
+import CampaignDialog from '@/components/admin/CampaignDialog';
 
-interface Client {
+interface Campaign {
   id: string;
-  company_name: string;
-  contact_name: string;
-  contact_email: string;
-  contact_phone: string | null;
-  website: string | null;
+  name: string;
+  type: string;
   status: string;
-  notes: string | null;
+  budget: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  client_id: string;
+  clients: { company_name: string } | null;
   created_at: string;
 }
 
-export default function Clients() {
+export default function Campaigns() {
   const router = useRouter();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
 
-  const fetchClients = async () => {
+  const fetchCampaigns = async () => {
     const { data, error } = await supabase
-      .from('clients')
-      .select('*')
+      .from('campaigns')
+      .select('*, clients(company_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      setClients(data || []);
+      setCampaigns(data || []);
     }
     setDataLoading(false);
   };
 
   useEffect(() => {
     if (user && isAdmin) {
-      fetchClients();
+      fetchCampaigns();
     }
   }, [user, isAdmin]);
 
@@ -64,36 +66,59 @@ export default function Clients() {
   }, [user, isAdmin, loading, router]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this client?')) return;
+    if (!confirm('Are you sure you want to delete this campaign?')) return;
 
-    const { error } = await supabase.from('clients').delete().eq('id', id);
+    const { error } = await supabase.from('campaigns').delete().eq('id', id);
     
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Success', description: 'Client deleted successfully' });
-      fetchClients();
+      toast({ title: 'Success', description: 'Campaign deleted successfully' });
+      fetchCampaigns();
     }
   };
 
-  const handleEdit = (client: Client) => {
-    setEditingClient(client);
+  const handleEdit = (campaign: Campaign) => {
+    setEditingCampaign(campaign);
     setDialogOpen(true);
   };
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    setEditingClient(null);
-    fetchClients();
+    setEditingCampaign(null);
+    fetchCampaigns();
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500';
-      case 'inactive': return 'bg-gray-500';
-      case 'prospect': return 'bg-blue-500';
+      case 'planning': return 'bg-blue-500';
+      case 'paused': return 'bg-yellow-500';
+      case 'completed': return 'bg-gray-500';
+      case 'cancelled': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'blogger_outreach': return 'bg-purple-500';
+      case 'linkedin_influencer': return 'bg-blue-500';
+      case 'youtube_campaign': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const formatType = (type: string) => {
+    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
 
   if (loading) {
@@ -113,19 +138,19 @@ export default function Clients() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Clients</h1>
-            <p className="text-muted-foreground">Manage your SAAS company clients</p>
+            <h1 className="text-3xl font-bold">Campaigns</h1>
+            <p className="text-muted-foreground">Manage your marketing campaigns</p>
           </div>
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Add Client
+            Add Campaign
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>All Clients</CardTitle>
-            <CardDescription>View and manage client accounts</CardDescription>
+            <CardTitle>All Campaigns</CardTitle>
+            <CardDescription>View and manage active campaigns</CardDescription>
           </CardHeader>
           <CardContent>
             {dataLoading ? (
@@ -135,37 +160,46 @@ export default function Clients() {
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
               </div>
-            ) : clients.length === 0 ? (
+            ) : campaigns.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No clients yet. Click "Add Client" to get started.
+                No campaigns yet. Click "Add Campaign" to get started.
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Budget</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.company_name}</TableCell>
-                      <TableCell>{client.contact_name}</TableCell>
-                      <TableCell>{client.contact_email}</TableCell>
+                  {campaigns.map((campaign) => (
+                    <TableRow key={campaign.id}>
+                      <TableCell className="font-medium">{campaign.name}</TableCell>
+                      <TableCell>{campaign.clients?.company_name || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(client.status)}>
-                          {client.status}
+                        <Badge className={getTypeColor(campaign.type)}>
+                          {formatType(campaign.type)}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(campaign.status)}>
+                          {campaign.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatCurrency(campaign.budget)}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
+                        <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/campaigns/${campaign.id}`)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(campaign)}>
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(campaign.id)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </TableCell>
@@ -177,10 +211,10 @@ export default function Clients() {
           </CardContent>
         </Card>
 
-        <ClientDialog
+        <CampaignDialog
           open={dialogOpen}
           onOpenChange={handleDialogClose}
-          client={editingClient}
+          campaign={editingCampaign}
         />
       </div>
     </AdminLayout>

@@ -1,5 +1,9 @@
-import Partners from "@/pages/admin/Partners";
+"use client";
+
+import Partners from "@/page-components/admin/Partners";
 import AdminRoute from "@/components/AdminRoute";
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
@@ -8,3 +12,4 @@ export default function Page() {
     </AdminRoute>
   );
 }
+

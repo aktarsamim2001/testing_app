@@ -13,8 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Youtube, Linkedin, BookOpen, Users, TrendingUp, Mail, Search } from "lucide-react";
 import { toast } from "sonner";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandSidebar } from "@/components/brand/BrandSidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Partner {
   id: string;
@@ -148,22 +147,28 @@ export default function CreatorMarketplace() {
     return num.toString();
   };
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <BrandSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger />
-            <h2 className="ml-4 text-xl font-semibold">Creator Marketplace</h2>
-          </header>
+  if (loading) {
+    return (
+      <div className="flex-1 p-6">
+        <Skeleton className="h-10 w-96 mb-2" />
+        <Skeleton className="h-5 w-80 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
 
-          <main className="p-6">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Discover Creators</h1>
-              <p className="text-muted-foreground">Find and connect with creators across multiple channels</p>
-            </div>
+  return (
+    <div className="flex-1 p-6">
+      <div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Discover Creators</h1>
+          <p className="text-muted-foreground">Find and connect with creators across multiple channels</p>
+        </div>
 
         {/* Filters Section */}
         <Card className="mb-8">
@@ -357,9 +362,7 @@ export default function CreatorMarketplace() {
             ))}
           </div>
         )}
-          </main>
-        </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

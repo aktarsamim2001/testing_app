@@ -10,23 +10,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export const dynamic = "force-dynamic";
-
 export function CreatorCampaignDetail() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState<any>(null);
   const [partnership, setPartnership] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Initialize auth state after mount only
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Get user only after mounted (prevents SSR errors)
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (id && user) {
-      fetchCampaignDetails();
-    }
-  }, [id, user]);
+    if (!mounted || !id || !user) return;
+    fetchCampaignDetails();
+  }, [id, user, mounted]);
 
   const fetchCampaignDetails = async () => {
     try {
@@ -231,5 +236,3 @@ export function CreatorCampaignDetail() {
     </div>
   );
 }
-
-export default CreatorCampaignDetail;

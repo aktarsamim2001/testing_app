@@ -8,8 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandSidebar } from "@/components/brand/BrandSidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -223,17 +222,29 @@ export default function BrandAnalytics() {
   const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   const conversionRate = totals.clicks > 0 ? (totals.conversions / totals.clicks) * 100 : 0;
 
+  if (loading) {
+    return (
+      <div className="flex-1 p-6">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <BrandSidebar />
-        
-        <div className="flex-1">
-          <header className="h-16 border-b flex items-center justify-between px-6">
-            <div className="flex items-center">
-              <SidebarTrigger />
-              <h2 className="ml-4 text-xl font-semibold">Campaign Analytics</h2>
-            </div>
+    <div className="flex-1 p-6">
+      <div>
+          <header className="mb-6">
+            <h2 className="text-xl font-semibold">Campaign Analytics</h2>
             
             <div className="flex items-center gap-4">
               <Select value={dateRange} onValueChange={setDateRange}>
@@ -266,7 +277,7 @@ export default function BrandAnalytics() {
             </div>
           </header>
 
-          <main className="p-6 space-y-6">
+          <div className="space-y-6">
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <Card>
@@ -555,9 +566,8 @@ export default function BrandAnalytics() {
                 </CardContent>
               </Card>
             )}
-          </main>
-        </div>
+          </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

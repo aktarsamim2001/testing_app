@@ -10,13 +10,13 @@ const Footer = () => {
   // Don't show this Footer on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
                           pathname?.startsWith("/brand") || 
-                          pathname?.startsWith("/creator");
+                          (pathname?.startsWith("/creator") && pathname !== "/creators");
 
   if (isDashboardPage) return null;
 
   return (
-    <footer className="bg-card border-t border-border">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-card border-t border-border w-full">
+      <div className="w-full px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div>

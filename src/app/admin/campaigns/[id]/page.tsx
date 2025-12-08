@@ -1,4 +1,6 @@
-import CampaignDetails from "@/pages/admin/CampaignDetails";
+"use client";
+
+import CampaignDetails from "@/page-components/admin/CampaignDetails";
 import AdminRoute from "@/components/AdminRoute";
 
 export default function Page() {

@@ -27,6 +27,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/admin') return pathname === path;
@@ -38,55 +39,74 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     router.push('/auth');
   };
 
+  const closeMobileSidebar = () => {
+    setIsMobileSidebarOpen(false);
+  };
+
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex flex-col min-h-screen">
       {/* Header */}
       <AdminHeader 
         isCollapsed={isCollapsed} 
-        onToggleSidebar={() => setIsCollapsed(!isCollapsed)} 
+        onToggleSidebar={() => {
+          if (window.innerWidth < 768) {
+            setIsMobileSidebarOpen(!isMobileSidebarOpen);
+          } else {
+            setIsCollapsed(!isCollapsed);
+          }
+        }} 
       />
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className={`${isCollapsed ? 'w-18' : 'w-64'} border-r bg-background transition-all duration-300 flex flex-col flex-shrink-0`}>
+        {/* Sidebar - Mobile Drawer & Desktop Fixed */}
+        <>
+          {/* Mobile Overlay */}
+          {isMobileSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={closeMobileSidebar}
+            />
+          )}
+          
+          {/* Sidebar */}
+          <aside className={`
+            border-r bg-background transition-all duration-300 flex flex-col flex-shrink-0
+            md:fixed md:left-0 md:top-16 md:bottom-0
+            ${window.innerWidth < 768 ? 'fixed left-0 top-16 bottom-0 z-40' : 'md:z-40'}
+            ${isMobileSidebarOpen || window.innerWidth >= 768 ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          `} 
+          style={{
+            width: window.innerWidth >= 768 && isCollapsed ? '72px' : '256px',
+          }}>
 
-          {/* Menu Items */}
-          <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-2`}>
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted text-foreground'
-                }`}
-                title={item.title}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!isCollapsed && <span className="truncate text-sm font-medium">{item.title}</span>}
-              </Link>
-            ))}
-          </nav>
+            {/* Menu Items */}
+            <nav className={`flex-1 ${window.innerWidth >= 768 && isCollapsed ? 'p-2' : 'p-4'} space-y-2 overflow-y-auto`}>
+              {menuItems.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  onClick={closeMobileSidebar}
+                  className={`flex items-center ${window.innerWidth >= 768 && isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg transition-colors ${
+                    isActive(item.path)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted text-foreground'
+                  }`}
+                  title={item.title}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  {!(window.innerWidth >= 768 && isCollapsed) && <span className="truncate text-sm font-medium">{item.title}</span>}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </>
 
-          {/* Sign Out Button */}
-          {/* <div className="p-4 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className={`w-full justify-${isCollapsed ? 'center' : 'start'}`}
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-              {!isCollapsed && <span className="ml-2">Sign Out</span>}
-            </Button>
-          </div> */}
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        {/* Main Content - Scrollable with margin for fixed sidebar */}
+        <main className="flex-1 overflow-y-auto transition-all duration-300" 
+        style={{
+          marginLeft: window.innerWidth < 768 ? '0' : (isCollapsed ? '72px' : '256px'),
+        }}>
           {children}
         </main>
       </div>

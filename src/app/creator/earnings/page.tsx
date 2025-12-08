@@ -2,7 +2,9 @@
 
 import { lazy, Suspense } from "react";
 
-const CreatorEarnings = lazy(() => import("@/pages/creator/Earnings"));
+const CreatorEarnings = lazy(() => import("@/page-components/creator/Earnings"));
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
@@ -11,3 +13,4 @@ export default function Page() {
     </Suspense>
   );
 }
+

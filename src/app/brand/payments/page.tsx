@@ -1,5 +1,8 @@
-import Payments from "@/pages/brand/Payments";
+"use client";
+
+import Payments from "@/page-components/brand/Payments";
 
 export default function Page() {
   return <Payments />;
 }
+

@@ -1,4 +1,4 @@
-import BlogPostWizard from "@/pages/admin/BlogPostWizard";
+import BlogPostWizard from "@/page-components/admin/BlogPostWizard";
 import AdminRoute from "@/components/AdminRoute";
 
 export default function Page() {
@@ -8,3 +8,4 @@ export default function Page() {
     </AdminRoute>
   );
 }
+

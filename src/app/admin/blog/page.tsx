@@ -1,5 +1,9 @@
-import BlogPosts from "@/pages/admin/BlogPosts";
+"use client";
+
+import BlogPosts from "@/page-components/admin/BlogPosts";
 import AdminRoute from "@/components/AdminRoute";
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
@@ -8,3 +12,4 @@ export default function Page() {
     </AdminRoute>
   );
 }
+

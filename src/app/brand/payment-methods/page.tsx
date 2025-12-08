@@ -2,7 +2,7 @@
 
 import { lazy, Suspense } from "react";
 
-const PaymentMethods = lazy(() => import("@/pages/brand/PaymentMethods"));
+const PaymentMethods = lazy(() => import("@/page-components/brand/PaymentMethods"));
 
 export default function Page() {
   return (
@@ -11,3 +11,4 @@ export default function Page() {
     </Suspense>
   );
 }
+
