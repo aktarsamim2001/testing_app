@@ -12,6 +12,37 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2, GripVertical, ArrowLeft, ChevronUp, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import Section1Home from './home/Section1';
+import Section2Home from './home/Section2';
+import Section3Home from './home/Section3';
+import Section4Home from './home/Section4';
+import Section1Creators from './creators/Section1';
+import Section2Creators from './creators/Section2';
+import Section3Creators from './creators/Section3';
+import Section4Creators from './creators/Section4';
+import Section5Creators from './creators/Section5';
+import Section1Services from './services/Section1';
+import Section2Services from './services/Section2';
+import Section3Services from './services/Section3';
+import Section1HowItWorks from './how-it-works/Section1';
+import Section2HowItWorks from './how-it-works/Section2';
+import Section3HowItWorks from './how-it-works/Section3';
+import Section4HowItWorks from './how-it-works/Section4';
+import Section1Pricing from './pricing/Section1';
+import Section2Pricing from './pricing/Section2';
+import Section3Pricing from './pricing/Section3';
+import Section4Pricing from './pricing/Section4';
+import Section5Pricing from './pricing/Section5';
+import Section1About from './about/Section1';
+import Section2About from './about/Section2';
+import Section3About from './about/Section3';
+import Section4About from './about/Section4';
+import Section5About from './about/Section5';
+import Section6About from './about/Section6';
+import Section1Contact from './contact/Section1';
+import Section2Contact from './contact/Section2';
+import Section1Blog from './blog/Section1';
+import Section2Blog from './blog/Section2';
 
 interface SectionData {
   id: string;
@@ -30,6 +61,25 @@ interface SlideData {
   button1Text?: string;
   button2Text?: string;
   image?: string;
+  button1Url?: string;
+  button2Url?: string;
+  stats?: Array<{
+    number: string;
+    label: string;
+    icon?: string;
+  }>;
+  cards?: Array<{
+    id: string;
+    icon?: string;
+    title: string;
+    description: string;
+    buttonText: string;
+    buttonUrl: string;
+  }>;
+  features?: Array<{
+    id: string;
+    text: string;
+  }>;
 }
 
 interface PageData {
@@ -55,13 +105,39 @@ const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
   home: [
     {
       id: 'hero',
-      name: 'Banner',
+      name: 'Section 1',
       type: 'hero',
       slides: [],
     },
     {
       id: 'channels',
-      name: 'Packages',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+    {
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+    {
+      id: 'stats',
+      name: 'Section 4',
+      type: 'stats',
+      slides: [],
+    },
+  ],
+  creators: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
       type: 'channels',
       slides: [],
     },
@@ -78,21 +154,179 @@ const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
       slides: [],
     },
     {
-      id: 'benefits',
-      name: 'What You Can Do',
-      type: 'benefits',
+      id: 'section5',
+      name: 'Section 5',
+      type: 'stats',
+      slides: [],
+    },
+  ],
+  services: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
       slides: [],
     },
     {
-      id: 'how-it-works',
-      name: 'How It Works',
-      type: 'how-it-works',
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
       slides: [],
     },
     {
-      id: 'cta',
-      name: 'Section 9',
-      type: 'cta',
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+  ],
+  'how-it-works': [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+    {
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+    {
+      id: 'stats',
+      name: 'Section 4',
+      type: 'stats',
+      slides: [],
+    },
+  ],
+  pricing: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+    {
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+    {
+      id: 'stats',
+      name: 'Section 4',
+      type: 'stats',
+      slides: [],
+    },
+    {
+      id: 'section5',
+      name: 'Section 5',
+      type: 'section5',
+      slides: [],
+    },
+  ],
+  about: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+    {
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+    {
+      id: 'stats',
+      name: 'Section 4',
+      type: 'stats',
+      slides: [],
+    },
+    {
+      id: 'section5',
+      name: 'Section 5',
+      type: 'section5',
+      slides: [],
+    },
+    {
+      id: 'section6',
+      name: 'Section 6',
+      type: 'section6',
+      slides: [],
+    },
+  ],
+  contact: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+  ],
+  blog: [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+  ],
+  'blog-details': [
+    {
+      id: 'hero',
+      name: 'Section 1',
+      type: 'hero',
+      slides: [],
+    },
+    {
+      id: 'channels',
+      name: 'Section 2',
+      type: 'channels',
+      slides: [],
+    },
+    {
+      id: 'features',
+      name: 'Section 3',
+      type: 'features',
+      slides: [],
+    },
+    {
+      id: 'stats',
+      name: 'Section 4',
+      type: 'stats',
       slides: [],
     },
   ],
@@ -154,7 +388,14 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
           template: data.template || 'home',
           status: (data.status as 'draft' | 'published') || 'draft',
         });
-        setSections((data.sections as unknown as SectionData[]) || []);
+        
+        // Filter sections to only include those defined in the template
+        const templateSections = TEMPLATE_SECTIONS[data.template as keyof typeof TEMPLATE_SECTIONS] || [];
+        const templateSectionIds = templateSections.map(s => s.id);
+        const filteredSections = (data.sections as unknown as SectionData[]) || [];
+        const sectionsForTemplate = filteredSections.filter(s => templateSectionIds.includes(s.id));
+        
+        setSections(sectionsForTemplate);
         setSeoData({
           title: '',
           author: '',
@@ -162,7 +403,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
           keywords: '',
           image: '',
         });
-        setActiveSection((data.sections as unknown as SectionData[])?.[0]?.id || 'hero');
+        setActiveSection(sectionsForTemplate?.[0]?.id || 'hero');
       }
     } catch (error) {
       toast({
@@ -401,8 +642,14 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="home">Home</SelectItem>
-                      <SelectItem value="about">About</SelectItem>
+                      <SelectItem value="creators">Creators</SelectItem>
                       <SelectItem value="services">Services</SelectItem>
+                      <SelectItem value="how-it-works">How It Works</SelectItem>
+                      <SelectItem value="pricing">Pricing</SelectItem>
+                      <SelectItem value="blog">Blog</SelectItem>
+                      <SelectItem value="about">About</SelectItem>
+                      {/* <SelectItem value="blog-details">Blog Details</SelectItem> */}
+                      <SelectItem value="contact">Contact</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -452,7 +699,18 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                 <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
                   <div className="flex justify-between items-center mb-4">
                     <TabsList className="w-full justify-start overflow-x-auto bg-muted p-1 gap-1 h-auto flex-wrap">
-                      {sections.map((section) => (
+                      {sections.filter(section => {
+                        // Get the maximum section count for current template
+                        const templateSections = TEMPLATE_SECTIONS[formData.template as keyof typeof TEMPLATE_SECTIONS] || [];
+                        const maxSectionCount = templateSections.length;
+                        
+                        // Extract section number from name (e.g., "Section 1" -> 1)
+                        const sectionMatch = section.name.match(/Section (\d+)/);
+                        const sectionNumber = sectionMatch ? parseInt(sectionMatch[1]) : 0;
+                        
+                        // Only show sections that are defined in the template
+                        return sectionNumber > 0 && sectionNumber <= maxSectionCount;
+                      }).map((section) => (
                         <TabsTrigger 
                           key={section.id} 
                           value={section.id}
@@ -504,169 +762,276 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                         {!collapsedSections.has(section.id) && (
                           <>
                             {/* Banner Section - Special Treatment */}
-                            {section.type === 'hero' ? (
-                              <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
-                                {/* Initialize slide if not exists */}
-                                {section.slides.length === 0 && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => addSlide(section.id)}
-                                    className="w-full text-xs"
-                                  >
-                                    <Plus className="w-3 h-3 mr-1" />
-                                    Initialize Banner
-                                  </Button>
-                                )}
-
-                                {section.slides.length > 0 && (
-                                  <div className="space-y-3">
-                                    {/* Subtitle */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Subtitle</Label>
-                                      <Input
-                                        value={section.slides[0]?.subtitle || ''}
-                                        onChange={(e) => updateSlide(section.id, section.slides[0].id, { subtitle: e.target.value })}
-                                        placeholder="e.g., Trusted by 500+ Growing SaaS Companies"
-                                        className="text-sm"
-                                        disabled={loading}
-                                      />
-                                    </div>
-
-                                    {/* Title */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Title</Label>
-                                      <Input
-                                        value={section.slides[0]?.title || ''}
-                                        onChange={(e) => updateSlide(section.id, section.slides[0].id, { title: e.target.value })}
-                                        placeholder="e.g., Scale Your SaaS Through Strategic Partnerships"
-                                        className="text-sm"
-                                        disabled={loading}
-                                      />
-                                    </div>
-
-                                    {/* Description */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Description</Label>
-                                      <textarea
-                                        value={section.slides[0]?.description || ''}
-                                        onChange={(e) => updateSlide(section.id, section.slides[0].id, { description: e.target.value })}
-                                        placeholder="Enter banner description..."
-                                        className="w-full text-sm border rounded p-2 min-h-20 font-sans"
-                                        disabled={loading}
-                                      />
-                                    </div>
-
-                                    {/* Button 1 */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Button 1 Text</Label>
-                                      <Input
-                                        value={section.slides[0]?.button1Text || ''}
-                                        onChange={(e) => updateSlide(section.id, section.slides[0].id, { button1Text: e.target.value })}
-                                        placeholder="e.g., Start Growing Today"
-                                        className="text-sm"
-                                        disabled={loading}
-                                      />
-                                    </div>
-
-                                    {/* Button 2 */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Button 2 Text</Label>
-                                      <Input
-                                        value={section.slides[0]?.button2Text || ''}
-                                        onChange={(e) => updateSlide(section.id, section.slides[0].id, { button2Text: e.target.value })}
-                                        placeholder="e.g., See How It Works"
-                                        className="text-sm"
-                                        disabled={loading}
-                                      />
-                                    </div>
-
-                                    {/* Image */}
-                                    <div className="space-y-1">
-                                      <Label className="text-xs font-medium">Banner Image</Label>
-                                      <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors">
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          onChange={(e) => {
-                                            if (e.target.files?.[0]) {
-                                              updateSlide(section.id, section.slides[0].id, { image: e.target.files[0].name });
-                                            }
-                                          }}
-                                          disabled={loading}
-                                          className="hidden"
-                                          id="banner-image-input"
-                                        />
-                                        <label htmlFor="banner-image-input" className="cursor-pointer block">
-                                          <p className="text-sm text-muted-foreground">
-                                            Drag & Drop your image or <span className="text-primary font-medium">Browse</span>
-                                          </p>
-                                        </label>
-                                      </div>
-                                      {section.slides[0]?.image && (
-                                        <p className="text-xs text-muted-foreground">Selected: {section.slides[0].image}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                            {formData.template === 'creators' ? (
+                              // Creators template sections
+                              section.id === 'hero' ? (
+                                <Section1Creators
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2Creators
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'features' ? (
+                                <Section3Creators
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'stats' ? (
+                                <Section4Creators
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : (
+                                <Section5Creators
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              )
+                            ) : formData.template === 'services' ? (
+                              // Services template sections
+                              section.id === 'hero' ? (
+                                <Section1Services
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2Services
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'features' ? (
+                                <Section3Services
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
+                            ) : formData.template === 'how-it-works' ? (
+                              // How-It-Works template sections
+                              section.id === 'hero' ? (
+                                <Section1HowItWorks
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2HowItWorks
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'features' ? (
+                                <Section3HowItWorks
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'stats' ? (
+                                <Section4HowItWorks
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
+                            ) : formData.template === 'pricing' ? (
+                              // Pricing template sections
+                              section.id === 'hero' ? (
+                                <Section1Pricing
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2Pricing
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'features' ? (
+                                <Section3Pricing
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'stats' ? (
+                                <Section4Pricing
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'section5' ? (
+                                <Section5Pricing
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
+                            ) : formData.template === 'about' ? (
+                              // About template sections
+                              section.id === 'hero' ? (
+                                <Section1About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'features' ? (
+                                <Section3About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'stats' ? (
+                                <Section4About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'section5' ? (
+                                <Section5About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'section6' ? (
+                                <Section6About
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
+                            ) : formData.template === 'contact' ? (
+                              // Contact template sections
+                              section.id === 'hero' ? (
+                                <Section1Contact
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2Contact
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
+                            ) : formData.template === 'blog' ? (
+                              // Blog template sections
+                              section.id === 'hero' ? (
+                                <Section1Blog
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : section.id === 'channels' ? (
+                                <Section2Blog
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  removeSlide={removeSlide}
+                                />
+                              ) : null
                             ) : (
-                              <>
-                        {/* Slides List for Other Sections */}
-                        <div className="space-y-2 mb-4">
-                          {section.slides.length === 0 ? (
-                            <p className="text-xs text-muted-foreground py-4 text-center bg-muted rounded">No slides added yet</p>
-                          ) : (
-                            section.slides.map((slide) => (
-                              <Card key={slide.id} className="p-3">
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                                    <Input
-                                      value={slide.title}
-                                      onChange={(e) => updateSlide(section.id, slide.id, { title: e.target.value })}
-                                      placeholder="Slide title"
-                                      className="text-sm h-8"
-                                      disabled={loading}
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => removeSlide(section.id, slide.id)}
-                                      disabled={loading}
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      <Trash2 className="w-4 h-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                  <textarea
-                                    value={slide.content}
-                                    onChange={(e) => updateSlide(section.id, slide.id, { content: e.target.value })}
-                                    placeholder="Slide content"
-                                    className="w-full text-xs border rounded p-2 min-h-24 font-sans"
-                                    disabled={loading}
-                                  />
-                                </div>
-                              </Card>
-                            ))
-                          )}
-                        </div>
-
-                        {/* Add Slide Button */}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addSlide(section.id)}
-                          disabled={loading}
-                          className="w-full text-xs"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add Slide
-                        </Button>
-                              </>
+                              // Home template sections
+                              section.type === 'hero' ? (
+                                <Section1Home
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                />
+                              ) : section.type === 'channels' ? (
+                                <Section2Home
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                />
+                              ) : section.type === 'stats' ? (
+                                <Section4Home
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  showButton={section.name !== 'Section 3'}
+                                />
+                              ) : (
+                                <Section3Home
+                                  section={section}
+                                  loading={loading}
+                                  updateSlide={updateSlide}
+                                  addSlide={addSlide}
+                                  showButton={section.name !== 'Section 3'}
+                                />
+                              )
                             )}
                           </>
                         )}

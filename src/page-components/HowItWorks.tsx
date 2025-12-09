@@ -92,9 +92,9 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-subtle py-16">
+      <section className="bg-gradient-subtle pt-16 sm:pt-24 pb-16 sm:pb-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">

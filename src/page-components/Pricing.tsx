@@ -91,9 +91,9 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-subtle py-16">
+      <section className="bg-gradient-subtle pt-16 sm:pt-24 pb-16 sm:pb-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
@@ -225,7 +225,7 @@ const Pricing = () => {
             <div className="space-y-6">
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Can I switch plans later?</h3>
+                  <h3 className="text-xl font-semibold mb-2">Can I switch plans later?</h3>
                   <p className="text-sm text-muted-foreground">
                     Absolutely! You can upgrade or downgrade at any time. Changes take effect at your next billing cycle.
                   </p>
@@ -234,7 +234,7 @@ const Pricing = () => {
 
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">What's your cancellation policy?</h3>
+                  <h3 className="text-xl font-semibold mb-2">What's your cancellation policy?</h3>
                   <p className="text-sm text-muted-foreground">
                     No long-term contracts. You can cancel anytime with 30 days notice. We'll wrap up active campaigns professionally.
                   </p>
@@ -243,7 +243,7 @@ const Pricing = () => {
 
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Do you offer custom enterprise packages?</h3>
+                  <h3 className="text-xl font-semibold mb-2">Do you offer custom enterprise packages?</h3>
                   <p className="text-sm text-muted-foreground">
                     Yes! For companies with unique needs or larger budgets, we create fully customized solutions. Contact us to discuss.
                   </p>

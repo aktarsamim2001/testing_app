@@ -89,7 +89,7 @@ const ForCreators = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-16 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 bg-gradient-subtle">
+      <section className=" pt-16 sm:pt-24 pb-16 sm:pb-20 bg-gradient-subtle">
         <div className="container mx-auto max-w-6xl text-center">
           <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
             Turn Your Influence Into Income
