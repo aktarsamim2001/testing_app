@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
+import { useDispatch, useSelector } from 'react-redux';
+import { assignPartnerToCampaign } from '@/store/slices/campaignPartners';
+import { fetchPartners, selectPartners, selectPartnersLoading } from '@/store/slices/partners';
 import { useToast } from '@/hooks/use-toast';
 
 interface AssignPartnerDialogProps {
@@ -21,7 +23,8 @@ interface Partner {
 }
 
 export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: AssignPartnerDialogProps) {
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const partners = useSelector(selectPartners);
+  const partnersLoading = useSelector(selectPartnersLoading);
   const [selectedPartnerId, setSelectedPartnerId] = useState('');
   const [compensation, setCompensation] = useState('');
   const [status, setStatus] = useState('pending');
@@ -29,35 +32,16 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const dispatch = useDispatch();
   useEffect(() => {
     if (open) {
-      fetchAvailablePartners();
       setSelectedPartnerId('');
       setCompensation('');
       setStatus('pending');
       setNotes('');
+      dispatch<any>(fetchPartners(1, 100));
     }
-  }, [open, campaignId]);
-
-  const fetchAvailablePartners = async () => {
-    const { data: assignedPartners } = await supabase
-      .from('campaign_partners')
-      .select('partner_id')
-      .eq('campaign_id', campaignId);
-
-    const assignedIds = assignedPartners?.map(ap => ap.partner_id) || [];
-
-    const { data, error } = await supabase
-      .from('partners')
-      .select('id, name, channel_type')
-      .order('name');
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setPartners((data || []).filter(p => !assignedIds.includes(p.id)));
-    }
-  };
+  }, [open, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,24 +49,19 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
       toast({ title: 'Error', description: 'Please select a partner', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
-
-    const { error } = await supabase.from('campaign_partners').insert([{
+    // Ensure compensation is sent as a string and status is capitalized
+    const formattedCompensation = compensation ? compensation.toString() : "";
+    const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    await dispatch<any>(assignPartnerToCampaign({
       campaign_id: campaignId,
       partner_id: selectedPartnerId,
-      compensation: compensation ? parseFloat(compensation) : null,
-      status,
+      compensation: formattedCompensation,
+      status: formattedStatus,
       notes: notes || null
-    }]);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: 'Partner assigned to campaign' });
-      onOpenChange(false);
-    }
+    }));
     setLoading(false);
+    onOpenChange(false);
   };
 
   return (
@@ -98,9 +77,9 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="partner">Partner *</Label>
-            <Select value={selectedPartnerId} onValueChange={setSelectedPartnerId}>
+            <Select value={selectedPartnerId} onValueChange={setSelectedPartnerId} disabled={partnersLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a partner" />
+                <SelectValue placeholder={partnersLoading ? "Loading..." : "Select a partner"} />
               </SelectTrigger>
               <SelectContent>
                 {partners.map((partner) => (

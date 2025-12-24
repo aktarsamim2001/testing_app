@@ -1,5 +1,6 @@
-import PageBuilder from "@/page-components/admin/PageBuilder";
+"use client";
+import PageBuilder from '@/page-components/admin/PageBuilder';
 
-export default function CreatePagePage() {
+export default function CreatePage() {
   return <PageBuilder />;
 }

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCampaignById } from '@/store/slices/campaigns';
+import { assignPartnerToCampaign, removePartnerFromCampaign } from '@/store/slices/campaignPartners';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AssignPartnerDialog from '@/components/admin/AssignPartnerDialog';
@@ -24,85 +27,58 @@ interface Campaign {
   clients: { company_name: string } | null;
 }
 
-interface CampaignPartner {
-  id: string;
-  partner_id: string;
-  compensation: number | null;
-  status: string | null;
-  notes: string | null;
-  partners: {
-    name: string;
-    channel_type: string;
-    email: string;
-  };
-}
+
+
 
 export default function CampaignDetails() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const router = useRouter();
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [partners, setPartners] = useState<CampaignPartner[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const dispatch = useDispatch();
+  const [campaign, setCampaign] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [partnerToRemove, setPartnerToRemove] = useState<string | null>(null);
 
   const fetchCampaign = async () => {
     if (!id) return;
-
-    const { data, error} = await supabase
-      .from('campaigns')
-      .select('*, clients(company_name)')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
+    setLoading(true);
+    try {
+      const data = await dispatch<any>(fetchCampaignById(id));
       setCampaign(data);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const fetchPartners = async () => {
-    if (!id) return;
-
-    const { data, error } = await supabase
-      .from('campaign_partners')
-      .select('*, partners(name, channel_type, email)')
-      .eq('campaign_id', id);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setPartners(data || []);
-    }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchCampaign();
-    fetchPartners();
+    // eslint-disable-next-line
   }, [id]);
 
-  const handleRemovePartner = async (partnerId: string) => {
-    if (!confirm('Remove this partner from the campaign?')) return;
+  const handleRemovePartner = (partnerId: string) => {
+    setPartnerToRemove(partnerId);
+    setRemoveDialogOpen(true);
+  };
 
-    const { error } = await supabase
-      .from('campaign_partners')
-      .delete()
-      .eq('id', partnerId);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: 'Partner removed from campaign' });
-      fetchPartners();
+  const confirmRemovePartner = async () => {
+    if (!partnerToRemove || !id) return;
+    setLoading(true);
+    try {
+      await dispatch<any>(removePartnerFromCampaign({ id: partnerToRemove, campaignId: id }));
+      await fetchCampaign();
+    } finally {
+      setLoading(false);
+      setRemoveDialogOpen(false);
+      setPartnerToRemove(null);
     }
   };
 
-  const handleDialogClose = () => {
+  const handleDialogClose = async () => {
     setDialogOpen(false);
-    fetchPartners();
+    await fetchCampaign();
   };
 
   const formatCurrency = (amount: number | null) => {
@@ -158,7 +134,7 @@ export default function CampaignDetails() {
               <CardTitle className="text-sm font-medium">Partners Assigned</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{partners.length}</div>
+              <div className="text-2xl font-bold">{campaign.assigned_partners?.length || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -179,7 +155,7 @@ export default function CampaignDetails() {
           <CardContent>
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
-            ) : partners.length === 0 ? (
+            ) : !campaign.assigned_partners || campaign.assigned_partners.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No partners assigned yet. Click "Assign Partner" to add one.
               </div>
@@ -196,15 +172,15 @@ export default function CampaignDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {partners.map((cp) => (
+                  {campaign.assigned_partners.map((cp: any) => (
                     <TableRow key={cp.id}>
-                      <TableCell className="font-medium">{cp.partners.name}</TableCell>
+                      <TableCell className="font-medium">{cp.partner_name}</TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {cp.partners.channel_type.replace(/_/g, ' ')}
+                          {cp.partner_channel_type?.replace(/_/g, ' ')}
                         </Badge>
                       </TableCell>
-                      <TableCell>{cp.partners.email}</TableCell>
+                      <TableCell>{cp.partner_email}</TableCell>
                       <TableCell>{formatCurrency(cp.compensation)}</TableCell>
                       <TableCell>
                         <Badge variant={cp.status === 'active' ? 'default' : 'secondary'}>
@@ -219,6 +195,25 @@ export default function CampaignDetails() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
+                            {/* Remove Partner Confirmation Dialog */}
+                            <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Remove Partner</DialogTitle>
+                                  <DialogDescription>
+                                    Are you sure you want to remove this partner from the campaign?
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex justify-end gap-2 pt-4">
+                                  <Button variant="outline" onClick={() => setRemoveDialogOpen(false)} disabled={loading}>
+                                    Cancel
+                                  </Button>
+                                  <Button variant="destructive" onClick={confirmRemovePartner} disabled={loading}>
+                                    {loading ? 'Removing...' : 'Remove'}
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                       </TableCell>
                     </TableRow>
                   ))}

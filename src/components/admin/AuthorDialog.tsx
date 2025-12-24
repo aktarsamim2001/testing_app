@@ -1,267 +1,216 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Json } from '@/integrations/supabase/types';
+import { Textarea } from '@/components/ui/textarea';
+import type { AppDispatch } from '@/store';
+import { createAuthorThunk, updateAuthorThunk } from '@/store/slices/authors';
+import { uploadAuthorImage } from '@/services/s3-upload';
+import toast from 'react-hot-toast';
 
 interface Author {
   id: string;
   name: string;
-  email: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  social_links: Json;
-  created_at: string;
-  updated_at: string;
+  image: string;
+  about: string | null;
 }
 
 interface AuthorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAuthorSelect?: (authorId: string) => void;
   author?: Author | null;
-  mode?: 'create-edit' | 'select';
 }
 
-export default function AuthorDialog({ open, onOpenChange, onAuthorSelect, author, mode = 'create-edit' }: AuthorDialogProps) {
-  const [authors, setAuthors] = useState<Author[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedAuthor, setSelectedAuthor] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
+export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialogProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    bio: ''
+    about: ''
   });
-
-  const isEditMode = !!author;
-  const isCreateEditMode = mode === 'create-edit';
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      if (isCreateEditMode) {
-        // Create/Edit mode
-        if (isEditMode && author) {
-          // Edit mode - populate form with author data
-          setFormData({
-            name: author.name || '',
-            email: author.email || '',
-            bio: author.bio || ''
-          });
-        } else {
-          // Create mode - empty form
-          setFormData({
-            name: '',
-            email: '',
-            bio: ''
-          });
-        }
-        setShowForm(true);
-      } else {
-        // Selection mode - fetch authors list
-        setShowForm(false);
-        fetchAuthors();
-      }
+    if (author) {
+      setFormData({
+        name: author.name || '',
+        about: author.about || ''
+      });
+      setImagePreview(author.image || '');
+      setImageFile(null);
+    } else {
+      setFormData({
+        name: '',
+        about: ''
+      });
+      setImagePreview('');
+      setImageFile(null);
     }
-  }, [open, author, isEditMode, isCreateEditMode]);
+  }, [author, open]);
 
-  const fetchAuthors = async () => {
-    const { data, error } = await supabase
-      .from('authors' as any)
-      .select('*')
-      .order('name');
-
-    if (!error && data) setAuthors(data as unknown as Author[]);
-  }
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const data = {
-        name: formData.name,
-        email: formData.email || null,
-        bio: formData.bio || null
-      };
+      if (author) {
+        // Update author
+        const payload: any = {
+          id: author.id,
+          name: formData.name,
+          about: formData.about || null
+        };
 
-      if (isEditMode && author) {
-        // Update existing author
-        const { error } = await supabase
-          .from('authors' as any)
-          .update(data)
-          .eq('id', author.id);
-
-        if (error) throw error;
-
-        toast({
-          title: 'Success',
-          description: 'Author updated successfully'
-        });
-      } else {
-        // Create new author
-        const { data: newAuthor, error } = await supabase
-          .from('authors' as any)
-          .insert([data])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        toast({
-          title: 'Success',
-          description: 'Author created successfully'
-        });
-
-        if (onAuthorSelect && newAuthor) {
-          onAuthorSelect((newAuthor as any).id);
+        // Upload new image if selected
+        if (imageFile) {
+          try {
+            const imageUrl = await uploadAuthorImage(imageFile);
+            payload.image = imageUrl;
+          } catch (error: any) {
+            toast.error(`Image upload failed: ${error.message}`);
+            setLoading(false);
+            return;
+          }
         }
-      }
 
-      setFormData({ name: '', email: '', bio: '' });
-      setShowForm(false);
+        await dispatch(updateAuthorThunk(payload));
+      } else {
+        // Create author
+        if (!imageFile) {
+          throw new Error('Image is required for creating a new author');
+        }
+
+        let imageUrl: string;
+        try {
+          imageUrl = await uploadAuthorImage(imageFile);
+        } catch (error: any) {
+          toast.error(`Image upload failed: ${error.message}`);
+          setLoading(false);
+          return;
+        }
+
+        await dispatch(createAuthorThunk({
+          name: formData.name,
+          image: imageUrl,
+          about: formData.about || null
+        }));
+      }
       onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
+    } catch (error) {
+      console.error('Error submitting author:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelect = () => {
-    if (selectedAuthor && onAuthorSelect) {
-      onAuthorSelect(selectedAuthor);
-      onOpenChange(false);
-    }
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isCreateEditMode ? (isEditMode ? 'Edit Author' : 'Add New Author') : 'Select or Create Author'}
-          </DialogTitle>
-          {isCreateEditMode && isEditMode && <DialogDescription>Update author information</DialogDescription>}
-          {isCreateEditMode && !isEditMode && <DialogDescription>Add a new content author</DialogDescription>}
+          <DialogTitle>{author ? 'Edit Author' : 'Add New Author'}</DialogTitle>
+          <DialogDescription>
+            {author ? 'Update author information' : 'Add a new content author'}
+          </DialogDescription>
         </DialogHeader>
 
-        {isCreateEditMode ? (
-          // Create/Edit mode form
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Author Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              placeholder="Enter author name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image">Author Image {!author && '*'}</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              {imagePreview && (
+                <div className="mb-4">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview"
+                    className="w-32 h-32 rounded-lg object-cover mx-auto"
+                  />
+                </div>
+              )}
+              <input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                required={!author}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Input
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Short bio or description"
-              />
-            </div>
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create')}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-                Cancel
-              </Button>
-            </div>
-          </form>
-        ) : !showForm ? (
-          // Selection mode
-          <div className="space-y-4">
-            <div>
-              <Label>Existing Authors</Label>
-              <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an author" />
-                </SelectTrigger>
-                <SelectContent>
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSelect} disabled={!selectedAuthor} className="flex-1">
-                Select Author
-              </Button>
-              <Button variant="outline" onClick={() => setShowForm(true)} className="flex-1">
-                Create New
-              </Button>
+              <p className="text-sm text-gray-500 mt-2">
+                {imageFile ? `Selected: ${imageFile.name}` : 'Click to select an image or drag and drop'}
+              </p>
             </div>
           </div>
-        ) : (
-          // Create new author form in selection mode
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="bio">Bio</Label>
-              <Input
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Short bio or description"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Author'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="flex-1">
-                Cancel
-              </Button>
-            </div>
-          </form>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="about">About</Label>
+            <Textarea
+              id="about"
+              value={formData.about}
+              onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+              placeholder="Short bio or description about the author"
+              rows={4}
+            />
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={loading || (!author && !imageFile)}
+            >
+              {loading ? (author ? 'Updating...' : 'Creating...') : (author ? 'Update Author' : 'Create Author')}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

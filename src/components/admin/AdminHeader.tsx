@@ -38,7 +38,7 @@ const AdminHeader = ({ isCollapsed, onToggleSidebar }: AdminHeaderProps) => {
           >
             {isCollapsed ? <Menu className="w-4 sm:w-5 h-4 sm:h-5" /> : <ArrowLeft className="w-4 sm:w-5 h-4 sm:h-5" />}
           </button>
-          <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block truncate max-w-[150px] md:max-w-none">{user?.email}</div>
+          <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block truncate max-w-[150px] md:max-w-none">{user?.name}</div>
           <Button variant="ghost" size="sm" onClick={() => router.push("/admin")} className="hidden sm:flex text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
             <User className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
             <span className="hidden md:inline">Dashboard</span>

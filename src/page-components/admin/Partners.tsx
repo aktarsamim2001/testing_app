@@ -1,20 +1,27 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import PartnerDialog from '@/components/admin/PartnerDialog';
+import type { AppDispatch, RootState } from '@/store';
+import { 
+  fetchPartners, 
+  deletePartnerThunk, 
+  selectPartners, 
+  selectPartnersLoading, 
+  selectPartnersPagination
+} from '@/store/slices/partners';
 
 interface Partner {
   id: string;
@@ -24,39 +31,39 @@ interface Partner {
   platform_handle: string | null;
   follower_count: number | null;
   engagement_rate: number | null;
-  category: string[] | null;
-  created_at: string;
+  categories: string[] | null;
+  notes: string | null;
+  status: number;
 }
 
 export default function Partners() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  
+  const partners = useSelector(selectPartners);
+  const dataLoading = useSelector(selectPartnersLoading);
+  const pagination = useSelector(selectPartnersPagination);
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
-  const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingPartner, setDeletingPartner] = useState<Partner | null>(null);
 
-  const fetchPartners = async () => {
-    const { data, error } = await supabase
-      .from('partners')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const loadPartners = useCallback((page = 1, limit = 10) => {
+    dispatch(fetchPartners(page, limit));
+  }, [dispatch]);
 
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setPartners(data || []);
-    }
-    setDataLoading(false);
-  };
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
 
   useEffect(() => {
     if (user && isAdmin) {
-      fetchPartners();
+      loadPartners(page, perPage);
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, loadPartners, page, perPage]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -64,29 +71,33 @@ export default function Partners() {
     }
   }, [user, isAdmin, loading, router]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this partner?')) return;
-
-    const { error } = await supabase.from('partners').delete().eq('id', id);
-    
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: 'Partner deleted successfully' });
-      fetchPartners();
+  const handleDelete = useCallback(async () => {
+    if (deletingPartner) {
+      await dispatch(deletePartnerThunk(deletingPartner.id));
+      setDeleteDialogOpen(false);
+      setDeletingPartner(null);
     }
-  };
+  }, [dispatch, deletingPartner]);
 
-  const handleEdit = (partner: Partner) => {
+  const openDeleteDialog = useCallback((partner: Partner) => {
+    setDeletingPartner(partner);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setDeletingPartner(null);
+  }, []);
+
+  const handleEdit = useCallback((partner: Partner) => {
     setEditingPartner(partner);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDialogClose = () => {
+  const handleDialogClose = useCallback(() => {
     setDialogOpen(false);
     setEditingPartner(null);
-    fetchPartners();
-  };
+  }, []);
 
   const getChannelColor = (channel: string) => {
     switch (channel) {
@@ -146,41 +157,67 @@ export default function Partners() {
                 No partners yet. Click "Add Partner" to get started.
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead>Handle</TableHead>
-                    <TableHead>Followers</TableHead>
-                    <TableHead>Engagement</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {partners.map((partner) => (
-                    <TableRow key={partner.id}>
-                      <TableCell className="font-medium">{partner.name}</TableCell>
-                      <TableCell>
-                        <Badge className={getChannelColor(partner.channel_type)}>
-                          {partner.channel_type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{partner.platform_handle || 'N/A'}</TableCell>
-                      <TableCell>{formatNumber(partner.follower_count)}</TableCell>
-                      <TableCell>{partner.engagement_rate ? `${partner.engagement_rate}%` : 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(partner)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(partner.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Channel</TableHead>
+                      <TableHead>Handle</TableHead>
+                      <TableHead>Followers</TableHead>
+                      <TableHead>Engagement</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.map((partner) => (
+                      <TableRow key={partner.id}>
+                        <TableCell className="font-medium">{partner.name}</TableCell>
+                        <TableCell>
+                          <Badge className={getChannelColor(partner.channel_type)}>
+                            {partner.channel_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{partner.platform_handle || 'N/A'}</TableCell>
+                        <TableCell>{formatNumber(partner.follower_count)}</TableCell>
+                        <TableCell>{partner.engagement_rate ? `${partner.engagement_rate}%` : 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(partner)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(partner)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {/* Pagination Controls */}
+                <div className="flex justify-between items-center mt-4">
+                  <span>
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <div className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === 1}
+                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === pagination.totalPages}
+                      onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -190,6 +227,20 @@ export default function Partners() {
           onOpenChange={handleDialogClose}
           partner={editingPartner}
         />
+
+        {/* Delete Confirmation Dialog */}
+        {deleteDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+              <h2 className="text-lg font-semibold mb-2">Delete Partner</h2>
+              <p className="mb-4">Are you sure you want to delete <span className="font-bold">{deletingPartner?.name}</span>? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import PremiumDatePicker from '@/components/ui/PremiumDatePicker';
 
 interface CampaignDialogProps {
   open: boolean;
@@ -187,20 +188,22 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start_date">Start Date</Label>
-              <Input
-                id="start_date"
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+              <PremiumDatePicker
+                label=""
+                value={formData.start_date ? new Date(formData.start_date) : null}
+                onChange={(date) => setFormData({ ...formData, start_date: date ? date.toISOString().slice(0, 10) : '' })}
+                minDate={null}
+                maxDate={formData.end_date ? new Date(formData.end_date) : undefined}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="end_date">End Date</Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+              <PremiumDatePicker
+                label=""
+                value={formData.end_date ? new Date(formData.end_date) : null}
+                onChange={(date) => setFormData({ ...formData, end_date: date ? date.toISOString().slice(0, 10) : '' })}
+                minDate={formData.start_date ? new Date(formData.start_date) : undefined}
+                maxDate={null}
               />
             </div>
           </div>

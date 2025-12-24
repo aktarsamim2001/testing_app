@@ -1,62 +1,67 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import ClientDialog from '@/components/admin/ClientDialog';
+import type { AppDispatch, RootState } from '@/store';
+import { 
+  fetchClients, 
+  deleteClientThunk, 
+  selectClients, 
+  selectClientsLoading, 
+  selectClientsPagination
+} from '@/store/slices/clients';
 
 interface Client {
   id: string;
   company_name: string;
-  contact_name: string;
-  contact_email: string;
-  contact_phone: string | null;
+  name: string;
+  email: string;
+  phone: string | null;
   website: string | null;
-  status: string;
+  status: number;
   notes: string | null;
-  created_at: string;
 }
 
 export default function Clients() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  const [clients, setClients] = useState<Client[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  
+  const clients = useSelector(selectClients);
+  const dataLoading = useSelector(selectClientsLoading);
+  const pagination = useSelector(selectClientsPagination);
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingClient, setDeletingClient] = useState<Client | null>(null);
 
-  const fetchClients = async () => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const loadClients = useCallback((page = 1, limit = 10) => {
+    dispatch(fetchClients(page, limit));
+  }, [dispatch]);
 
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setClients(data || []);
-    }
-    setDataLoading(false);
-  };
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
 
   useEffect(() => {
     if (user && isAdmin) {
-      fetchClients();
+      loadClients(page, perPage);
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, loadClients, page, perPage]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -64,36 +69,53 @@ export default function Clients() {
     }
   }, [user, isAdmin, loading, router]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this client?')) return;
+  const handleDelete = useCallback(async () => {
+    if (deletingClient) {
+      await dispatch(deleteClientThunk(deletingClient.id));
+      setDeleteDialogOpen(false);
+      setDeletingClient(null);
+      // Toast logic removed
+    }
+  }, [dispatch, deletingClient]);
 
-    const { error } = await supabase.from('clients').delete().eq('id', id);
-    
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: 'Client deleted successfully' });
-      fetchClients();
+  const openDeleteDialog = useCallback((client: Client) => {
+    setDeletingClient(client);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setDeletingClient(null);
+  }, []);
+
+  const handleEdit = useCallback((client: Client) => {
+    setEditingClient(client);
+    setDialogOpen(true);
+  }, []);
+
+  // Custom close handler to reload clients and show toast if error
+  const handleDialogClose = useCallback((result?: boolean | { error?: string; success?: string }) => {
+    setDialogOpen(false);
+    setEditingClient(null);
+    // Toast logic removed
+    loadClients();
+  }, [loadClients]);
+
+  const getStatusColor = (status: number) => {
+    switch (status) {
+      case 1: return 'bg-green-500';
+      case 0: return 'bg-gray-500';
+      case 2: return 'bg-blue-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const handleEdit = (client: Client) => {
-    setEditingClient(client);
-    setDialogOpen(true);
-  };
-
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    setEditingClient(null);
-    fetchClients();
-  };
-
-  const getStatusColor = (status: string) => {
+  const getStatusLabel = (status: number) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'inactive': return 'bg-gray-500';
-      case 'prospect': return 'bg-blue-500';
-      default: return 'bg-gray-500';
+      case 1: return 'Active';
+      case 0: return 'Inactive';
+      case 2: return 'Prospect';
+      default: return 'Unknown';
     }
   };
 
@@ -141,39 +163,65 @@ export default function Clients() {
                 No clients yet. Click "Add Client" to get started.
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.company_name}</TableCell>
-                      <TableCell>{client.contact_name}</TableCell>
-                      <TableCell>{client.contact_email}</TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(client.status)}>
-                          {client.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {clients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">{client.company_name}</TableCell>
+                        <TableCell>{client.name}</TableCell>
+                        <TableCell>{client.email}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(client.status)}>
+                            {getStatusLabel(client.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(client)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {/* Pagination Controls */}
+                <div className="flex justify-between items-center mt-4">
+                  <span>
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <div className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === 1}
+                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === pagination.totalPages}
+                      onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -183,6 +231,20 @@ export default function Clients() {
           onOpenChange={handleDialogClose}
           client={editingClient}
         />
+
+        {/* Delete Confirmation Dialog */}
+        {deleteDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+              <h2 className="text-lg font-semibold mb-2">Delete Client</h2>
+              <p className="mb-4">Are you sure you want to delete <span className="font-bold">{deletingClient?.company_name}</span>? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

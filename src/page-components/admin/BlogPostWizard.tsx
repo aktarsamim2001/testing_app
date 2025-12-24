@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { createBlogThunk, updateBlogThunk, selectBlogs } from '@/store/slices/blogs';
+import { selectAuthors, fetchAuthors } from '@/store/slices/authors';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,41 +12,80 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserRole } from '@/hooks/useUserRole';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
-import AuthorDialog from '@/components/admin/AuthorDialog';
 import FAQBuilder, { FAQ } from '@/components/admin/FAQBuilder';
-import ImageUpload from '@/components/admin/ImageUpload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import toast from 'react-hot-toast';
+import { uploadToS3 } from '@/services/s3-upload';
 
 export default function BlogPostWizard() {
   const [step, setStep] = useState(1);
-  const [authorDialogOpen, setAuthorDialogOpen] = useState(false);
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const { user } = useAuth();
-  const { isAdmin, loading } = useUserRole();
-  const { toast } = useToast();
+  const editId = searchParams.get('id');
+  const dispatch = useDispatch<AppDispatch>();
 
-  const [formData, setFormData] = useState({
+  const allBlogs = useSelector((state: RootState) => selectBlogs(state));
+  const authors = useSelector((state: RootState) => selectAuthors(state));
+  const editingBlog = editId ? allBlogs.find(b => b.id === editId) : null;
+
+  const initialFormData = {
     title: '',
     slug: '',
     excerpt: '',
-    content: '',
-    thumbnail_url: '',
-    status: 'draft',
+    description: '',
+    image: '',
+    status: 'Draft',
     tags: '',
     meta_title: '',
     meta_description: '',
     author_id: '',
-    reading_time: 5
-  });
+    estimated_reading_time: '',
+    meta_author: '',
+    meta_keywords: ''
+  };
+  const [formData, setFormData] = useState(initialFormData);
 
   const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+
+  useEffect(() => {
+    dispatch(fetchAuthors(1, 100) as any);
+  }, [dispatch]);
+
+  // Reset form state when switching between create and edit mode
+  useEffect(() => {
+    if (editingBlog) {
+      setFormData({
+        title: editingBlog.title,
+        slug: editingBlog.slug,
+        excerpt: editingBlog.excerpt,
+        description: editingBlog.description,
+        image: editingBlog.image,
+        status: editingBlog.status,
+        tags: editingBlog.tags,
+        meta_title: editingBlog.meta_title,
+        meta_description: editingBlog.meta_description,
+        author_id: editingBlog.author_id,
+        estimated_reading_time: editingBlog.estimated_reading_time,
+        meta_author: editingBlog.meta_author,
+        meta_keywords: editingBlog.meta_keywords
+      });
+      setImagePreview(editingBlog.image);
+      if (editingBlog.faq) {
+        setFaqs(editingBlog.faq);
+      }
+    } else {
+      setFormData(initialFormData);
+      setImagePreview("");
+      setFaqs([]);
+      setImageFile(null);
+    }
+    setStep(1);
+  }, [editingBlog]);
 
   const generateSlug = (title: string) => {
     return title
@@ -51,79 +94,105 @@ export default function BlogPostWizard() {
       .replace(/(^-|-$)/g, '');
   };
 
-  const calculateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.trim().split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+    console.log('[BlogPostWizard] Rendered', { step, editId });
+
+  const uploadImage = async () => {
+    if (!imageFile) return formData.image;
+
+    try {
+      console.log('[BlogPostWizard] Starting image upload', { imageFile });
+      const s3Url = await uploadToS3(imageFile, "development/blog");
+      setFormData((prev) => ({
+        ...prev,
+        image: s3Url,
+      }));
+      console.log('[BlogPostWizard] Image uploaded', { s3Url });
+      return s3Url;
+    } catch (error: any) {
+      console.error('[BlogPostWizard] Image upload failed', error);
+      toast.error("Failed to upload image");
+      throw error;
+    }
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.content) {
-      toast({
-        title: 'Error',
-        description: 'Title and content are required',
-        variant: 'destructive'
-      });
+    console.log('[BlogPostWizard] handleSubmit called', { formData, editingBlog, step });
+    if (!formData.title || !formData.description) {
+      toast.error('Title and description are required');
+      return;
+    }
+
+    if (!formData.author_id) {
+      toast.error('Author is required');
       return;
     }
 
     setIsSubmitting(true);
+    console.log('[BlogPostWizard] Submitting form', { formData, faqs, imageFile });
     try {
       const slug = formData.slug || generateSlug(formData.title);
-      const tags = formData.tags ? formData.tags.split(',').map(t => t.trim()) : [];
-      const readingTime = calculateReadingTime(formData.content);
+      let imageUrl = formData.image;
+
+
+      if (imageFile) {
+        console.log('[BlogPostWizard] Before image upload');
+        imageUrl = await uploadImage();
+        console.log('[BlogPostWizard] After image upload', { imageUrl });
+      }
 
       const postData = {
         title: formData.title,
         slug,
         excerpt: formData.excerpt,
-        content: formData.content,
-        thumbnail_url: formData.thumbnail_url,
+        description: formData.description,
+        image: imageUrl,
         status: formData.status,
-        tags,
+        tags: formData.tags,
         meta_title: formData.meta_title || formData.title,
         meta_description: formData.meta_description || formData.excerpt,
-        author_id: formData.author_id || null,
-        reading_time: readingTime,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null
+        author_id: formData.author_id,
+        estimated_reading_time: formData.estimated_reading_time,
+        meta_author: formData.meta_author,
+        meta_keywords: formData.meta_keywords,
+        faq: faqs,
+        published_at: formData.status?.toLowerCase() === 'published' ? new Date().toISOString() : null
       };
 
-      const { data: post, error: postError } = await supabase
-        .from('blog_posts' as any)
-        .insert([postData])
-        .select()
-        .single();
 
-      if (postError) throw postError;
-
-      if (faqs.length > 0 && post) {
-        const faqData = faqs.map(faq => ({
-          blog_post_id: (post as any).id,
-          question: faq.question,
-          answer: faq.answer,
-          order_index: faq.order_index
-        }));
-
-        const { error: faqError } = await supabase
-          .from('blog_post_faqs' as any)
-          .insert(faqData);
-
-        if (faqError) throw faqError;
+      if (editingBlog?.id) {
+        await dispatch(updateBlogThunk({ ...postData, id: editingBlog.id }) as any);
+        toast.success('Blog post updated successfully');
+      } else {
+        console.log('[BlogPostWizard] Before dispatch createBlogThunk', { postData });
+        await dispatch(createBlogThunk(postData) as any);
+        console.log('[BlogPostWizard] After dispatch createBlogThunk');
+        toast.success('Blog post created successfully');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Blog post created successfully'
-      });
+      // Reset form state after submit to prevent duplicate API calls
+      setFormData(initialFormData);
+      setImagePreview("");
+      setFaqs([]);
+      setImageFile(null);
+      setStep(1);
 
-      router.push('/admin/blog');
+      setTimeout(() => {
+        router.push('/admin/blog');
+      }, 1500);
     } catch (error: any) {
-      console.error('Blog post creation error:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create blog post',
-        variant: 'destructive'
-      });
+      toast.error(error?.message || 'Failed to save blog post');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,27 +204,18 @@ export default function BlogPostWizard() {
     { number: 3, title: 'FAQ & SEO', description: 'Add FAQs and optimize for search' }
   ];
 
-  if (loading) {
-    return null;
-  }
-
-  if (!user || !isAdmin) {
-    router.push('/auth');
-    return null;
-  }
-
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4 max-w-4xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/admin/blog')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="flex items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold">Create Blog Post</h1>
             <p className="text-muted-foreground">Follow the wizard to create a complete blog post</p>
           </div>
+           <Button variant="ghost" size="sm" onClick={() => router.push('/admin/blog')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
         </div>
 
         <div className="mb-8">
@@ -225,27 +285,39 @@ export default function BlogPostWizard() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label>Author</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAuthorDialogOpen(true)}
-                    >
-                      {formData.author_id ? 'Change Author' : 'Select Author'}
-                    </Button>
-                  </div>
-                  {formData.author_id && (
-                    <div className="text-sm text-muted-foreground">Author selected</div>
-                  )}
+                  <Label htmlFor="author_id">Author *</Label>
+                  <Select value={formData.author_id} onValueChange={(value) => setFormData({ ...formData, author_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an author" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <ImageUpload
-                  label="Thumbnail Image"
-                  value={formData.thumbnail_url}
-                  onChange={(url) => setFormData({ ...formData, thumbnail_url: url })}
-                />
+                <div>
+                  <Label htmlFor="image">Blog Image</Label>
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded border"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -258,17 +330,17 @@ export default function BlogPostWizard() {
                   </TabsList>
                   <TabsContent value="write" className="space-y-4 mt-4">
                     <div>
-                      <Label htmlFor="content">Content *</Label>
+                      <Label htmlFor="description">Content *</Label>
                       <Textarea
-                        id="content"
-                        value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Write your blog post content here..."
                         rows={15}
                         className="font-mono"
                       />
                       <p className="text-xs text-muted-foreground mt-2">
-                        Estimated reading time: {calculateReadingTime(formData.content)} min
+                        Estimated reading time: {formData.estimated_reading_time || '5'} min
                       </p>
                     </div>
 
@@ -287,7 +359,7 @@ export default function BlogPostWizard() {
                       <CardContent className="prose max-w-none p-6">
                         <h1>{formData.title || 'Your Title Here'}</h1>
                         {formData.excerpt && <p className="lead">{formData.excerpt}</p>}
-                        <div className="whitespace-pre-wrap">{formData.content || 'Your content will appear here...'}</div>
+                        <div className="whitespace-pre-wrap">{formData.description || 'Your content will appear here...'}</div>
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -330,8 +402,8 @@ export default function BlogPostWizard() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Published">Published</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -357,18 +429,12 @@ export default function BlogPostWizard() {
               ) : (
                 <Button onClick={handleSubmit} disabled={isSubmitting}>
                   <Save className="w-4 h-4 mr-2" />
-                  {isSubmitting ? 'Creating...' : 'Create Post'}
+                  {isSubmitting ? (editingBlog ? 'Updating...' : 'Creating...') : (editingBlog ? 'Update Post' : 'Create Post')}
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
-
-        <AuthorDialog
-          open={authorDialogOpen}
-          onOpenChange={setAuthorDialogOpen}
-          onAuthorSelect={(authorId) => setFormData({ ...formData, author_id: authorId })}
-        />
       </div>
     </AdminLayout>
   );

@@ -1,30 +1,45 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import type { AppDispatch } from '@/store';
+import { createPartnerThunk, updatePartnerThunk } from '@/store/slices/partners';
+
+interface Partner {
+  id: string;
+  name: string;
+  email: string;
+  channel_type: string;
+  platform_handle: string | null;
+  follower_count: number | null;
+  engagement_rate: number | null;
+  categories: string[] | null;
+  notes: string | null;
+  status: number;
+}
 
 interface PartnerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  partner?: any;
+  partner?: Partner | null;
 }
 
 export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDialogProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
-    channel_type: 'blogger' | 'linkedin' | 'youtube';
+    channel_type: string;
     platform_handle: string;
     follower_count: string;
     engagement_rate: string;
-    category: string;
+    categories: string;
     notes: string;
+    status: number;
   }>({
     name: '',
     email: '',
@@ -32,12 +47,11 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     platform_handle: '',
     follower_count: '',
     engagement_rate: '',
-    category: '',
-    notes: ''
+    categories: '',
+    notes: '',
+    status: 0
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
 
   useEffect(() => {
     if (partner) {
@@ -48,8 +62,9 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
         platform_handle: partner.platform_handle || '',
         follower_count: partner.follower_count?.toString() || '',
         engagement_rate: partner.engagement_rate?.toString() || '',
-        category: partner.category?.join(', ') || '',
-        notes: partner.notes || ''
+        categories: partner.categories || '',
+        notes: partner.notes || '',
+        status: partner.status ?? 0
       });
     } else {
       setFormData({
@@ -59,8 +74,9 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
         platform_handle: '',
         follower_count: '',
         engagement_rate: '',
-        category: '',
-        notes: ''
+        categories: '',
+        notes: '',
+        status: 0
       });
     }
   }, [partner, open]);
@@ -69,29 +85,33 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     e.preventDefault();
     setLoading(true);
 
-    const data = {
-      name: formData.name,
-      email: formData.email,
-      channel_type: formData.channel_type,
-      platform_handle: formData.platform_handle || null,
-      follower_count: formData.follower_count ? parseInt(formData.follower_count) : null,
-      engagement_rate: formData.engagement_rate ? parseFloat(formData.engagement_rate) : null,
-      category: formData.category ? formData.category.split(',').map(c => c.trim()) : null,
-      notes: formData.notes || null,
-      created_by: user?.id
-    };
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        channel_type: formData.channel_type,
+        platform_handle: formData.platform_handle || null,
+        follower_count: formData.follower_count ? parseInt(formData.follower_count) : null,
+        engagement_rate: formData.engagement_rate ? parseFloat(formData.engagement_rate) : null,
+        categories: formData.categories ? formData.categories : null,
+        notes: formData.notes || null,
+        status: formData.status
+      };
 
-    const { error } = partner
-      ? await supabase.from('partners').update(data).eq('id', partner.id)
-      : await supabase.from('partners').insert([data]);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: `Partner ${partner ? 'updated' : 'created'} successfully` });
+      if (partner) {
+        await dispatch(updatePartnerThunk({
+          id: partner.id,
+          ...payload
+        }));
+      } else {
+        await dispatch(createPartnerThunk(payload));
+      }
       onOpenChange(false);
+    } catch (error) {
+      console.error('Error submitting partner:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -130,7 +150,7 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="channel_type">Channel Type *</Label>
-              <Select value={formData.channel_type} onValueChange={(value: 'blogger' | 'linkedin' | 'youtube') => setFormData({ ...formData, channel_type: value })}>
+              <Select value={formData.channel_type} onValueChange={(value) => setFormData({ ...formData, channel_type: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -175,12 +195,12 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Categories (comma-separated)</Label>
+            <Label htmlFor="categories">Categories (comma-separated)</Label>
             <Input
-              id="category"
+              id="categories"
               placeholder="Tech, SaaS, B2B"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              value={formData.categories}
+              onChange={(e) => setFormData({ ...formData, categories: e.target.value })}
             />
           </div>
 

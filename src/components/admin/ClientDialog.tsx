@@ -1,61 +1,71 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import type { AppDispatch } from '@/store';
+import { createClientThunk, updateClientThunk } from '@/store/slices/clients';
+
+interface Client {
+  id: string;
+  company_name: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  website: string | null;
+  status: number;
+  notes: string | null;
+}
 
 interface ClientDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  client?: any;
+  onOpenChange: (result: boolean | { error?: string; success?: string }) => void;
+  client?: Client | null;
 }
 
 export default function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState<{
     company_name: string;
-    contact_name: string;
-    contact_email: string;
-    contact_phone: string;
+    name: string;
+    email: string;
+    phone: string;
     website: string;
-    status: 'active' | 'inactive' | 'prospect';
+    status: number;
     notes: string;
   }>({
     company_name: '',
-    contact_name: '',
-    contact_email: '',
-    contact_phone: '',
+    name: '',
+    email: '',
+    phone: '',
     website: '',
-    status: 'prospect',
+    status: 2,
     notes: ''
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
 
   useEffect(() => {
     if (client) {
       setFormData({
         company_name: client.company_name || '',
-        contact_name: client.contact_name || '',
-        contact_email: client.contact_email || '',
-        contact_phone: client.contact_phone || '',
+        name: client.name || '',
+        email: client.email || '',
+        phone: client.phone || '',
         website: client.website || '',
-        status: client.status || 'prospect',
+        status: client.status ?? 2,
         notes: client.notes || ''
       });
     } else {
       setFormData({
         company_name: '',
-        contact_name: '',
-        contact_email: '',
-        contact_phone: '',
+        name: '',
+        email: '',
+        phone: '',
         website: '',
-        status: 'prospect',
+        status: 2,
         notes: ''
       });
     }
@@ -65,22 +75,23 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     e.preventDefault();
     setLoading(true);
 
-    const data = {
-      ...formData,
-      created_by: user?.id
-    };
-
-    const { error } = client
-      ? await supabase.from('clients').update(data).eq('id', client.id)
-      : await supabase.from('clients').insert([data]);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: `Client ${client ? 'updated' : 'created'} successfully` });
-      onOpenChange(false);
+    try {
+      if (client) {
+        await dispatch(updateClientThunk({
+          id: client.id,
+          ...formData
+        }));
+        onOpenChange({ success: "Client updated successfully" });
+      } else {
+        await dispatch(createClientThunk(formData));
+        onOpenChange({ success: "Client created successfully" });
+      }
+    } catch (error: any) {
+      console.error('Error submitting client:', error);
+      onOpenChange({ error: error?.message || "Failed to save client" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -106,14 +117,14 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: 'active' | 'inactive' | 'prospect') => setFormData({ ...formData, status: value })}>
+              <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="prospect">Prospect</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="2">Prospect</SelectItem>
+                  <SelectItem value="1">Active</SelectItem>
+                  <SelectItem value="0">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -121,21 +132,21 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contact_name">Contact Name *</Label>
+              <Label htmlFor="name">Contact Name *</Label>
               <Input
-                id="contact_name"
-                value={formData.contact_name}
-                onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contact_email">Contact Email *</Label>
+              <Label htmlFor="email">Contact Email *</Label>
               <Input
-                id="contact_email"
+                id="email"
                 type="email"
-                value={formData.contact_email}
-                onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
             </div>
@@ -143,11 +154,11 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contact_phone">Contact Phone</Label>
+              <Label htmlFor="phone">Contact Phone</Label>
               <Input
-                id="contact_phone"
-                value={formData.contact_phone}
-                onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
             </div>
             <div className="space-y-2">

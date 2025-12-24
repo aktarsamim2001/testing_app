@@ -1,41 +1,39 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useMemo } from "react";
+import { useProfileData, useIsAuthInitialized } from "@/hooks/useRedux";
 
-type AppRole = 'admin' | 'moderator' | 'user';
+type AppRole = "admin" | "brand" | "creator" | "moderator" | "user";
 
 export function useUserRole() {
-  const { user } = useAuth();
-  const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const profile = useProfileData();
+  const isInitialized = useIsAuthInitialized();
 
-  useEffect(() => {
-    if (!user) {
-      setRoles([]);
-      setLoading(false);
-      return;
+  const roles: AppRole[] = useMemo(() => {
+    if (!profile) return [];
+
+    // Prefer explicit roles array if present
+    const explicitRoles = Array.isArray((profile as any).roles)
+      ? ((profile as any).roles as string[])
+      : [];
+    if (explicitRoles.length > 0) {
+      return explicitRoles.map((r) => r.toLowerCase() as AppRole);
     }
 
-    const fetchRoles = async () => {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+    // Fallback to user_type/role fields (normalize to lowercase)
+    const ut = ((profile as any).user_type || (profile as any).role) as string | undefined;
+    const normalized = ut?.toLowerCase();
+    if (normalized === "admin" || normalized === "brand" || normalized === "creator") {
+      return [normalized as AppRole];
+    }
 
-      if (!error && data) {
-        setRoles(data.map(r => r.role as AppRole));
-      }
-      setLoading(false);
-    };
-
-    fetchRoles();
-  }, [user]);
+    return [];
+  }, [profile]);
 
   const hasRole = (role: AppRole) => roles.includes(role);
-  const isAdmin = hasRole('admin');
-  const isModerator = hasRole('moderator');
+  const isAdmin = hasRole("admin");
+  const isModerator = hasRole("moderator");
 
-  return { roles, hasRole, isAdmin, isModerator, loading };
+  // loading stays true until auth initialization completes
+  return { roles, hasRole, isAdmin, isModerator, loading: !isInitialized };
 }

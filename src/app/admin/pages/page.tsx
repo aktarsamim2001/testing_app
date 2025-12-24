@@ -1,5 +1,5 @@
-import PageBuilder from "@/page-components/admin/PageBuilder";
+import PageList from '@/page-components/admin/PageList';
 
-export default function PagesPage() {
-  return <PageBuilder />;
+export default function Pages() {
+  return <PageList />;
 }

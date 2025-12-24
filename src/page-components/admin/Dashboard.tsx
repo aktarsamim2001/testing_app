@@ -69,7 +69,7 @@ export default function AdminDashboard() {
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user.email}</p>
+          <p className="text-muted-foreground">Welcome back, {user.name}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

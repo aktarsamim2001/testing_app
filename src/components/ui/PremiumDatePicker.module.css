@@ -1,0 +1,44 @@
+.premiumCalendar {
+  background: linear-gradient(135deg, #f7f9fc 0%, #eef2f7 100%);
+  color: #222;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.08);
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  font-family: 'Outfit', sans-serif;
+}
+.react-datepicker__day--selected, .react-datepicker__day--keyboard-selected {
+  background-color: #6366f1 !important; /* Tailwind primary */
+  color: #fff !important;
+  border-radius: 8px;
+}
+.react-datepicker__header {
+  background-color: #eef2f7;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 12px 12px 0 0;
+}
+.react-datepicker__day:hover {
+  background-color: #dbeafe !important;
+  color: #222 !important;
+  border-radius: 8px;
+}
+.react-datepicker__current-month, .react-datepicker__month-dropdown, .react-datepicker__year-dropdown {
+  font-weight: 600;
+  color: #6366f1;
+}
+.react-datepicker__today-button {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.premiumInput {
+  font-size: 1rem;
+  background: #f7f9fc;
+  border-radius: 12px;
+  transition: box-shadow 0.2s;
+}
+.premiumInput:focus {
+  box-shadow: 0 0 0 2px #6366f1;
+}

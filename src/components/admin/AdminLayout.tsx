@@ -14,12 +14,12 @@ interface AdminLayoutProps {
 
 const menuItems = [
   { title: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-  { title: 'Pages', path: '/admin/pages', icon: FileText },
   { title: 'Clients', path: '/admin/clients', icon: Building2 },
   { title: 'Partners', path: '/admin/partners', icon: Users },
-  { title: 'Authors', path: '/admin/authors', icon: UserCircle },
   { title: 'Campaigns', path: '/admin/campaigns', icon: Megaphone },
+  { title: 'Authors', path: '/admin/authors', icon: UserCircle },
   { title: 'Blog Posts', path: '/admin/blog', icon: FileText },
+  { title: 'Pages', path: '/admin/pages', icon: FileText },
   { title: 'Analytics', path: '/admin/analytics', icon: TrendingUp },
   { title: 'Settings', path: '/admin/settings', icon: Settings }
 ];

@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useIsAuthenticated, useAuthToken, useIsAuthInitialized } from '@/hooks/useRedux';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface AdminRouteProps {
@@ -11,29 +11,38 @@ interface AdminRouteProps {
 
 export default function AdminRoute({ children }: AdminRouteProps) {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const isAuthenticated = useIsAuthenticated();
+  const authToken = useAuthToken();
+  const isInitialized = useIsAuthInitialized();
+  const { isAdmin } = useUserRole();
 
   useEffect(() => {
-    if (!authLoading && !roleLoading) {
-      if (!user) {
-        router.push('/auth');
-      } else if (!isAdmin) {
-        router.push('/');
-      }
+    // Wait for auth to initialize before checking
+    if (!isInitialized) {
+      console.log('AdminRoute: Waiting for auth initialization...');
+      return;
     }
-  }, [user, isAdmin, authLoading, roleLoading, router]);
+    
+    console.log('AdminRoute check:', { 
+      isInitialized, 
+      isAuthenticated, 
+      hasToken: !!authToken, 
+      isAdmin 
+    });
+    
+    if (!isAuthenticated || !authToken || !isAdmin) {
+      console.warn('AdminRoute: Redirecting to /auth');
+      router.push('/auth');
+    }
+  }, [isAuthenticated, authToken, isAdmin, isInitialized, router]);
 
-  if (authLoading || roleLoading) {
+  // Show loading while initializing
+  if (!isInitialized || !isAuthenticated || !authToken || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return <>{children}</>;

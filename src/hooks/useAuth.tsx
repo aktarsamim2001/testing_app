@@ -1,111 +1,93 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, ReactNode, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAuthToken, useProfileData, useIsAuthenticated, useIsAuthInitialized } from "@/hooks/useRedux";
+import { loginUser, logout } from "@/store/slices/auth";
 
 export interface SignUpData {
   email: string;
   password: string;
   fullName: string;
-  role: 'brand' | 'creator' | 'admin';
+  role: "brand" | "creator" | "admin";
   companyName?: string;
   phone?: string;
-  channelType?: 'blogger' | 'linkedin' | 'youtube';
+  channelType?: "blogger" | "linkedin" | "youtube";
   platformHandle?: string;
 }
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
+  session: { access_token: string | null } | null;
   loading: boolean;
   signUp: (data: SignUpData) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, userType?: "admin" | "brand" | "creator") => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const authToken = useAuthToken();
+  const profile = useProfileData();
+  const isAuth = useIsAuthenticated();
+  const isInitialized = useIsAuthInitialized();
 
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+  // Derive user/session synchronously from Redux to avoid null flashes
+  const session = useMemo(() => ({ access_token: authToken }), [authToken]);
+  const user = useMemo(
+    () =>
+      profile
+        ? {
+            id: (profile as any).id ?? undefined,
+            email:
+              (profile as any).email ??
+              (profile as any).user?.email ??
+              (profile as any).user_email ??
+              undefined,
+            name:
+              (profile as any).name ??
+              (profile as any).full_name ??
+              (profile as any).user?.name ??
+              undefined,
+            user_type: (profile as any).user_type ?? (profile as any).role ?? undefined,
+          }
+        : null,
+    [profile]
+  );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signUp = async (data: SignUpData) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const metadata: Record<string, any> = {
-      full_name: data.fullName,
-      role: data.role
-    };
-
-    if (data.role === 'brand') {
-      metadata.company_name = data.companyName;
-      metadata.phone = data.phone;
-    } else if (data.role === 'creator') {
-      metadata.channel_type = data.channelType;
-      metadata.platform_handle = data.platformHandle;
-    }
-    
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata
-      }
-    });
-    return { error };
+  const signUp = async (_data: SignUpData) => {
+    // Sign-up is handled directly via Redux in Auth page; keep placeholder.
+    return { error: null };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+  const signIn = async (
+    email: string,
+    password: string,
+    userType: "admin" | "brand" | "creator" = "admin"
+  ) => {
+    try {
+      await dispatch(
+        loginUser({ email, password, user_type: userType })
+      ).unwrap();
+      return { error: null };
+    } catch (e: any) {
+      return { error: e };
+    }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-      }
-    } catch (error) {
-      console.error('Sign out exception:', error);
+      dispatch(logout());
     } finally {
-      // Always clear local state and redirect, even if signOut fails
-      setSession(null);
-      setUser(null);
-      router.push('/auth');
+      router.push("/auth");
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading: !isInitialized, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import BlogPostWizard from "@/page-components/admin/BlogPostWizard";
 import AdminRoute from "@/components/AdminRoute";
 
