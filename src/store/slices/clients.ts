@@ -10,6 +10,7 @@ interface PaginationState {
   perPage: number;
   totalPages: number;
   totalRecords: number;
+  totalResults: number;
 }
 
 interface ClientsState {
@@ -26,6 +27,7 @@ const initialState: ClientsState = {
     perPage: 10,
     totalPages: 0,
     totalRecords: 0,
+    totalResults: 0,
   },
   status: "idle",
   error: null,
@@ -59,11 +61,11 @@ export const { setClients, setClientsLoading, setClientsError, setPage } = clien
 export default clientsSlice.reducer;
 
 // Thunk to fetch clients list
-export const fetchClients = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const fetchClients = (page = 1, limit = 10, search = "") => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setClientsLoading(true));
   const token = getState().auth.authToken;
   try {
-    const response = await service.fetchClients(page, limit, token);
+    const response = await service.fetchClients(page, limit, token, search);
     const body = response.data;
     dispatch(
       setClients({
@@ -73,6 +75,7 @@ export const fetchClients = (page = 1, limit = 10) => async (dispatch: AppDispat
           perPage: body?.pagination?.per_page ?? limit,
           totalPages: body?.pagination?.total_pages ?? 1,
           totalRecords: body?.pagination?.total_records ?? body?.data?.length ?? 0,
+          totalResults: body?.pagination?.total_records ?? body?.data?.length ?? 0,
         },
       })
     );
@@ -104,7 +107,7 @@ export const createClientThunk = (payload: {
     const { currentPage, perPage } = getState().clients.pagination;
     dispatch(fetchClients(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {
@@ -135,7 +138,7 @@ export const updateClientThunk = (payload: {
     const { currentPage, perPage } = getState().clients.pagination;
     dispatch(fetchClients(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {
@@ -157,7 +160,7 @@ export const deleteClientThunk = (id: string) => async (dispatch: AppDispatch, g
     const { currentPage, perPage } = getState().clients.pagination;
     dispatch(fetchClients(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {

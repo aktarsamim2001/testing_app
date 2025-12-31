@@ -8,7 +8,11 @@ import { selectAuthors, fetchAuthors } from '@/store/slices/authors';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import TagsInput from '@/components/ui/TagsInput';
 import { Textarea } from '@/components/ui/textarea';
+import dynamic from 'next/dynamic';
+// Dynamically import TiptapEditor to avoid SSR issues
+const TiptapEditor = dynamic(() => import('@/components/ui/TiptapEditor'), { ssr: false });
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,7 +42,7 @@ export default function BlogPostWizard() {
     description: '',
     image: '',
     status: 'Draft',
-    tags: '',
+    tags: '', // will be handled as array in UI, string for backend
     meta_title: '',
     meta_description: '',
     author_id: '',
@@ -51,6 +55,11 @@ export default function BlogPostWizard() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [errors, setErrors] = useState<{
+    title?: string;
+    author_id?: string;
+    description?: string;
+  }>({});
 
   useEffect(() => {
     dispatch(fetchAuthors(1, 100) as any);
@@ -76,7 +85,7 @@ export default function BlogPostWizard() {
       });
       setImagePreview(editingBlog.image);
       if (editingBlog.faq) {
-        setFaqs(editingBlog.faq);
+        setFaqs(editingBlog.faq.map((f, i) => ({ ...f, order_index: i })));
       }
     } else {
       setFormData(initialFormData);
@@ -108,50 +117,24 @@ export default function BlogPostWizard() {
 
     console.log('[BlogPostWizard] Rendered', { step, editId });
 
+  // S3 upload temporarily disabled, just use file path
   const uploadImage = async () => {
     if (!imageFile) return formData.image;
-
-    try {
-      console.log('[BlogPostWizard] Starting image upload', { imageFile });
-      const s3Url = await uploadToS3(imageFile, "development/blog");
-      setFormData((prev) => ({
-        ...prev,
-        image: s3Url,
-      }));
-      console.log('[BlogPostWizard] Image uploaded', { s3Url });
-      return s3Url;
-    } catch (error: any) {
-      console.error('[BlogPostWizard] Image upload failed', error);
-      toast.error("Failed to upload image");
-      throw error;
-    }
+    // S3 upload disabled, just use file path
+    // const s3Url = await uploadToS3(imageFile, "development/blog");
+    // setFormData((prev) => ({ ...prev, image: s3Url }));
+    // return s3Url;
+    return `development/blog/${imageFile.name}`;
   };
 
   const handleSubmit = async () => {
-    console.log('[BlogPostWizard] handleSubmit called', { formData, editingBlog, step });
-    if (!formData.title || !formData.description) {
-      toast.error('Title and description are required');
-      return;
-    }
-
-    if (!formData.author_id) {
-      toast.error('Author is required');
-      return;
-    }
-
     setIsSubmitting(true);
-    console.log('[BlogPostWizard] Submitting form', { formData, faqs, imageFile });
     try {
       const slug = formData.slug || generateSlug(formData.title);
       let imageUrl = formData.image;
-
-
       if (imageFile) {
-        console.log('[BlogPostWizard] Before image upload');
-        imageUrl = await uploadImage();
-        console.log('[BlogPostWizard] After image upload', { imageUrl });
+        imageUrl = await uploadImage(); // will just set file path for now
       }
-
       const postData = {
         title: formData.title,
         slug,
@@ -169,25 +152,18 @@ export default function BlogPostWizard() {
         faq: faqs,
         published_at: formData.status?.toLowerCase() === 'published' ? new Date().toISOString() : null
       };
-
-
       if (editingBlog?.id) {
         await dispatch(updateBlogThunk({ ...postData, id: editingBlog.id }) as any);
         toast.success('Blog post updated successfully');
       } else {
-        console.log('[BlogPostWizard] Before dispatch createBlogThunk', { postData });
         await dispatch(createBlogThunk(postData) as any);
-        console.log('[BlogPostWizard] After dispatch createBlogThunk');
         toast.success('Blog post created successfully');
       }
-
-      // Reset form state after submit to prevent duplicate API calls
       setFormData(initialFormData);
       setImagePreview("");
       setFaqs([]);
       setImageFile(null);
       setStep(1);
-
       setTimeout(() => {
         router.push('/admin/blog');
       }, 1500);
@@ -198,6 +174,21 @@ export default function BlogPostWizard() {
     }
   };
 
+  // Stepper validation for Next button
+  const handleNextStep = () => {
+    const newErrors: typeof errors = {};
+    if (step === 1) {
+      if (!formData.title.trim()) newErrors.title = 'Title is required.';
+      if (!formData.author_id) newErrors.author_id = 'Author is required.';
+    }
+    if (step === 2) {
+      if (!formData.description.trim()) newErrors.description = 'Content is required.';
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+    setStep(step + 1);
+  };
+
   const steps = [
     { number: 1, title: 'Basic Info', description: 'Title, author, and images' },
     { number: 2, title: 'Content', description: 'Write your blog post' },
@@ -206,7 +197,7 @@ export default function BlogPostWizard() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold">Create Blog Post</h1>
@@ -254,13 +245,20 @@ export default function BlogPostWizard() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, title: e.target.value });
+                      if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
+                    }}
+                    aria-invalid={!!errors.title}
                     placeholder="Enter blog post title"
                   />
+                  {errors.title && (
+                    <div className="text-red-500 text-xs mt-1">{errors.title}</div>
+                  )}
                 </div>
 
                 <div>
@@ -285,10 +283,32 @@ export default function BlogPostWizard() {
                 </div>
 
                 <div>
-                  <Label htmlFor="author_id">Author *</Label>
+                  <Label htmlFor="author_id">Author <span className="text-red-500">*</span></Label>
+                  <Select value={formData.author_id} onValueChange={(value) => {
+                    setFormData({ ...formData, author_id: value });
+                    if (errors.author_id) setErrors((prev) => ({ ...prev, author_id: undefined }));
+                  }}>
+                    <SelectTrigger aria-invalid={!!errors.author_id}>
+                      <SelectValue placeholder="Select an author" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.author_id && (
+                    <div className="text-red-500 text-xs mt-1">{errors.author_id}</div>
+                  )}
+                </div>
+
+                  <div>
+                  <Label htmlFor="author_id">Categories <span className="text-red-500">*</span></Label>
                   <Select value={formData.author_id} onValueChange={(value) => setFormData({ ...formData, author_id: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select an author" />
+                      <SelectValue placeholder="Select an category" />
                     </SelectTrigger>
                     <SelectContent>
                       {authors.map((author) => (
@@ -330,27 +350,37 @@ export default function BlogPostWizard() {
                   </TabsList>
                   <TabsContent value="write" className="space-y-4 mt-4">
                     <div>
-                      <Label htmlFor="description">Content *</Label>
-                      <Textarea
-                        id="description"
+                      <Label htmlFor="description">Content <span className="text-red-500">*</span></Label>
+                      <TiptapEditor
                         value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Write your blog post content here..."
-                        rows={15}
-                        className="font-mono"
+                        onChange={(value: string) => {
+                          setFormData({ ...formData, description: value });
+                          if (errors.description) setErrors((prev) => ({ ...prev, description: undefined }));
+                        }}
                       />
+                      {errors.description && (
+                        <div className="text-red-500 text-xs mt-1">{errors.description}</div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        You can format your text, add links, lists, and more.
+                      </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         Estimated reading time: {formData.estimated_reading_time || '5'} min
                       </p>
                     </div>
 
                     <div>
-                      <Label htmlFor="tags">Tags (comma-separated)</Label>
-                      <Input
-                        id="tags"
-                        value={formData.tags}
-                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                        placeholder="marketing, social media, influencer"
+                      <Label htmlFor="tags">Tags</Label>
+                      <TagsInput
+                        value={
+                          typeof formData.tags === 'string'
+                            ? formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+                            : Array.isArray(formData.tags)
+                              ? formData.tags
+                              : []
+                        }
+                        onChange={tagsArr => setFormData({ ...formData, tags: tagsArr.join(',') })}
+                        placeholder="Type and press enter"
                       />
                     </div>
                   </TabsContent>
@@ -372,7 +402,7 @@ export default function BlogPostWizard() {
                 <FAQBuilder faqs={faqs} onChange={setFaqs} />
 
                 <div className="border-t pt-6 space-y-4">
-                  <h3 className="font-semibold">SEO Settings</h3>
+                  <h1 className="font-semibold text-sm">SEO Settings</h1>
                   
                   <div>
                     <Label htmlFor="meta_title">SEO Title</Label>
@@ -422,7 +452,7 @@ export default function BlogPostWizard() {
               </Button>
 
               {step < 3 ? (
-                <Button onClick={() => setStep(step + 1)}>
+                <Button onClick={handleNextStep}>
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

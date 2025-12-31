@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface PageData {
   id: string;

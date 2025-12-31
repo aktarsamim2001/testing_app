@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,7 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
   const [status, setStatus] = useState('pending');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ partner?: string; compensation?: string }>({});
   const { toast } = useToast();
 
   const dispatch = useDispatch();
@@ -39,16 +40,25 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
       setCompensation('');
       setStatus('pending');
       setNotes('');
+      setErrors({});
       dispatch<any>(fetchPartners(1, 100));
     }
   }, [open, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: { partner?: string; compensation?: string } = {};
     if (!selectedPartnerId) {
-      toast({ title: 'Error', description: 'Please select a partner', variant: 'destructive' });
-      return;
+      newErrors.partner = 'Please select a partner.';
     }
+    if (compensation) {
+      const compValue = Number(compensation);
+      if (isNaN(compValue) || compValue < 0) {
+        newErrors.compensation = 'Compensation must be a non-negative number.';
+      }
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     setLoading(true);
     // Ensure compensation is sent as a string and status is capitalized
     const formattedCompensation = compensation ? compensation.toString() : "";
@@ -61,23 +71,28 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
       notes: notes || null
     }));
     setLoading(false);
+    toast({
+      title: "Partner assigned!",
+      description: "Partner has been successfully assigned to the campaign.",
+      variant: "success",
+    });
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Assign Partner to Campaign</DialogTitle>
-          <DialogDescription>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Assign Partner to Campaign</AlertDialogTitle>
+          <AlertDialogDescription>
             Select a partner and set their compensation details
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="partner">Partner *</Label>
-            <Select value={selectedPartnerId} onValueChange={setSelectedPartnerId} disabled={partnersLoading}>
+            <Label htmlFor="partner">Partner <span className="text-red-500">*</span></Label>
+            <Select value={selectedPartnerId} onValueChange={(v) => { setSelectedPartnerId(v); if (errors.partner) setErrors(e => ({ ...e, partner: undefined })); }} disabled={partnersLoading}>
               <SelectTrigger>
                 <SelectValue placeholder={partnersLoading ? "Loading..." : "Select a partner"} />
               </SelectTrigger>
@@ -89,6 +104,7 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
                 ))}
               </SelectContent>
             </Select>
+            {errors.partner && <div className="text-red-500 text-xs mt-1">{errors.partner}</div>}
           </div>
 
           <div className="space-y-2">
@@ -98,9 +114,13 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
               type="number"
               step="0.01"
               value={compensation}
-              onChange={(e) => setCompensation(e.target.value)}
+              onChange={(e) => {
+                setCompensation(e.target.value);
+                if (errors.compensation) setErrors(e => ({ ...e, compensation: undefined }));
+              }}
               placeholder="0.00"
             />
+            {errors.compensation && <div className="text-red-500 text-xs mt-1">{errors.compensation}</div>}
           </div>
 
           <div className="space-y-2">
@@ -128,16 +148,20 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Assigning...' : 'Assign Partner'}
-            </Button>
-          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Assigning...' : 'Assign Partner'}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

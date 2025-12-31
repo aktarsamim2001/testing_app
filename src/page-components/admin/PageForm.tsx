@@ -32,8 +32,10 @@ const statusOptions = [
   { value: "draft", label: "Draft" },
 ];
 
+import type { AppDispatch } from "@/store";
+
 const PageForm = () => {
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
   const router = useRouter();
   const params = useParams();
   const pages = useSelector(selectPages);
@@ -58,7 +60,8 @@ const PageForm = () => {
         setForm({
           ...form,
           ...page,
-          data: page.data || defaultSections,
+          status: String(page.status),
+          data: (page.content as any) || defaultSections,
         });
       }
     }
@@ -73,10 +76,14 @@ const PageForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isEdit) {
-      dispatch(updatePageThunk({ ...form, id: params.id }));
+      let id = params.id;
+      if (Array.isArray(id)) {
+        id = id[0];
+      }
+      dispatch(updatePageThunk({ id, data: form }));
     } else {
       dispatch(createPageThunk(form));
     }

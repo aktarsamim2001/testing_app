@@ -54,7 +54,6 @@ export const fetchCampaignAssignablePartners = (page = 1, limit = 100) => async 
     dispatch(setCampaignAssignablePartners(response.data.data || []));
   } catch (error: any) {
     dispatch(setCampaignAssignablePartnersError(error?.message || "Failed to load partners"));
-    toast.error(error?.message || "Failed to load partners");
   } finally {
     dispatch(setCampaignAssignablePartnersLoading(false));
   }

@@ -1,5 +1,4 @@
 import React from 'react';
-// Import all section components as in PageBuilder
 import Section1Home from './home/Section1';
 import Section2Home from './home/Section2';
 import Section3Home from './home/Section3';

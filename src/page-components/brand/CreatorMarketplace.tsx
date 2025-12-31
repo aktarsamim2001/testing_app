@@ -75,7 +75,7 @@ export default function CreatorMarketplace() {
       });
       setAvailableCategories(Array.from(categories).sort());
     } catch (error: any) {
-      toast.error("Failed to fetch creators");
+      toast.error('Failed to fetch creators');
       console.error(error);
     } finally {
       setLoading(false);

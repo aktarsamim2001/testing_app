@@ -1,20 +1,30 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import ClientDialog from '@/components/admin/ClientDialog';
 import type { AppDispatch, RootState } from '@/store';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   fetchClients, 
   deleteClientThunk, 
@@ -48,20 +58,37 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingClient, setDeletingClient] = useState<Client | null>(null);
-
-  const loadClients = useCallback((page = 1, limit = 10) => {
-    dispatch(fetchClients(page, limit));
-  }, [dispatch]);
-
-  // Pagination state
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
 
+  const loadClients = useCallback((page = 1, limit = 10, search = "") => {
+    dispatch(fetchClients(page, limit, search));
+  }, [dispatch]);
+
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]);
+
   useEffect(() => {
     if (user && isAdmin) {
-      loadClients(page, perPage);
+      loadClients(page, perPage, debouncedSearch);
     }
-  }, [user, isAdmin, loadClients, page, perPage]);
+  }, [user, isAdmin, loadClients, page, perPage, debouncedSearch]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -147,8 +174,22 @@ export default function Clients() {
 
         <Card>
           <CardHeader>
+             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
             <CardTitle>All Clients</CardTitle>
             <CardDescription>View and manage client accounts</CardDescription>
+             </div>
+              <Input
+                id="client-search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search clients by name, email, company..."
+                className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
+              />
+            </div>
           </CardHeader>
           <CardContent>
             {dataLoading ? (
@@ -197,29 +238,72 @@ export default function Clients() {
                     ))}
                   </TableBody>
                 </Table>
-                {/* Pagination Controls */}
-                <div className="flex justify-between items-center mt-4">
-                  <span>
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                  <div className="space-x-2">
+                {/* Improved Pagination Controls */}
+                <div className="flex justify-end items-center mt-4 gap-4">
+                  {(() => {
+                    const start = (pagination.currentPage - 1) * perPage + 1;
+                    const end = start + clients.length - 1;
+                    const total = (typeof pagination.totalResults === 'number' && pagination.totalResults >= 0)
+                      ? pagination.totalResults
+                      : clients.length;
+                    return (
+                      <span className="text-sm text-muted-foreground">
+                        Showing {start} to {end} of {total} results
+                      </span>
+                    );
+                  })()}
+                  <nav className="flex items-center gap-1 select-none" aria-label="Pagination">
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={pagination.currentPage === 1}
                       onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                      aria-label="Previous page"
                     >
-                      Previous
+                      <ChevronLeft className="w-4 h-4" />
                     </Button>
+                    {(() => {
+                      const pages = [];
+                      const total = pagination.totalPages;
+                      const current = pagination.currentPage;
+                      if (total <= 6) {
+                        for (let i = 1; i <= total; i++) {
+                          pages.push(i);
+                        }
+                      } else {
+                        if (current <= 3) {
+                          pages.push(1, 2, 3, 4, '...', total);
+                        } else if (current >= total - 2) {
+                          pages.push(1, '...', total - 3, total - 2, total - 1, total);
+                        } else {
+                          pages.push(1, '...', current - 1, current, current + 1, '...', total);
+                        }
+                      }
+                      return pages.map((p, idx) =>
+                        p === '...'
+                          ? <span key={"ellipsis-" + idx} className="px-2 text-muted-foreground">...</span>
+                          : <Button
+                              key={p}
+                              variant={p === current ? "default" : "outline"}
+                              size="sm"
+                              className={p === current ? "bg-orange-500 text-white" : ""}
+                              onClick={() => setPage(Number(p))}
+                              aria-current={p === current ? "page" : undefined}
+                            >
+                              {p}
+                            </Button>
+                      );
+                    })()}
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={pagination.currentPage === pagination.totalPages}
                       onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                      aria-label="Next page"
                     >
-                      Next
+                      <ChevronRight className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </nav>
                 </div>
               </>
             )}
@@ -233,18 +317,23 @@ export default function Clients() {
         />
 
         {/* Delete Confirmation Dialog */}
-        {deleteDialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">Delete Client</h2>
-              <p className="mb-4">Are you sure you want to delete <span className="font-bold">{deletingClient?.company_name}</span>? This action cannot be undone.</p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>Cancel</Button>
+        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!open) closeDeleteDialog(); }}>
+          <AlertDialogTrigger asChild />
+          <AlertDialogContent>
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <span className="font-bold">{deletingClient?.company_name}</span>? This action cannot be undone.
+            </AlertDialogDescription>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel asChild>
+                <Button variant="outline" size="sm">Cancel</Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
                 <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
-              </div>
+              </AlertDialogAction>
             </div>
-          </div>
-        )}
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

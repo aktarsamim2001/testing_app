@@ -1,7 +1,7 @@
 
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
+import { toast } from '@/hooks/use-toast';
 import { service } from "@/services/_api_service";
 
 // ==================== Type Definitions ====================
@@ -77,7 +77,7 @@ export const registerUser = createAsyncThunk(
       const { token, data, message } = response.data;
 
       // API returned success - show success message
-      toast.success(message || "Registration successful");
+      toast({ title: 'Success', description: message || 'Registration successful', variant: 'success' });
 
       // If we have a token, store auth data
       if (token) {
@@ -95,7 +95,7 @@ export const registerUser = createAsyncThunk(
     } catch (error: any) {
       // Use API error message if available
       const errorMessage = error?.response?.data?.message || error?.message || "Registration failed";
-      toast.error(errorMessage);
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
       console.error("Register error:", error);
       return rejectWithValue(errorMessage);
     }
@@ -111,12 +111,11 @@ export const loginUser = createAsyncThunk(
   async (payload: LoginPayload, { rejectWithValue }) => {
     try {
       const response = await service.login(payload);
-      console.log("Login API Response:", response.data);
       
       const { token, data, message } = response.data;
 
       // API returned success - show success message
-      toast.success(message || "Login successful");
+      toast({ title: 'Success', description: message || 'Login successful', variant: 'success' });
 
       // If we have a token, store auth data
       if (token) {
@@ -134,7 +133,7 @@ export const loginUser = createAsyncThunk(
     } catch (error: any) {
       console.error("Login error details:", error);
       const errorMessage = error?.response?.data?.message || error?.message || "Login failed";
-      toast.error(errorMessage);
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
       return rejectWithValue(errorMessage);
     }
   }

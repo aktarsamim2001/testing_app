@@ -9,6 +9,7 @@ export interface Author {
   name: string;
   image: string;
   about: string | null;
+  status?: number;
 }
 
 interface AuthorsState {

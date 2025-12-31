@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { AppDispatch } from '@/store';
 import { createAuthorThunk, updateAuthorThunk } from '@/store/slices/authors';
-import { uploadAuthorImage } from '@/services/s3-upload';
+// import { uploadAuthorImage } from '@/services/s3-upload';
 import toast from 'react-hot-toast';
 
 interface Author {
@@ -32,6 +32,10 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    image?: string;
+  }>({});
 
   useEffect(() => {
     if (author) {
@@ -63,8 +67,22 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
     }
   };
 
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = 'Author name is required.';
+    }
+    if (!author && !imageFile) {
+      newErrors.image = 'Image is required for creating a new author.';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     setLoading(true);
 
     try {
@@ -79,8 +97,8 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
         // Upload new image if selected
         if (imageFile) {
           try {
-            const imageUrl = await uploadAuthorImage(imageFile);
-            payload.image = imageUrl;
+            // Send file path instead of base64
+            payload.image = `development/author/profile/${imageFile.name}`;
           } catch (error: any) {
             toast.error(`Image upload failed: ${error.message}`);
             setLoading(false);
@@ -91,13 +109,10 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
         await dispatch(updateAuthorThunk(payload));
       } else {
         // Create author
-        if (!imageFile) {
-          throw new Error('Image is required for creating a new author');
-        }
-
-        let imageUrl: string;
+        let imageUrl: string = '';
         try {
-          imageUrl = await uploadAuthorImage(imageFile);
+          // Send file path instead of base64
+          imageUrl = `development/author/profile/${imageFile!.name}`;
         } catch (error: any) {
           toast.error(`Image upload failed: ${error.message}`);
           setLoading(false);
@@ -142,18 +157,25 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Author Name *</Label>
+            <Label htmlFor="name">Author Name <span className="text-red-500">*</span></Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+              }}
+              aria-invalid={!!errors.name}
+              // required removed for custom validation only
               placeholder="Enter author name"
             />
+            {errors.name && (
+              <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Author Image {!author && '*'}</Label>
+            <Label htmlFor="image">Author Image {!author && <span className="text-red-500">*</span>}</Label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
               {imagePreview && (
                 <div className="mb-4">
@@ -168,8 +190,12 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
                 id="image"
                 type="file"
                 accept="image/*"
-                onChange={handleImageChange}
-                required={!author}
+                onChange={e => {
+                  handleImageChange(e);
+                  if (errors.image) setErrors((prev) => ({ ...prev, image: undefined }));
+                }}
+                aria-invalid={!!errors.image}
+                // required removed for custom validation only
                 className="block w-full text-sm text-gray-500
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-md file:border-0
@@ -177,8 +203,11 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
                   file:bg-blue-50 file:text-blue-700
                   hover:file:bg-blue-100"
               />
+              {errors.image && (
+                <div className="text-red-500 text-xs mt-1">{errors.image}</div>
+              )}
               <p className="text-sm text-gray-500 mt-2">
-                {imageFile ? `Selected: ${imageFile.name}` : 'Click to select an image or drag and drop'}
+                {imageFile ? `Selected: ${imageFile.name}` : ''}
               </p>
             </div>
           </div>
@@ -205,7 +234,6 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || (!author && !imageFile)}
             >
               {loading ? (author ? 'Updating...' : 'Creating...') : (author ? 'Update Author' : 'Create Author')}
             </Button>

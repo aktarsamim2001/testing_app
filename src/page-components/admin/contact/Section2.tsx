@@ -161,7 +161,7 @@ export default function Section2({
               <Input
                 id={`slide-title-${slide.id}`}
                 placeholder="e.g., Contact Information"
-                value={slide.title}
+                value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
                 }
@@ -324,7 +324,7 @@ export default function Section2({
             </div>
 
             {/* Monthly Budget Section */}
-            <div className="space-y-3 border-t pt-4">
+            {/* <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Monthly Budget</Label>
                 <Button
@@ -367,7 +367,7 @@ export default function Section2({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
         ))

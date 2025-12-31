@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit2, Eye, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type { Json } from '@/integrations/supabase/types';
 
 interface SectionData {
   id: string;

@@ -1,44 +1,62 @@
+
 .premiumCalendar {
-  background: linear-gradient(135deg, #f7f9fc 0%, #eef2f7 100%);
-  color: #222;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(99,102,241,0.08);
-  border: 1px solid #e5e7eb;
-  padding: 8px;
-  font-family: 'Outfit', sans-serif;
+  background: linear-gradient(135deg, #f0e7fa 0%, #e0e7ff 100%);
+  color: #232946;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(99,102,241,0.15), 0 1.5px 6px 0 rgba(99,102,241,0.10);
+  border: 2px solid #e94808;
+  padding: 12px 10px 10px 10px;
+  font-family: 'Outfit', 'Segoe UI', sans-serif;
 }
+
 .react-datepicker__day--selected, .react-datepicker__day--keyboard-selected {
-  background-color: #6366f1 !important; /* Tailwind primary */
+  background: linear-gradient(90deg, #6366f1 60%, #a21caf 100%);
   color: #fff !important;
-  border-radius: 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.18);
+  border: 1.5px solid #e25c0e;
 }
+
 .react-datepicker__header {
-  background-color: #eef2f7;
-  border-bottom: 1px solid #e5e7eb;
-  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, #e0e7ff 60%, #f0e7fa 100%);
+  border-bottom: 2px solid #a5b4fc;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: 8px;
 }
+
 .react-datepicker__day:hover {
-  background-color: #dbeafe !important;
-  color: #222 !important;
-  border-radius: 8px;
-}
-.react-datepicker__current-month, .react-datepicker__month-dropdown, .react-datepicker__year-dropdown {
+  background: linear-gradient(90deg, #c7d2fe 60%, #fbcfe8 100%) !important;
+  color: #232946 !important;
+  border-radius: 10px;
   font-weight: 600;
-  color: #6366f1;
 }
+
+.react-datepicker__current-month, .react-datepicker__month-dropdown, .react-datepicker__year-dropdown {
+  font-weight: 700;
+  color: #7c3aed;
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+}
+
 .react-datepicker__today-button {
-  background: #6366f1;
+  background: linear-gradient(90deg, #6366f1 60%, #a21caf 100%);
   color: #fff;
-  border-radius: 8px;
-  font-weight: 500;
-  margin-top: 4px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-top: 6px;
+  box-shadow: 0 1px 4px 0 rgba(99,102,241,0.12);
 }
+
 .premiumInput {
-  font-size: 1rem;
-  background: #f7f9fc;
-  border-radius: 12px;
-  transition: box-shadow 0.2s;
+  font-size: 0.8rem;
+  background: #f3f3f3;
+  border-radius: 14px;
+  font-weight: 500;
+  border: 1.5px solid #cecdcd7a;
+  transition: box-shadow 0.2s, border 0.2s;
 }
 .premiumInput:focus {
-  box-shadow: 0 0 0 2px #6366f1;
+  border: 2px solid #e94808;
+  box-shadow: 0 0 0 2px #ffe5d0;
 }

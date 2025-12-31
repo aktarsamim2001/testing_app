@@ -1,73 +1,108 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserRole } from '@/hooks/useUserRole';
-import AdminLayout from '@/components/admin/AdminLayout';
-import AdminPageLoader from '@/components/admin/AdminPageLoader';
-import PartnerDialog from '@/components/admin/PartnerDialog';
-import type { AppDispatch, RootState } from '@/store';
-import { 
-  fetchPartners, 
-  deletePartnerThunk, 
-  selectPartners, 
-  selectPartnersLoading, 
-  selectPartnersPagination
-} from '@/store/slices/partners';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import AdminLayout from "@/components/admin/AdminLayout";
+import AdminPageLoader from "@/components/admin/AdminPageLoader";
+import PartnerDialog from "@/components/admin/PartnerDialog";
+import type { AppDispatch, RootState } from "@/store";
+import {
+  fetchPartners,
+  deletePartnerThunk,
+  selectPartners,
+  selectPartnersLoading,
+  selectPartnersPagination,
+} from "@/store/slices/partners";
 
-interface Partner {
-  id: string;
-  name: string;
-  email: string;
-  channel_type: string;
-  platform_handle: string | null;
-  follower_count: number | null;
-  engagement_rate: number | null;
-  categories: string[] | null;
-  notes: string | null;
-  status: number;
-}
+// Use the Partner type from the store to ensure consistency
+import type { Partner } from '@/store/slices/partners';
 
 export default function Partners() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  
+
   const partners = useSelector(selectPartners);
   const dataLoading = useSelector(selectPartnersLoading);
   const pagination = useSelector(selectPartnersPagination);
-  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingPartner, setDeletingPartner] = useState<Partner | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const loadPartners = useCallback((page = 1, limit = 10) => {
-    dispatch(fetchPartners(page, limit));
-  }, [dispatch]);
+  const loadPartners = useCallback(
+    (page = 1, limit = 10, search = "") => {
+      dispatch(fetchPartners(page, limit, search));
+    },
+    [dispatch]
+  );
 
   // Pagination state
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
 
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]);
+
   useEffect(() => {
     if (user && isAdmin) {
-      loadPartners(page, perPage);
+      loadPartners(page, perPage, debouncedSearch);
     }
-  }, [user, isAdmin, loadPartners, page, perPage]);
+  }, [user, isAdmin, loadPartners, page, perPage, debouncedSearch]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push('/auth');
+      router.push("/auth");
     }
   }, [user, isAdmin, loading, router]);
 
@@ -101,15 +136,19 @@ export default function Partners() {
 
   const getChannelColor = (channel: string) => {
     switch (channel) {
-      case 'blogger': return 'bg-purple-500';
-      case 'linkedin': return 'bg-blue-500';
-      case 'youtube': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case "blogger":
+        return "bg-purple-500";
+      case "linkedin":
+        return "bg-blue-500";
+      case "youtube":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
   const formatNumber = (num: number | null) => {
-    if (!num) return 'N/A';
+    if (!num) return "N/A";
     return num.toLocaleString();
   };
 
@@ -131,7 +170,9 @@ export default function Partners() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Partners & Influencers</h1>
-            <p className="text-muted-foreground">Manage your influencer network</p>
+            <p className="text-muted-foreground">
+              Manage your influencer network
+            </p>
           </div>
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -141,8 +182,24 @@ export default function Partners() {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Partners</CardTitle>
-            <CardDescription>View and manage influencer partnerships</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle>All Partners</CardTitle>
+                <CardDescription>
+                  View and manage influencer partnerships
+                </CardDescription>
+              </div>
+              <Input
+                id="partner-search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search partners by name..."
+                className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
+              />
+            </div>
           </CardHeader>
           <CardContent>
             {dataLoading ? (
@@ -172,20 +229,40 @@ export default function Partners() {
                   <TableBody>
                     {partners.map((partner) => (
                       <TableRow key={partner.id}>
-                        <TableCell className="font-medium">{partner.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {partner.name}
+                        </TableCell>
                         <TableCell>
-                          <Badge className={getChannelColor(partner.channel_type)}>
+                          <Badge
+                            className={getChannelColor(partner.channel_type)}
+                          >
                             {partner.channel_type}
                           </Badge>
                         </TableCell>
-                        <TableCell>{partner.platform_handle || 'N/A'}</TableCell>
-                        <TableCell>{formatNumber(partner.follower_count)}</TableCell>
-                        <TableCell>{partner.engagement_rate ? `${partner.engagement_rate}%` : 'N/A'}</TableCell>
+                        <TableCell>
+                          {partner.platform_handle || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {formatNumber(partner.follower_count)}
+                        </TableCell>
+                        <TableCell>
+                          {partner.engagement_rate
+                            ? `${partner.engagement_rate}%`
+                            : "N/A"}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(partner)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(partner)}
+                          >
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(partner)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(partner)}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -193,29 +270,72 @@ export default function Partners() {
                     ))}
                   </TableBody>
                 </Table>
-                {/* Pagination Controls */}
-                <div className="flex justify-between items-center mt-4">
-                  <span>
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                  <div className="space-x-2">
+                {/* Improved Pagination Controls */}
+                <div className="flex justify-end items-center mt-4 gap-4">
+                  {(() => {
+                    const start = (pagination.currentPage - 1) * perPage + 1;
+                    const end = start + partners.length - 1;
+                    const total = (typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0)
+                      ? pagination.totalRecords
+                      : partners.length;
+                    return (
+                      <span className="text-sm text-muted-foreground">
+                        Showing {start} to {end} of {total} results
+                      </span>
+                    );
+                  })()}
+                  <nav className="flex items-center gap-1 select-none" aria-label="Pagination">
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={pagination.currentPage === 1}
                       onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                      aria-label="Previous page"
                     >
-                      Previous
+                      <ChevronLeft className="w-4 h-4" />
                     </Button>
+                    {(() => {
+                      const pages = [];
+                      const total = pagination.totalPages;
+                      const current = pagination.currentPage;
+                      if (total <= 6) {
+                        for (let i = 1; i <= total; i++) {
+                          pages.push(i);
+                        }
+                      } else {
+                        if (current <= 3) {
+                          pages.push(1, 2, 3, 4, '...', total);
+                        } else if (current >= total - 2) {
+                          pages.push(1, '...', total - 3, total - 2, total - 1, total);
+                        } else {
+                          pages.push(1, '...', current - 1, current, current + 1, '...', total);
+                        }
+                      }
+                      return pages.map((p, idx) =>
+                        p === '...'
+                          ? <span key={"ellipsis-" + idx} className="px-2 text-muted-foreground">...</span>
+                          : <Button
+                              key={p}
+                              variant={p === current ? "default" : "outline"}
+                              size="sm"
+                              className={p === current ? "bg-orange-500 text-white" : ""}
+                              onClick={() => setPage(Number(p))}
+                              aria-current={p === current ? "page" : undefined}
+                            >
+                              {p}
+                            </Button>
+                      );
+                    })()}
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={pagination.currentPage === pagination.totalPages}
                       onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                      aria-label="Next page"
                     >
-                      Next
+                      <ChevronRight className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </nav>
                 </div>
               </>
             )}
@@ -229,18 +349,23 @@ export default function Partners() {
         />
 
         {/* Delete Confirmation Dialog */}
-        {deleteDialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">Delete Partner</h2>
-              <p className="mb-4">Are you sure you want to delete <span className="font-bold">{deletingPartner?.name}</span>? This action cannot be undone.</p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>Cancel</Button>
+        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!open) closeDeleteDialog(); }}>
+          <AlertDialogTrigger asChild />
+          <AlertDialogContent>
+            <AlertDialogTitle>Delete Partner</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <span className="font-bold">{deletingPartner?.name}</span>? This action cannot be undone.
+            </AlertDialogDescription>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel asChild>
+                <Button variant="outline" size="sm">Cancel</Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
                 <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
-              </div>
+              </AlertDialogAction>
             </div>
-          </div>
-        )}
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

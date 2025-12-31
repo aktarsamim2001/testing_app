@@ -2,6 +2,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Textarea} from '@/components/ui/textarea';
 
 interface PageBuilderSEOProps {
   seoData: {
@@ -51,7 +52,7 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
       <Label htmlFor="seo-description" className="text-sm font-medium">
         Meta description
       </Label>
-      <textarea
+      <Textarea
         id="seo-description"
         placeholder="Enter meta description"
         value={seoData.description}

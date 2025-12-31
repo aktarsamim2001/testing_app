@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { encode as base64Encode } from '@/lib/utils';
 import { useRouter } from "next/navigation";
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PremiumDatePicker from '@/components/ui/PremiumDatePicker';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { fetchCampaigns, deleteCampaignThunk, createCampaignThunk, updateCampaignThunk, selectCampaigns, selectCampaignsLoading } from '@/store/slices/campaigns';
+import { fetchCampaigns, deleteCampaignThunk, createCampaignThunk, updateCampaignThunk, selectCampaigns, selectCampaignsLoading, selectCampaignsPagination } from '@/store/slices/campaigns';
 import { fetchClients, selectClients } from '@/store/slices/clients';
 
 interface CampaignItem {
@@ -43,6 +53,7 @@ export default function Campaigns() {
   const dispatch = useDispatch<AppDispatch>();
   const campaigns = useSelector((state: RootState) => selectCampaigns(state)) as unknown as CampaignItem[];
   const dataLoading = useSelector((state: RootState) => selectCampaignsLoading(state));
+  const pagination = useSelector((state: RootState) => selectCampaignsPagination(state));
   const clients = useSelector((state: RootState) => selectClients(state));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<CampaignItem | null>(null);
@@ -56,12 +67,42 @@ export default function Campaigns() {
     end_date: '',
     description: '',
   });
+  const [errors, setErrors] = useState<{
+    name?: string;
+    client_id?: string;
+    campaign_type?: string;
+  }>({});
   const { toast } = useToast();
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input
   useEffect(() => {
-    dispatch(fetchCampaigns(1, 100) as any);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]);
+
+  useEffect(() => {
+    dispatch(fetchCampaigns(pagination.currentPage, pagination.perPage, debouncedSearch) as any);
     dispatch(fetchClients(1, 100) as any);
-  }, [dispatch]);
+  }, [dispatch, pagination.currentPage, pagination.perPage, debouncedSearch]);
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages && page !== pagination.currentPage) {
+      dispatch(fetchCampaigns(page, pagination.perPage, debouncedSearch) as any);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -165,12 +206,6 @@ export default function Campaigns() {
     return client ? (client.company_name || client.name) : 'N/A';
   };
 
-  // Improved budget display: show as currency if set, else N/A
-  const displayBudget = (budget: string | number | null | undefined) => {
-    if (budget === null || budget === undefined || budget === '' || isNaN(Number(budget))) return 'N/A';
-    return formatCurrency(Number(budget));
-  };
-
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -187,8 +222,22 @@ export default function Campaigns() {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Campaigns</CardTitle>
-            <CardDescription>View and manage active campaigns</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle>All Campaigns</CardTitle>
+                <CardDescription>View and manage active campaigns</CardDescription>
+              </div>
+              <Input
+                id="campaign-search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  // Optionally reset page to 1 if you add page state
+                }}
+                placeholder="Search campaigns by name..."
+                className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
+              />
+            </div>
           </CardHeader>
           <CardContent>
             {dataLoading ? (
@@ -229,15 +278,15 @@ export default function Campaigns() {
                           {campaign.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{displayBudget(campaign.budget)}</TableCell>
+                      <TableCell>
+                        {campaign.budget}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            // Encrypt the campaign id before using in URL
-                            const encryptedId = base64Encode(campaign.id);
-                            router.push(`/admin/campaigns/${encryptedId}`);
+                            router.push(`/admin/campaigns/${campaign.id}`);
                           }}
                         >
                           <Eye className="w-4 h-4" />
@@ -257,19 +306,92 @@ export default function Campaigns() {
           </CardContent>
         </Card>
 
-        {/* Delete Confirmation Dialog */}
-        {deleteDialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">Delete Campaign</h2>
-              <p className="mb-4">Are you sure you want to delete this campaign? This action cannot be undone.</p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={cancelDelete}>Cancel</Button>
-                <Button variant="destructive" size="sm" onClick={confirmDelete}>Delete</Button>
-              </div>
-            </div>
+        {/* Improved Pagination Controls */}
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-end items-center mt-6 gap-4">
+            {(() => {
+              const start = (pagination.currentPage - 1) * pagination.perPage + 1;
+              const end = start + campaigns.length - 1;
+              const total = (typeof pagination.totalResults === 'number' && pagination.totalResults >= 0)
+                ? pagination.totalResults
+                : campaigns.length;
+              return (
+                <span className="text-sm text-muted-foreground">
+                  Showing {start} to {end} of {total} results
+                </span>
+              );
+            })()}
+            <nav className="flex items-center gap-1 select-none" aria-label="Pagination">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === 1}
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {(() => {
+                const pages = [];
+                const total = pagination.totalPages;
+                const current = pagination.currentPage;
+                if (total <= 6) {
+                  for (let i = 1; i <= total; i++) {
+                    pages.push(i);
+                  }
+                } else {
+                  if (current <= 3) {
+                    pages.push(1, 2, 3, 4, '...', total);
+                  } else if (current >= total - 2) {
+                    pages.push(1, '...', total - 3, total - 2, total - 1, total);
+                  } else {
+                    pages.push(1, '...', current - 1, current, current + 1, '...', total);
+                  }
+                }
+                return pages.map((p, idx) =>
+                  p === '...'
+                    ? <span key={"ellipsis-" + idx} className="px-2 text-muted-foreground">...</span>
+                    : <Button
+                        key={p}
+                        variant={p === current ? "default" : "outline"}
+                        size="sm"
+                        className={p === current ? "bg-orange-500 text-white" : ""}
+                        onClick={() => handlePageChange(Number(p))}
+                        aria-current={p === current ? "page" : undefined}
+                      >
+                        {p}
+                      </Button>
+                );
+              })()}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === pagination.totalPages}
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </nav>
           </div>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        {/* Delete Confirmation AlertDialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!open) cancelDelete(); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this campaign? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} >Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -283,10 +405,16 @@ export default function Campaigns() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                const newErrors: typeof errors = {};
+                if (!formData.name.trim()) newErrors.name = 'Campaign name is required.';
+                if (!formData.client_id) newErrors.client_id = 'Client is required.';
+                if (!formData.campaign_type) newErrors.campaign_type = 'Campaign type is required.';
+                setErrors(newErrors);
+                if (Object.keys(newErrors).length > 0) return;
                 const payload = {
                   name: formData.name,
                   client_id: formData.client_id,
-                  budget: formData.budget ? parseFloat(formData.budget) : 0,
+                  budget: formData.budget ? String(formData.budget) : '',
                   campaign_type: formData.campaign_type,
                   status: formData.status,
                   start_date: formData.start_date,
@@ -295,7 +423,6 @@ export default function Campaigns() {
                   campaign_goals: '',
                   target_audience: ''
                 };
-
                 if (editingCampaign?.id) {
                   dispatch(updateCampaignThunk({ ...payload, id: editingCampaign.id }) as any);
                 } else {
@@ -307,20 +434,30 @@ export default function Campaigns() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="name">Campaign Name *</Label>
+                <Label htmlFor="name">Campaign Name <span className="text-red-500">*</span></Label>
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                  }}
+                  aria-invalid={!!errors.name}
+                  // required removed for custom validation only
                 />
+                {errors.name && (
+                  <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="client_id">Client *</Label>
-                  <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                    <SelectTrigger>
+                  <Label htmlFor="client_id">Client <span className="text-red-500">*</span></Label>
+                  <Select value={formData.client_id} onValueChange={(value) => {
+                    setFormData({ ...formData, client_id: value });
+                    if (errors.client_id) setErrors((prev) => ({ ...prev, client_id: undefined }));
+                  }}>
+                    <SelectTrigger aria-invalid={!!errors.client_id}>
                       <SelectValue placeholder="Select a client" />
                     </SelectTrigger>
                     <SelectContent>
@@ -331,6 +468,9 @@ export default function Campaigns() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.client_id && (
+                    <div className="text-red-500 text-xs mt-1">{errors.client_id}</div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="budget">Budget</Label>
@@ -347,9 +487,12 @@ export default function Campaigns() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="campaign_type">Campaign Type *</Label>
-                  <Select value={formData.campaign_type} onValueChange={(value) => setFormData({ ...formData, campaign_type: value })}>
-                    <SelectTrigger>
+                  <Label htmlFor="campaign_type">Campaign Type <span className="text-red-500">*</span></Label>
+                  <Select value={formData.campaign_type} onValueChange={(value) => {
+                    setFormData({ ...formData, campaign_type: value });
+                    if (errors.campaign_type) setErrors((prev) => ({ ...prev, campaign_type: undefined }));
+                  }}>
+                    <SelectTrigger aria-invalid={!!errors.campaign_type}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -358,6 +501,9 @@ export default function Campaigns() {
                       <SelectItem value="youtube_campaign">YouTube Campaign</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.campaign_type && (
+                    <div className="text-red-500 text-xs mt-1">{errors.campaign_type}</div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
@@ -404,9 +550,8 @@ export default function Campaigns() {
                 <Label htmlFor="description">Description</Label>
                 {/* Premium Textarea for better UX */}
                 <div className="relative">
-                  <textarea
+                  <Textarea
                     id="description"
-                    className="w-full rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/30 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 shadow-sm transition-all duration-200 resize-none min-h-[100px] max-h-[300px] font-medium"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}

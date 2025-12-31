@@ -2,27 +2,16 @@
 export async function deletePage(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/page/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/page/delete", { id }, { headers: headers as Record<string, string> });
 }
-export interface PageUpdatePayload {
-  id: string;
-  template: string;
-  title: string;
-  slug: string;
-  meta_title: string;
-  meta_author: string;
-  meta_keywords: string;
-  meta_description: string;
-  meta_feature_image?: string;
-  data: any[];
-  status: string | number;
-}
+
+import type { PageUpdatePayload } from '@/store/slices/pages';
 
 // Update a page
 export async function updatePage(payload: PageUpdatePayload, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/page/update", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/page/update", payload, { headers: headers as Record<string, string> });
 }
 // Fetch admin page list
 export async function getAdminPagesList(page = 1, limit = 10, token?: string | null): Promise<any> {
@@ -30,7 +19,7 @@ export async function getAdminPagesList(page = 1, limit = 10, token?: string | n
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.get(rootUrl + "api/web/admin/page/list", {
     params: { page, limit },
-    headers,
+    headers: headers as Record<string, string>,
   });
 }
 // ==================== PAGE APIs ====================
@@ -69,13 +58,13 @@ export async function fetchCampaignPartnerListAPI(page = 1, limit = 100): Promis
   const headers = await authHeader();
   return axios.get(rootUrl + "api/web/admin/campaign/partner-list", {
     params: { page, limit },
-    headers,
+    headers: headers as Record<string, string>,
   });
 }
 // Fetch assigned partners for a campaign
 export async function fetchCampaignPartnersAPI(campaignId: string): Promise<any> {
   const headers = await authHeader();
-  return axios.post(rootUrl + "api/web/admin/campaign/assign-partner-list", { campaign_id: campaignId }, { headers });
+  return axios.post(rootUrl + "api/web/admin/campaign/assign-partner-list", { campaign_id: campaignId }, { headers: headers as Record<string, string> });
 }
 
 import axios from "axios";
@@ -178,7 +167,8 @@ async function login(payload: LoginPayload): Promise<any> {
 async function fetchClients(
   page = 1,
   limit = 10,
-  token?: string | null
+  token?: string | null,
+  search?: string
 ): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token
@@ -186,27 +176,27 @@ async function fetchClients(
     : baseHeaders;
 
   return axios.get<ClientListResponse>(rootUrl + "api/web/admin/client/list", {
-    params: { page, limit },
-    headers,
+    params: { page, limit, search },
+    headers: headers as Record<string, string>,
   });
 }
 
 async function createClient(payload: ClientCreatePayload, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/client/create", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/client/create", payload, { headers: headers as Record<string, string> });
 }
 
 async function updateClient(payload: ClientUpdatePayload, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/client/update", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/client/update", payload, { headers: headers as Record<string, string> });
 }
 
 async function deleteClient(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/client/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/client/delete", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== PARTNER APIs ====================
@@ -255,7 +245,8 @@ interface PartnerUpdatePayload extends PartnerCreatePayload {
 async function fetchPartners(
   page = 1,
   limit = 10,
-  token?: string | null
+  token?: string | null,
+  search?: string
 ): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token
@@ -263,27 +254,27 @@ async function fetchPartners(
     : baseHeaders;
 
   return axios.get<PartnerListResponse>(rootUrl + "api/web/admin/partner/list", {
-    params: { page, limit },
-    headers,
+    params: { page, limit, search },
+    headers: headers as Record<string, string>,
   });
 }
 
 async function createPartner(payload: PartnerCreatePayload, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/partner/create", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/partner/create", payload, { headers: headers as Record<string, string> });
 }
 
 async function updatePartner(payload: PartnerUpdatePayload, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/partner/update", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/partner/update", payload, { headers: headers as Record<string, string> });
 }
 
 async function deletePartner(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/partner/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/partner/delete", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== AUTHOR APIs ====================
@@ -319,7 +310,7 @@ async function fetchAuthors(
 
   return axios.get<AuthorListResponse>(rootUrl + "api/web/admin/blog-author/list", {
     params: { page, limit },
-    headers,
+    headers: headers as Record<string, string>,
   });
 }
 
@@ -364,7 +355,7 @@ async function updateAuthor(payload: any, token?: string | null): Promise<any> {
 async function deleteAuthor(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/blog-author/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/blog-author/delete", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== BLOG APIs ====================
@@ -441,7 +432,7 @@ async function fetchBlogs(
 
   return axios.get<BlogListResponse>(rootUrl + "api/web/admin/blog/list", {
     params: { page, limit },
-    headers,
+    headers: headers as Record<string, string>,
   });
 }
 
@@ -459,7 +450,7 @@ async function createBlog(payload: BlogCreatePayload, token?: string | null): Pr
     }
   }
   
-  return axios.post(rootUrl + "api/web/admin/blog/create", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/blog/create", payload, { headers: headers as Record<string, string> });
 }
 
 async function updateBlog(payload: BlogUpdatePayload, token?: string | null): Promise<any> {
@@ -476,13 +467,13 @@ async function updateBlog(payload: BlogUpdatePayload, token?: string | null): Pr
     }
   }
   
-  return axios.post(rootUrl + "api/web/admin/blog/update", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/blog/update", payload, { headers: headers as Record<string, string> });
 }
 
 async function deleteBlog(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/blog/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/blog/delete", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== CAMPAIGN APIs ====================
@@ -535,16 +526,20 @@ interface CampaignUpdatePayload extends CampaignCreatePayload {
 async function fetchCampaigns(
   page = 1,
   limit = 10,
-  token?: string | null
+  token?: string | null,
+  search?: string
 ): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token
     ? { ...baseHeaders, Authorization: `Bearer ${token}` }
     : baseHeaders;
 
+  const params: any = { page, limit };
+  if (search) params.search = search;
+
   return axios.get<CampaignListResponse>(rootUrl + "api/web/admin/campaign/list", {
-    params: { page, limit },
-    headers,
+    params,
+    headers: headers as Record<string, string>,
   });
 }
 
@@ -585,14 +580,14 @@ async function updateCampaign(payload: CampaignUpdatePayload, token?: string | n
 async function deleteCampaign(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/campaign/delete", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/campaign/delete", { id }, { headers: headers as Record<string, string> });
 }
 
 // Fetch single campaign by id
 async function campaignView(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
-  return axios.post(rootUrl + "api/web/admin/campaign/view", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/campaign/view", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== CAMPAIGN PARTNER APIs ====================
@@ -606,13 +601,13 @@ export async function assignPartnerToCampaignAPI(payload: {
   status?: string;
 }): Promise<any> {
   const headers = await authHeader();
-  return axios.post(rootUrl + "api/web/admin/campaign/assign-partner", payload, { headers });
+  return axios.post(rootUrl + "api/web/admin/campaign/assign-partner", payload, { headers: headers as Record<string, string> });
 }
 
 // Remove a partner from a campaign
 export async function removePartnerFromCampaignAPI(id: string): Promise<any> {
   const headers = await authHeader();
-  return axios.post(rootUrl + "api/web/admin/campaign/remove-partner", { id }, { headers });
+  return axios.post(rootUrl + "api/web/admin/campaign/remove-partner", { id }, { headers: headers as Record<string, string> });
 }
 
 export const service = {
@@ -623,6 +618,7 @@ export const service = {
   login,
   fetchClients,
   createClient,
+  fetchCampaignPartnerListAPI,
   updateClient,
   deleteClient,
   fetchPartners,
@@ -642,7 +638,6 @@ export const service = {
   updateCampaign,
   deleteCampaign,
   campaignView,
-  fetchCampaignPartnersAPI,
   assignPartnerToCampaignAPI,
   removePartnerFromCampaignAPI,
   createPage,

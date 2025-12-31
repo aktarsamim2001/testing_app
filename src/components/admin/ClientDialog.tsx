@@ -46,6 +46,11 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     notes: ''
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    company_name?: string;
+    name?: string;
+    email?: string;
+  }>({});
 
   useEffect(() => {
     if (client) {
@@ -71,10 +76,28 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     }
   }, [client, open]);
 
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!formData.company_name.trim()) {
+      newErrors.company_name = 'Company name is required.';
+    }
+    if (!formData.name.trim()) {
+      newErrors.name = 'Contact name is required.';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Contact email is required.';
+    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email address.';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     setLoading(true);
-
     try {
       if (client) {
         await dispatch(updateClientThunk({
@@ -107,15 +130,32 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="company_name">Company Name *</Label>
+              <Label htmlFor="company_name">Company Name <span className="text-red-500">*</span></Label>
               <Input
                 id="company_name"
                 value={formData.company_name}
                 onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                required
+                aria-invalid={!!errors.company_name}
+                // required removed for custom validation only
               />
+              {errors.company_name && (
+                <div className="text-red-500 text-xs mt-1">{errors.company_name}</div>
+              )}
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
+              <Label htmlFor="name">Contact Name <span className="text-red-500">*</span></Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                aria-invalid={!!errors.name}
+                // required removed for custom validation only
+              />
+              {errors.name && (
+                <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+              )}
+            </div>
+            {/* <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
                 <SelectTrigger>
@@ -127,39 +167,56 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
                   <SelectItem value="0">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Contact Name *</Label>
+            {/* <div className="space-y-2">
+              <Label htmlFor="name">Contact Name <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
-            </div>
+            </div> */}
             <div className="space-y-2">
-              <Label htmlFor="email">Contact Email *</Label>
+              <Label htmlFor="email">Contact Email <span className="text-red-500">*</span></Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                aria-invalid={!!errors.email}
+                // required removed for custom validation only
               />
+              {errors.email && (
+                <div className="text-red-500 text-xs mt-1">{errors.email}</div>
+              )}
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label htmlFor="phone">Contact Phone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+             <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">Prospect</SelectItem>
+                  <SelectItem value="1">Active</SelectItem>
+                  <SelectItem value="0">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="website">Website</Label>

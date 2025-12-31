@@ -9,18 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { AppDispatch } from '@/store';
 import { createPartnerThunk, updatePartnerThunk } from '@/store/slices/partners';
 
-interface Partner {
-  id: string;
-  name: string;
-  email: string;
-  channel_type: string;
-  platform_handle: string | null;
-  follower_count: number | null;
-  engagement_rate: number | null;
-  categories: string[] | null;
-  notes: string | null;
-  status: number;
-}
+// Use the Partner type from the store to ensure consistency
+import type { Partner } from '@/store/slices/partners';
 
 interface PartnerDialogProps {
   open: boolean;
@@ -52,6 +42,11 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     status: 0
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    channel_type?: string;
+  }>({});
 
   useEffect(() => {
     if (partner) {
@@ -62,7 +57,7 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
         platform_handle: partner.platform_handle || '',
         follower_count: partner.follower_count?.toString() || '',
         engagement_rate: partner.engagement_rate?.toString() || '',
-        categories: partner.categories || '',
+        categories: Array.isArray(partner.categories) ? partner.categories.join(", ") : partner.categories || '',
         notes: partner.notes || '',
         status: partner.status ?? 0
       });
@@ -81,10 +76,28 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     }
   }, [partner, open]);
 
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required.';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email address.';
+    }
+    if (!formData.channel_type) {
+      newErrors.channel_type = 'Channel type is required.';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     setLoading(true);
-
     try {
       const payload = {
         name: formData.name,
@@ -127,31 +140,39 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+                aria-invalid={!!errors.name}
+                // required removed for custom validation only
               />
+              {errors.name && (
+                <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                aria-invalid={!!errors.email}
+                // required removed for custom validation only
               />
+              {errors.email && (
+                <div className="text-red-500 text-xs mt-1">{errors.email}</div>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="channel_type">Channel Type *</Label>
+              <Label htmlFor="channel_type">Channel Type <span className="text-red-500">*</span></Label>
               <Select value={formData.channel_type} onValueChange={(value) => setFormData({ ...formData, channel_type: value })}>
-                <SelectTrigger>
+                <SelectTrigger aria-invalid={!!errors.channel_type}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,6 +180,9 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                   <SelectItem value="linkedin">LinkedIn</SelectItem>
                   <SelectItem value="youtube">YouTube</SelectItem>
                 </SelectContent>
+                {errors.channel_type && (
+                  <div className="text-red-500 text-xs mt-1">{errors.channel_type}</div>
+                )}
               </Select>
             </div>
             <div className="space-y-2">

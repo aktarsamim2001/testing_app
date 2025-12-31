@@ -10,7 +10,8 @@ import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
-import { createPageThunk, selectPagesLoading } from '@/store/slices/pages';
+import { createPageThunk, updatePageThunk, fetchPages, selectPagesLoading, selectPages } from '@/store/slices/pages';
+import type { PageUpdatePayload } from '@/store/slices/pages';
 
 interface SectionData {
   id: string;
@@ -117,6 +118,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
   
   // Redux state
   const loading = useAppSelector(selectPagesLoading);
+  const allPages = useAppSelector((state) => (typeof selectPages === 'function' ? selectPages(state) : []));
 
   const [formData, setFormData] = useState({
     title: '',
@@ -140,16 +142,87 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     image: '',
   });
 
+
   const isEditMode = !!pageId;
 
-  // Initialize sections on component mount
+  // Find the page to edit from Redux state
+  const editingPage = isEditMode && pageId ? allPages.find((p: any) => String(p.id) === String(pageId)) : null;
+
+  // Always fetch pages on mount in edit mode to ensure data is loaded (handles direct navigation)
   useEffect(() => {
-    const initialSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS.home));
-    setSections(initialSections);
-    setActiveSection(initialSections[0]?.id || 'hero');
+    if (isEditMode) {
+      dispatch(fetchPages(1, 100));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, dispatch]);
+
+  // Pre-fill form and sections for edit mode, only when editingPage is available
+  useEffect(() => {
+    if (isEditMode && editingPage) {
+      // DEBUG: Log the editingPage and its content to diagnose pre-fill issues
+      // eslint-disable-next-line no-console
+      console.log('DEBUG editingPage:', editingPage);
+      // eslint-disable-next-line no-console
+      console.log('DEBUG editingPage.content:', editingPage.content);
+      setFormData({
+        title: editingPage.title || '',
+        slug: editingPage.slug || '',
+        template: editingPage.template || 'home',
+        status: editingPage.status === 1 ? 'active' : 'inactive',
+      });
+      setSeoData({
+        title: editingPage.meta_title || '',
+        author: editingPage.meta_author || '',
+        description: editingPage.meta_description || '',
+        keywords: editingPage.meta_keywords || '',
+        image: editingPage.meta_feature_image || '',
+      });
+      // Parse sections from API data
+      let apiSections = [];
+      // Use .content (API) instead of .data for edit mode
+          if (Array.isArray(editingPage.content) && editingPage.content.length > 0) {
+        const sectionObj = editingPage.content[0];
+        const templateSections = TEMPLATE_SECTIONS[editingPage.template] || [];
+        apiSections = templateSections.map((section, idx) => {
+          const key = `section${idx + 1}`;
+          return {
+            ...section,
+            slides: Array.isArray(sectionObj[key]) ? sectionObj[key].map((slide, i) => ({
+              ...slide,
+              id: slide.id || `slide-${i}`,
+              order: i,
+            })) : [],
+          };
+        });
+      } else {
+        apiSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS[editingPage.template] || TEMPLATE_SECTIONS.home));
+      }
+      setSections(apiSections);
+      setActiveSection(apiSections[0]?.id || 'hero');
+    }
+  }, [isEditMode, editingPage]);
+
+  // Only initialize default sections for create mode, and only on first mount
+  useEffect(() => {
+    if (!isEditMode) {
+      const initialSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS.home));
+      setSections(initialSections);
+      setActiveSection(initialSections[0]?.id || 'hero');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTemplateChange = (newTemplate: string) => {
+    // Check if this template is already used more than once
+    const usedCount = allPages.filter((p: any) => p.template === newTemplate).length;
+    if (usedCount > 0) {
+      toast({
+        title: 'Template already used',
+        description: `The "${newTemplate}" template has already been used.`,
+        variant: 'destructive',
+      });
+      return; // Prevent selection
+    }
     setFormData({
       ...formData,
       template: newTemplate,
@@ -278,8 +351,9 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     }
   };
 
-  // Main form submit handler
-  const handleCreate = async (e: React.FormEvent) => {
+
+  // Main form submit handler (create or update)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -302,22 +376,26 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     }
 
     // Build payload
-    const payload = buildApiPayload();
+    let payload = buildApiPayload();
+    // For update, use PageUpdatePayload (which includes id)
+    let updatePayload: PageUpdatePayload = { ...(payload as any), id: pageId };
 
     try {
-      // Dispatch createPageThunk
-      const resultAction = await dispatch(createPageThunk(payload));
-      
-      // Check if action was successful
-      if (createPageThunk.fulfilled.match(resultAction)) {
-        // Success - toast already shown by thunk
+      let resultAction;
+      if (isEditMode && pageId) {
+        resultAction = await dispatch(updatePageThunk(updatePayload));
+      } else {
+        resultAction = await dispatch(createPageThunk(payload));
+      }
+
+      if ((isEditMode && updatePageThunk.fulfilled.match(resultAction)) ||
+          (!isEditMode && createPageThunk.fulfilled.match(resultAction))) {
         router.push('/admin/pages');
-      } else if (createPageThunk.rejected.match(resultAction)) {
-        // Error - toast already shown by thunk, but we can add fallback
-        console.error('Failed to create page:', resultAction.error);
+      } else if ((isEditMode && updatePageThunk.rejected.match(resultAction)) ||
+                 (!isEditMode && createPageThunk.rejected.match(resultAction))) {
+        console.error('Failed to save page:', resultAction.error);
       }
     } catch (error: any) {
-      // Unexpected error
       console.error('Unexpected error:', error);
       toast({
         title: 'Error',
@@ -358,7 +436,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
         <form
           onSubmit={
             showSEO || sectionStep === sections.length - 1
-              ? handleCreate
+              ? handleSubmit
               : handleSectionContinue
           }
           className="space-y-6"
@@ -375,7 +453,6 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                 handleTemplateChange={handleTemplateChange}
               />
             </div>
-
             {/* Right Panel - Sections/SEO */}
             <div className="col-span-3 space-y-4">
               <div className="relative">
@@ -437,7 +514,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
               </Button>
             ) : (
               <Button type="submit" disabled={loading} className="bg-gradient-primary">
-                {loading ? 'Creating...' : 'Create'}
+                {loading ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save' : 'Create')}
               </Button>
             )}
           </div>

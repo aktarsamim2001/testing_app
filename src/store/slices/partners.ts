@@ -67,11 +67,11 @@ export const { setPartners, setPartnersLoading, setPartnersError, setPage } = pa
 export default partnersSlice.reducer;
 
 // Thunk to fetch partners list
-export const fetchPartners = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const fetchPartners = (page = 1, limit = 10, search = "") => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setPartnersLoading(true));
   const token = getState().auth.authToken;
   try {
-    const response = await service.fetchPartners(page, limit, token);
+    const response = await service.fetchPartners(page, limit, token, search);
     const body = response.data;
     dispatch(
       setPartners({
@@ -81,10 +81,10 @@ export const fetchPartners = (page = 1, limit = 10) => async (dispatch: AppDispa
           perPage: body?.pagination?.per_page ?? limit,
           totalPages: body?.pagination?.total_pages ?? 1,
           totalRecords: body?.pagination?.total_records ?? body?.data?.length ?? 0,
+          totalResults: body?.pagination?.total_records ?? body?.data?.length ?? 0,
         },
       })
     );
-    // No toast here
     return { success: body?.message };
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to load partners";
@@ -115,7 +115,7 @@ export const createPartnerThunk = (payload: {
     const { currentPage, perPage } = getState().partners.pagination;
     dispatch(fetchPartners(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {
@@ -148,7 +148,7 @@ export const updatePartnerThunk = (payload: {
     const { currentPage, perPage } = getState().partners.pagination;
     dispatch(fetchPartners(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {
@@ -170,7 +170,7 @@ export const deletePartnerThunk = (id: string) => async (dispatch: AppDispatch, 
     const { currentPage, perPage } = getState().partners.pagination;
     dispatch(fetchPartners(currentPage, perPage));
     if (response?.data?.message) {
-      toast({ title: 'Success', description: response.data.message, variant: 'default' });
+      toast({ title: 'Success', description: response.data.message, variant: 'success' });
     }
     return { success: response?.data?.message };
   } catch (error: any) {

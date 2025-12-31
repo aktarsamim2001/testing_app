@@ -71,7 +71,8 @@ export default function Auth() {
     setIsSignUp(false);
     toast({
       title: 'Demo credentials filled',
-      description: 'Click Sign In to continue'
+      description: 'Click Sign In to continue',
+      variant: 'success'
     });
   };
 
@@ -125,7 +126,8 @@ export default function Auth() {
       if (result.token) {
         toast({
           title: 'Success!',
-          description: 'Account created successfully. Redirecting...'
+          description: 'Account created successfully. Redirecting...',
+          variant: 'success'
         });
 
         // Redirect after successful signup
@@ -137,7 +139,8 @@ export default function Auth() {
         // No token - user needs verification or other action
         toast({
           title: 'Success!',
-          description: result.message || 'Please check your email for verification'
+          description: result.message || 'Please check your email for verification',
+          variant: 'success'
         });
       }
     } catch (err: any) {
@@ -189,7 +192,8 @@ export default function Auth() {
       if (result.token) {
         toast({
           title: 'Success!',
-          description: 'Signed in successfully. Redirecting...'
+          description: 'Signed in successfully. Redirecting...',
+          variant: 'success'
         });
 
         // Redirect after successful login
@@ -202,7 +206,8 @@ export default function Auth() {
         // No token - user needs verification or other action
         toast({
           title: 'Success!',
-          description: result.message || 'Please check your email for verification'
+          description: result.message || 'Please check your email for verification',
+          variant: 'success'
         });
       }
     } catch (err: any) {
@@ -310,7 +315,7 @@ export default function Auth() {
               </form>
 
               {/* Demo Accounts Section */}
-              <div className="mt-6 pt-6 border-t space-y-4">
+              {/* <div className="mt-6 pt-6 border-t space-y-4">
                 <h3 className="text-sm font-semibold">Try Demo Accounts</h3>
                 <div className="space-y-3">
                   {demoAccounts.map((account) => {
@@ -342,7 +347,7 @@ export default function Auth() {
                     );
                   })}
                 </div>
-              </div>
+              </div> */}
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">

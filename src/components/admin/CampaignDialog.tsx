@@ -38,6 +38,11 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
     description: ''
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    client_id?: string;
+    type?: string;
+  }>({});
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -75,8 +80,25 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
     }
   }, [campaign, open]);
 
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = 'Campaign name is required.';
+    }
+    if (!formData.client_id) {
+      newErrors.client_id = 'Client is required.';
+    }
+    if (!formData.type) {
+      newErrors.type = 'Campaign type is required.';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     setLoading(true);
 
     const data = {
@@ -120,16 +142,26 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+              }}
+              aria-invalid={!!errors.name}
+              // required removed for custom validation only
             />
+            {errors.name && (
+              <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="client_id">Client *</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                <SelectTrigger>
+              <Select value={formData.client_id} onValueChange={(value) => {
+                setFormData({ ...formData, client_id: value });
+                if (errors.client_id) setErrors((prev) => ({ ...prev, client_id: undefined }));
+              }}>
+                <SelectTrigger aria-invalid={!!errors.client_id}>
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -140,6 +172,9 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
                   ))}
                 </SelectContent>
               </Select>
+              {errors.client_id && (
+                <div className="text-red-500 text-xs mt-1">{errors.client_id}</div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="budget">Budget</Label>
@@ -157,8 +192,11 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Campaign Type *</Label>
-              <Select value={formData.type} onValueChange={(value: 'blogger_outreach' | 'linkedin_influencer' | 'youtube_campaign') => setFormData({ ...formData, type: value })}>
-                <SelectTrigger>
+              <Select value={formData.type} onValueChange={(value: 'blogger_outreach' | 'linkedin_influencer' | 'youtube_campaign') => {
+                setFormData({ ...formData, type: value });
+                if (errors.type) setErrors((prev) => ({ ...prev, type: undefined }));
+              }}>
+                <SelectTrigger aria-invalid={!!errors.type}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,6 +205,9 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
                   <SelectItem value="youtube_campaign">YouTube Campaign</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.type && (
+                <div className="text-red-500 text-xs mt-1">{errors.type}</div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>

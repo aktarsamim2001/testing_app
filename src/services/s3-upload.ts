@@ -36,11 +36,12 @@ export async function uploadToS3(file: File, folder: string): Promise<string> {
 
   try {
     const buffer = await file.arrayBuffer();
-    
+    // Convert ArrayBuffer to Uint8Array for AWS SDK compatibility
+    const body = new Uint8Array(buffer);
     const command = new PutObjectCommand({
       Bucket: s3Bucket,
       Key: key,
-      Body: buffer,
+      Body: body,
       ContentType: file.type,
       ACL: "public-read", // Make it publicly accessible
     });

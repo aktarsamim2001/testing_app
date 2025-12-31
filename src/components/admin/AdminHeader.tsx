@@ -22,7 +22,7 @@ const AdminHeader = ({ isCollapsed, onToggleSidebar }: AdminHeaderProps) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border h-16">
-      <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between h-16 gap-2 sm:gap-4">
+      <div className="w-full mx-auto px-3 sm:px-5 flex items-center justify-between h-16 gap-2 sm:gap-4">
         <Link href="/admin" className="flex items-center gap-2 group flex-shrink-0">
           <div className="p-2 bg-gradient-primary rounded-lg">
             <Zap className="w-4 sm:w-5 h-4 sm:h-5 text-primary-foreground" />

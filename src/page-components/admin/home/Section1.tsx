@@ -42,7 +42,7 @@ export default function Section1({
           <div className="space-y-1">
             <Label className="text-xs font-medium">Title 1</Label>
             <Input
-              value={section.slides[0]?.title || ''}
+              value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { title: e.target.value })
               }

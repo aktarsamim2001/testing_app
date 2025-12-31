@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AssignPartnerDialog from '@/components/admin/AssignPartnerDialog';
@@ -67,8 +67,27 @@ export default function CampaignDetails() {
     if (!partnerToRemove || !id) return;
     setLoading(true);
     try {
-      await dispatch<any>(removePartnerFromCampaign({ id: partnerToRemove, campaignId: id }));
+      const result = await dispatch<any>(removePartnerFromCampaign({ id: partnerToRemove, campaignId: id }));
       await fetchCampaign();
+      if (result?.success) {
+        toast({
+          title: "Partner removed!",
+          description: "Partner has been successfully removed from the campaign.",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error removing partner",
+          description: result?.message || "An error occurred while removing the partner.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error removing partner",
+        description: error?.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
       setRemoveDialogOpen(false);
@@ -118,7 +137,7 @@ export default function CampaignDetails() {
               <CardTitle className="text-sm font-medium">Budget</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(campaign.budget)}</div>
+              <div className="text-2xl font-bold">{campaign.budget}</div>
             </CardContent>
           </Card>
           <Card>
@@ -181,7 +200,7 @@ export default function CampaignDetails() {
                         </Badge>
                       </TableCell>
                       <TableCell>{cp.partner_email}</TableCell>
-                      <TableCell>{formatCurrency(cp.compensation)}</TableCell>
+                      <TableCell>{cp.compensation}</TableCell>
                       <TableCell>
                         <Badge variant={cp.status === 'active' ? 'default' : 'secondary'}>
                           {cp.status || 'pending'}
@@ -195,25 +214,29 @@ export default function CampaignDetails() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                            {/* Remove Partner Confirmation Dialog */}
-                            <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Remove Partner</DialogTitle>
-                                  <DialogDescription>
+                            {/* Remove Partner Alert Dialog */}
+                            <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remove Partner</AlertDialogTitle>
+                                  <AlertDialogDescription>
                                     Are you sure you want to remove this partner from the campaign?
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="flex justify-end gap-2 pt-4">
-                                  <Button variant="outline" onClick={() => setRemoveDialogOpen(false)} disabled={loading}>
-                                    Cancel
-                                  </Button>
-                                  <Button variant="destructive" onClick={confirmRemovePartner} disabled={loading}>
-                                    {loading ? 'Removing...' : 'Remove'}
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel asChild>
+                                    <Button variant="outline" onClick={() => setRemoveDialogOpen(false)} disabled={loading}>
+                                      Cancel
+                                    </Button>
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction asChild>
+                                    <Button onClick={confirmRemovePartner} disabled={loading}>
+                                      {loading ? 'Removing...' : 'Remove'}
+                                    </Button>
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}

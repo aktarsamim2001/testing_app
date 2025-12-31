@@ -123,7 +123,7 @@ export default function Section3({
               <Input
                 id={`slide-title-${slide.id}`}
                 placeholder="e.g., Impact in Numbers"
-                value={slide.title}
+                value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
                 }

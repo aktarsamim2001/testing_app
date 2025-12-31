@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
+import { toast } from '@/hooks/use-toast';
 import { service } from "@/services/_api_service";
 import type { AppDispatch, RootState } from "@/store";
 
@@ -35,6 +35,11 @@ export interface PageCreatePayload {
   meta_feature_image?: string;
   data: any[];
   status: string | number;
+}
+
+export interface PageUpdatePayload {
+  id: string;
+  data: PageCreatePayload;
 }
 
 type Status = "idle" | "loading" | "succeeded" | "failed";
@@ -113,7 +118,7 @@ export const fetchPages = (page = 1, limit = 10) => async (dispatch: AppDispatch
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to load pages";
     dispatch(setPagesError(message));
-    toast.error(message);
+    toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     dispatch(setPagesLoading(false));
   }
@@ -130,11 +135,11 @@ export const createPageThunk = createAsyncThunk<
     const token = getState().auth.authToken;
     try {
       const response = await service.createPage(payload, token);
-      toast.success("Page created successfully");
+      toast({ title: 'Success', description: 'Page created successfully', variant: 'success' });
       return response.data;
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || "Failed to create page";
-      toast.error(message);
+      toast({ title: 'Error', description: message, variant: 'destructive' });
       return rejectWithValue(message);
     }
   }
@@ -143,7 +148,7 @@ export const createPageThunk = createAsyncThunk<
 // Thunk: update page
 export const updatePageThunk = createAsyncThunk<
   any,
-  PageCreatePayload,
+  PageUpdatePayload,
   { state: RootState; rejectValue: string }
 >(
   'pages/updatePage',
@@ -151,11 +156,11 @@ export const updatePageThunk = createAsyncThunk<
     const token = getState().auth.authToken;
     try {
       const response = await service.updatePage(payload, token);
-      toast.success("Page updated successfully");
+      toast({ title: 'Success', description: 'Page updated successfully', variant: 'success' });
       return response.data;
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || "Failed to update page";
-      toast.error(message);
+      toast({ title: 'Error', description: message, variant: 'destructive' });
       return rejectWithValue(message);
     }
   }
@@ -172,11 +177,11 @@ export const deletePageThunk = createAsyncThunk<
     const token = getState().auth.authToken;
     try {
       const response = await service.deletePage(id, token);
-      toast.success("Page deleted successfully");
+      toast({ title: 'Success', description: 'Page deleted successfully', variant: 'success' });
       return response.data;
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message || "Failed to delete page";
-      toast.error(message);
+      toast({ title: 'Error', description: message, variant: 'destructive' });
       return rejectWithValue(message);
     }
   }

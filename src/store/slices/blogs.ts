@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState, AppDispatch } from "..";
 import { service } from "@/services/_api_service";
-import toast from "react-hot-toast";
+import { toast } from '@/hooks/use-toast';
 
 export interface BlogFaq {
   question: string;
@@ -83,12 +83,10 @@ export default blogsSlice.reducer;
 export const fetchBlogs = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setBlogsLoading(true));
   const token = getState().auth.authToken;
-  console.log('[blogs] fetchBlogs start', { page, limit, hasToken: !!token });
 
   try {
     const response = await service.fetchBlogs(page, limit, token);
     const body = response.data;
-    console.log('[blogs] fetchBlogs success', body);
 
     dispatch(
       setBlogs({
@@ -105,7 +103,7 @@ export const fetchBlogs = (page = 1, limit = 10) => async (dispatch: AppDispatch
     console.error('[blogs] fetchBlogs error', error);
     const message = error?.response?.data?.message || error?.message || "Failed to load blogs";
     dispatch(setBlogsError(message));
-    toast.error(message);
+    toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     console.log('[blogs] fetchBlogs end');
     dispatch(setBlogsLoading(false));
@@ -118,13 +116,13 @@ export const createBlogThunk = (payload: any) => async (dispatch: AppDispatch, g
   const token = getState().auth.authToken;
   try {
     await service.createBlog(payload, token);
-    toast.success("Blog created successfully");
+    toast({ title: 'Success', description: 'Blog created successfully', variant: 'success' });
     const { currentPage, perPage } = getState().blogs.pagination;
     dispatch(fetchBlogs(currentPage, perPage));
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to create blog";
     dispatch(setBlogsError(message));
-    toast.error(message);
+    toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     dispatch(setBlogsLoading(false));
   }
@@ -136,13 +134,13 @@ export const updateBlogThunk = (payload: any) => async (dispatch: AppDispatch, g
   const token = getState().auth.authToken;
   try {
     await service.updateBlog(payload, token);
-    toast.success("Blog updated successfully");
+    toast({ title: 'Success', description: 'Blog updated successfully', variant: 'success' });
     const { currentPage, perPage } = getState().blogs.pagination;
     dispatch(fetchBlogs(currentPage, perPage));
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to update blog";
     dispatch(setBlogsError(message));
-    toast.error(message);
+    toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     dispatch(setBlogsLoading(false));
   }
@@ -154,13 +152,13 @@ export const deleteBlogThunk = (id: string) => async (dispatch: AppDispatch, get
   const token = getState().auth.authToken;
   try {
     await service.deleteBlog(id, token);
-    toast.success("Blog deleted successfully");
+    toast({ title: 'Success', description: 'Blog deleted successfully', variant: 'success' });
     const { currentPage, perPage } = getState().blogs.pagination;
     dispatch(fetchBlogs(currentPage, perPage));
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to delete blog";
     dispatch(setBlogsError(message));
-    toast.error(message);
+    toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     dispatch(setBlogsLoading(false));
   }

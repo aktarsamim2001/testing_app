@@ -119,7 +119,7 @@ export default function Section2({
               <Input
                 id={`slide-title-${slide.id}`}
                 placeholder="e.g., Our Values"
-                value={slide.title}
+                value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
                 }
@@ -137,6 +137,7 @@ export default function Section2({
                 id={`slide-subtitle-${slide.id}`}
                 placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
+                rows={15}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
                 }
