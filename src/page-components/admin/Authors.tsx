@@ -230,9 +230,11 @@ export default function Authors() {
                 </Table>
                 {/* Pagination Controls */}
                 {pagination.totalPages > 1 && (
-                  <div className="flex justify-end items-center mt-6 gap-4">
-                    <span className="text-sm text-muted-foreground">Page {pagination.currentPage} of {pagination.totalPages}</span>
-                    <nav className="flex items-center gap-1 select-none" aria-label="Pagination">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-end mt-6 gap-2 sm:gap-4">
+                    <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-right">
+                      Showing {(pagination.currentPage - 1) * pagination.perPage + 1} to {((pagination.currentPage - 1) * pagination.perPage) + authors.length} of {typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0 ? pagination.totalRecords : authors.length} results
+                    </span>
+                    <nav className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end" aria-label="Pagination">
                       <Button
                         variant="outline"
                         size="sm"
@@ -246,7 +248,7 @@ export default function Authors() {
                         const pages = [];
                         const total = pagination.totalPages;
                         const current = pagination.currentPage;
-                        if (total <= 6) {
+                        if (total <= 5) {
                           for (let i = 1; i <= total; i++) {
                             pages.push(i);
                           }

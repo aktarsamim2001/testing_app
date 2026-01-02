@@ -409,28 +409,26 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     <AdminLayout>
       <div className="space-y-6 p-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">
-                {isEditMode ? 'Edit Page' : 'Create Pages'}
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {isEditMode
-                  ? 'Update your page details and sections'
-                  : 'Create a new page by selecting a template and configuring sections'}
-              </p>
-            </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col gap-2 w-full sm:w-auto">
+            <h1 className="text-3xl font-bold">
+              {isEditMode ? 'Edit Page' : 'Create Pages'}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isEditMode
+                ? 'Update your page details and sections'
+                : 'Create a new page by selecting a template and configuring sections'}
+            </p>
           </div>
-           <Button
-              type="button"
-              variant="ghost"
-              onClick={() => router.push('/admin/pages')}
-              className="flex items-center gap-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => router.push('/admin/pages')}
+            className="flex items-center gap-1"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
         </div>
 
         <form
@@ -441,9 +439,9 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
           }
           className="space-y-6"
         >
-          <div className="grid grid-cols-4 gap-6">
+          <div className="flex flex-col sm:grid sm:grid-cols-4 gap-6">
             {/* Left Panel - Form */}
-            <div className="col-span-1 space-y-4">
+            <div className="w-full sm:col-span-1 space-y-4">
               <PageBuilderForm
                 formData={formData}
                 loading={loading}
@@ -454,7 +452,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
               />
             </div>
             {/* Right Panel - Sections/SEO */}
-            <div className="col-span-3 space-y-4">
+            <div className="w-full sm:col-span-3 space-y-4">
               <div className="relative">
                 <Button
                   type="button"
@@ -499,7 +497,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
             <Button
               type="button"
               variant="outline"

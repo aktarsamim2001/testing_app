@@ -110,7 +110,7 @@ export default function BlogPosts() {
                 <div className="text-center py-8 text-muted-foreground">No blog posts found</div>
               ) : filteredPosts.map((post) => (
                 <div key={post.id} className="border rounded-lg p-6 hover:bg-gray-50 transition">
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">{post.title}</h3>
@@ -139,7 +139,7 @@ export default function BlogPosts() {
                         <span>Published: {post.published_at ? new Date(post.published_at).toLocaleDateString() : '—'}</span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-4 sm:mt-0 sm:flex-col sm:items-end">
                       <Button variant="ghost" size="sm" onClick={() => window.open(`/blog/${post.slug}`, '_blank')}>
                         <Eye className="w-4 h-4" />
                       </Button>

@@ -317,7 +317,7 @@ export default function Campaigns() {
 
         {/* Improved Pagination Controls */}
         {pagination.totalPages > 1 && (
-          <div className="flex justify-end items-center mt-6 gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end mt-6 gap-2 sm:gap-4">
             {(() => {
               const start = (pagination.currentPage - 1) * pagination.perPage + 1;
               const end = start + campaigns.length - 1;
@@ -325,12 +325,12 @@ export default function Campaigns() {
                 ? pagination.totalResults
                 : campaigns.length;
               return (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-right">
                   Showing {start} to {end} of {total} results
                 </span>
               );
             })()}
-            <nav className="flex items-center gap-1 select-none" aria-label="Pagination">
+            <nav className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end" aria-label="Pagination">
               <Button
                 variant="outline"
                 size="sm"
@@ -344,7 +344,7 @@ export default function Campaigns() {
                 const pages = [];
                 const total = pagination.totalPages;
                 const current = pagination.currentPage;
-                if (total <= 6) {
+                if (total <= 5) {
                   for (let i = 1; i <= total; i++) {
                     pages.push(i);
                   }
