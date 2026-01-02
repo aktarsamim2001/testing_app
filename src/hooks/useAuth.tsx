@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch(logout());
     } finally {
-      router.push("/auth");
+      router.push("/admin/login");
     }
   };
 

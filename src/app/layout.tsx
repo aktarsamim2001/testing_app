@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
-  const isAuthPage = pathname?.startsWith("/auth");
+  const isAuthPage = pathname?.startsWith("/admin/login");
   const isAdminPage = pathname?.startsWith("/admin");
   const isBrandPage = pathname?.startsWith("/brand");
   const isCreatorPage = pathname?.startsWith("/creator") && pathname !== "/creators";
@@ -39,14 +39,14 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="flex flex-col min-h-screen">
-            {isAdminPage && <AdminHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
+            {isAdminPage && !isAuthPage && <AdminHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
             {isBrandPage && <BrandHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
             {isCreatorPage && <CreatorHeader isCollapsed={isCollapsed} onToggleSidebar={handleToggleSidebar} />}
             {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Navigation />}
             <main className="flex-1 pt-16">
               {children}
             </main>
-            {isAdminPage && <AdminFooter />}
+            {isAdminPage && !isAuthPage && <AdminFooter />}
             {isBrandPage && <BrandFooter />}
             {isCreatorPage && <CreatorFooter />}
             {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Footer />}

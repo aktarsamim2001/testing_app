@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { LayoutDashboard, Users, UserCircle, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,17 +19,19 @@ const menuItems = [
   { title: 'Campaigns', path: '/admin/campaigns', icon: Megaphone },
   {
     group: 'Blogs',
+    icon: FileText,
     items: [
-      { title: 'Blog Authors', path: '/admin/authors', icon: UserCircle },
-      { title: 'Blog Categories', path: '/admin/blog/categories', icon: FileText },
-      { title: 'Blog Posts', path: '/admin/blog', icon: FileText },
+      { title: 'Blog Authors', path: '/admin/authors' },
+      { title: 'Blog Categories', path: '/admin/blog/categories' },
+      { title: 'Blog Posts', path: '/admin/blog' },
     ],
   },
   {
     group: 'CMS',
+    icon: FileText,
     items: [
-      { title: 'Menu Management', path: '/admin/menu-management', icon: FileText },
-      { title: 'Page Management', path: '/admin/pages', icon: FileText },
+      { title: 'Menu Management', path: '/admin/menu-management' },
+      { title: 'Page Management', path: '/admin/pages' },
     ],
   },
   { title: 'Analytics', path: '/admin/analytics', icon: TrendingUp },
@@ -42,8 +44,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
   // Track open/close state for each group
-  const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
+  // By default, all groups are closed (false)
+  // Using sessionStorage to persist state across re-mounts
+  const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>(() => {
+    // Try to load from sessionStorage first
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('adminSidebarGroups');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse saved groups:', e);
+        }
+      }
+    }
+    
+    // Default: all closed
+    const groups: { [key: string]: boolean } = {};
+    menuItems.forEach(item => {
+      if (item.group) groups[item.group] = false;
+    });
+    return groups;
+  });
+
+  // Save to sessionStorage whenever openGroups changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('adminSidebarGroups', JSON.stringify(openGroups));
+    }
+  }, [openGroups]);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const isActive = (path: string) => {
     // Special handling for Blog Categories and Blog Posts
@@ -61,15 +104,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/auth');
+    router.push('/admin/login');
   };
 
   const closeMobileSidebar = () => {
-    setIsMobileSidebarOpen(false);
+    // Only close mobile sidebar, don't affect group state
+    if (isMobile) {
+      setIsMobileSidebarOpen(false);
+    }
   };
 
   const toggleGroup = (group: string) => {
-    setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+    setOpenGroups((prev) => {
+      const newState = { ...prev, [group]: !prev[group] };
+      return newState;
+    });
   };
 
   return (
@@ -78,7 +127,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <AdminHeader 
         isCollapsed={isCollapsed} 
         onToggleSidebar={() => {
-          if (window.innerWidth < 768) {
+          if (isMobile) {
             setIsMobileSidebarOpen(!isMobileSidebarOpen);
           } else {
             setIsCollapsed(!isCollapsed);
@@ -102,27 +151,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <aside className={`
             border-r bg-background transition-all duration-300 flex flex-col flex-shrink-0
             md:fixed md:left-0 md:top-16 md:bottom-0
-            ${window.innerWidth < 768 ? 'fixed left-0 top-16 bottom-0 z-40' : 'md:z-40'}
-            ${isMobileSidebarOpen || window.innerWidth >= 768 ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            ${isMobile ? 'fixed left-0 top-16 bottom-0 z-40' : 'md:z-40'}
+            ${isMobileSidebarOpen || !isMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           `} 
           style={{
-            width: window.innerWidth >= 768 && isCollapsed ? '72px' : '256px',
+            width: !isMobile && isCollapsed ? '72px' : '256px',
           }}>
 
             {/* Menu Items with Collapsible Groups */}
-            <nav className={`flex-1 ${window.innerWidth >= 768 && isCollapsed ? 'p-2' : 'p-4'} space-y-2 overflow-y-auto`}>
+            <nav className={`flex-1 ${!isMobile && isCollapsed ? 'p-2' : 'p-4'} space-y-2 overflow-y-auto`}>
               {menuItems.map((item, idx) => {
                 if (item.group && item.items) {
-                  const isOpen = openGroups[item.group] ?? true;
+                  const isOpen = openGroups[item.group] ?? false;
                   return (
                     <div key={item.group + idx} className="mb-2">
-                      {!(window.innerWidth >= 768 && isCollapsed) && (
+                      {!(!isMobile && isCollapsed) && (
                         <button
                           type="button"
                           className="flex items-center w-full px-2 py-1 text-xs font-semibold text-muted-foreground tracking-wider focus:outline-none hover:text-primary transition-colors"
-                          onClick={() => toggleGroup(item.group)}
+                          onClick={() => toggleGroup(item.group!)}
                         >
-                          {item.group}
+                           {item.icon && <item.icon className="w-5 h-5 mr-1" />}
+                          <span className="text-[13px]">{item.group}</span>
                           <span className="ml-auto">
                             {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </span>
@@ -138,7 +188,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                               key={sub.path}
                               href={sub.path}
                               onClick={closeMobileSidebar}
-                              className={`flex items-center ${window.innerWidth >= 768 && isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-2 rounded-lg transition-colors ${
+                              className={`flex items-center ${!isMobile && isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-2 rounded-lg transition-colors ${
                                 isActive(sub.path)
                                   ? 'bg-primary text-primary-foreground'
                                   : 'hover:bg-muted text-foreground'
@@ -146,7 +196,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                               title={sub.title}
                             >
                               <span className="w-1 h-1 rounded-full bg-muted-foreground mr-2" />
-                              {!(window.innerWidth >= 768 && isCollapsed) && <span className="truncate text-sm font-medium">{sub.title}</span>}
+                              {!(!isMobile && isCollapsed) && <span className="truncate text-sm font-medium">{sub.title}</span>}
                             </Link>
                           ))}
                         </div>
@@ -160,7 +210,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     key={item.path}
                     href={item.path}
                     onClick={closeMobileSidebar}
-                    className={`flex items-center ${window.innerWidth >= 768 && isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg transition-colors ${
+                    className={`flex items-center ${!isMobile && isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-3 rounded-lg transition-colors ${
                       isActive(item.path)
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted text-foreground'
@@ -168,7 +218,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     title={item.title}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {!(window.innerWidth >= 768 && isCollapsed) && <span className="truncate text-sm font-medium">{item.title}</span>}
+                    {!(!isMobile && isCollapsed) && <span className="truncate text-sm font-medium">{item.title}</span>}
                   </Link>
                 );
               })}
@@ -179,7 +229,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Main Content - Scrollable with margin for fixed sidebar */}
         <main className="flex-1 overflow-y-auto transition-all duration-300" 
         style={{
-          marginLeft: window.innerWidth < 768 ? '0' : (isCollapsed ? '72px' : '256px'),
+          marginLeft: isMobile ? '0' : (isCollapsed ? '72px' : '256px'),
         }}>
           {children}
         </main>

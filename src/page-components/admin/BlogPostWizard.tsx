@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter, useSearchParams } from "next/navigation";
+import { decryptId } from '@/helpers/crypto';
 import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
 import FAQBuilder, { FAQ } from '@/components/admin/FAQBuilder';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,7 +29,8 @@ export default function BlogPostWizard() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const editId = searchParams.get('id');
+  const encryptedId = searchParams.get('id');
+  const editId = encryptedId ? decryptId(encryptedId) : null;
   const dispatch = useDispatch<AppDispatch>();
 
   const allBlogs = useSelector((state: RootState) => selectBlogs(state));

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchBlogs, deleteBlogThunk, selectBlogs, selectBlogsLoading } from '@/store/slices/blogs';
+import { encryptId } from '@/helpers/crypto';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -142,7 +143,7 @@ export default function BlogPosts() {
                       <Button variant="ghost" size="sm" onClick={() => window.open(`/blog/${post.slug}`, '_blank')}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/blog/new?id=${post.id}`)}>
+                      <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/blog/new?id=${encodeURIComponent(encryptId(post.id))}`)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                       <AlertDialog>

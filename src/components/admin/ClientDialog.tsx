@@ -50,9 +50,14 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     company_name?: string;
     name?: string;
     email?: string;
+    phone?: string;
+    website?: string;
+    notes?: string;
   }>({});
 
   useEffect(() => {
+    // Always clear errors when dialog opens or client changes
+    setErrors({});
     if (client) {
       setFormData({
         company_name: client.company_name || '',
@@ -77,7 +82,7 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
   }, [client, open]);
 
   const validate = () => {
-    const newErrors: typeof errors = {};
+    const newErrors: typeof errors & { phone?: string; website?: string; notes?: string } = {};
     if (!formData.company_name.trim()) {
       newErrors.company_name = 'Company name is required.';
     }
@@ -88,6 +93,27 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
       newErrors.email = 'Contact email is required.';
     } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
       newErrors.email = 'Enter a valid email address.';
+    }
+    // Phone validation: allow empty, but if not empty, must have at least 10 digits
+    if (formData.phone && !formData.phone.trim()) {
+      newErrors.phone = 'Contact phone cannot be only spaces.';
+    } else if (formData.phone) {
+      const digitsOnly = formData.phone.replace(/[^0-9]/g, '');
+      if (digitsOnly.length < 10) {
+        newErrors.phone = 'Phone number must contain at least 10 digits.';
+      } else if (digitsOnly.length > 15) {
+        newErrors.phone = 'Phone number cannot exceed 15 digits.';
+      }
+    }
+    // Website validation: allow empty, but if not empty, must not be only spaces and must be valid URL
+    if (formData.website && !formData.website.trim()) {
+      newErrors.website = 'Website cannot be only spaces.';
+    } else if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website.trim())) {
+      newErrors.website = 'Enter a valid website URL (must start with http:// or https://).';
+    }
+    // Notes validation: allow empty, but if not empty, must not be only spaces
+    if (formData.notes && !formData.notes.trim()) {
+      newErrors.notes = 'Notes cannot be only spaces.';
     }
     return newErrors;
   };
@@ -127,85 +153,98 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4" onClick={(e) => {
+          if ((e.target as HTMLElement).tagName === 'BUTTON' && (e.target as HTMLButtonElement).type === 'submit') {
+            handleSubmit(e as any);
+          }
+        }}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="company_name">Company Name <span className="text-red-500">*</span></Label>
               <Input
                 id="company_name"
                 value={formData.company_name}
-                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, company_name: e.target.value });
+                  if (errors.company_name) setErrors(prev => ({ ...prev, company_name: undefined }));
+                }}
                 aria-invalid={!!errors.company_name}
-                // required removed for custom validation only
               />
               {errors.company_name && (
                 <div className="text-red-500 text-xs mt-1">{errors.company_name}</div>
               )}
             </div>
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="name">Contact Name <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+                }}
                 aria-invalid={!!errors.name}
-                // required removed for custom validation only
               />
               {errors.name && (
                 <div className="text-red-500 text-xs mt-1">{errors.name}</div>
               )}
             </div>
-            {/* <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2">Prospect</SelectItem>
-                  <SelectItem value="1">Active</SelectItem>
-                  <SelectItem value="0">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* <div className="space-y-2">
-              <Label htmlFor="name">Contact Name <span className="text-red-500">*</span></Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div> */}
             <div className="space-y-2">
               <Label htmlFor="email">Contact Email <span className="text-red-500">*</span></Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors(prev => ({ ...prev, email: undefined }));
+                }}
                 aria-invalid={!!errors.email}
-                // required removed for custom validation only
               />
               {errors.email && (
                 <div className="text-red-500 text-xs mt-1">{errors.email}</div>
               )}
             </div>
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="phone">Contact Phone</Label>
               <Input
                 id="phone"
+                type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9+\-() ]/g, '');
+                  setFormData({ ...formData, phone: value });
+                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+                }}
+                onKeyDown={(e) => {
+                  const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                  const allowedChars = /[0-9+\-() ]/;
+                  
+                  if (!allowedKeys.includes(e.key) && !allowedChars.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedText = e.clipboardData.getData('text');
+                  const filteredText = pastedText.replace(/[^0-9+\-() ]/g, '');
+                  setFormData({ ...formData, phone: formData.phone + filteredText });
+                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+                }}
+                placeholder="+1 (555) 123-4567"
+                aria-invalid={!!errors.phone}
               />
+              {errors.phone && (
+                <div className="text-red-500 text-xs mt-1">{errors.phone}</div>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
                 <SelectTrigger>
@@ -222,10 +261,18 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
-                type="url"
+                type="text"
                 value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, website: e.target.value });
+                  if (errors.website) setErrors(prev => ({ ...prev, website: undefined }));
+                }}
+                placeholder="https://example.com"
+                aria-invalid={!!errors.website}
               />
+              {errors.website && (
+                <div className="text-red-500 text-xs mt-1">{errors.website}</div>
+              )}
             </div>
           </div>
 
@@ -234,20 +281,27 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, notes: e.target.value });
+                if (errors.notes) setErrors(prev => ({ ...prev, notes: undefined }));
+              }}
               rows={3}
+              aria-invalid={!!errors.notes}
             />
+            {errors.notes && (
+              <div className="text-red-500 text-xs mt-1">{errors.notes}</div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} onClick={handleSubmit}>
               {loading ? 'Saving...' : client ? 'Update' : 'Create'}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

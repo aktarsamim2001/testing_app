@@ -66,12 +66,10 @@ export default authorsSlice.reducer;
 export const fetchAuthors = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setAuthorsLoading(true));
   const token = getState().auth.authToken;
-  console.log('[authors] fetchAuthors start', { page, limit, hasToken: !!token });
 
   try {
     const response = await service.fetchAuthors(page, limit, token);
     const body = response.data;
-    console.log('[authors] fetchAuthors success', body);
 
     dispatch(
       setAuthors({
@@ -90,7 +88,6 @@ export const fetchAuthors = (page = 1, limit = 10) => async (dispatch: AppDispat
     dispatch(setAuthorsError(message));
     toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
-    console.log('[authors] fetchAuthors end');
     dispatch(setAuthorsLoading(false));
   }
 };

@@ -24,7 +24,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     const authed = isAuthenticated && !!authToken;
     const roleOk = requiredRole ? hasRole(requiredRole) : true;
     if (!authed) {
-      router.push('/auth');
+      router.push('/admin/login');
       return;
     }
     if (!roleOk) {

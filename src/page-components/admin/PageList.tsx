@@ -72,6 +72,7 @@ const PageList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>SL</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Template</TableHead>
@@ -82,12 +83,13 @@ const PageList = () => {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={6} className="text-center p-6">Loading...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center p-6">Loading...</TableCell></TableRow>
                 ) : pages.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center p-6 text-gray-400">No pages found.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center p-6 text-gray-400">No pages found.</TableCell></TableRow>
                 ) : (
-                  pages.map((page: any) => (
+                  pages.map((page: any, idx: number) => (
                     <TableRow key={page.id} className="hover:bg-muted/40 transition-colors">
+                      <TableCell>{(pagination.currentPage - 1) * pagination.perPage + idx + 1}</TableCell>
                       <TableCell className="font-medium text-foreground">{page.title}</TableCell>
                       <TableCell>{page.slug}</TableCell>
                       <TableCell>{page.template}</TableCell>
@@ -188,9 +190,11 @@ const PageList = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
+            <AlertDialogAction onClick={async () => {
               if (confirmDeleteId) {
-                dispatch(deletePageThunk(confirmDeleteId));
+                await dispatch(deletePageThunk(confirmDeleteId));
+                // Re-fetch the current page list after delete
+                dispatch(fetchPages(pagination.currentPage, pagination.perPage));
                 setConfirmDeleteId(null);
               }
             }}>Delete</AlertDialogAction>

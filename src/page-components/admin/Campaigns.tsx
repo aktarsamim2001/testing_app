@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { encode as base64Encode } from '@/lib/utils';
+import { encryptId } from '@/helpers/crypto';
 import { useRouter } from "next/navigation";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -92,6 +92,12 @@ export default function Campaigns() {
       }
     };
   }, [search]);
+
+    useEffect(() => {
+    if (dialogOpen) {
+      setErrors({});
+    }
+  }, [dialogOpen]);
 
   useEffect(() => {
     dispatch(fetchCampaigns(pagination.currentPage, pagination.perPage, debouncedSearch) as any);
@@ -255,6 +261,7 @@ export default function Campaigns() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>SL</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Type</TableHead>
@@ -264,8 +271,9 @@ export default function Campaigns() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {campaigns.map((campaign) => (
+                  {campaigns.map((campaign, idx) => (
                     <TableRow key={campaign.id}>
+                      <TableCell>{(pagination.currentPage - 1) * pagination.perPage + idx + 1}</TableCell>
                       <TableCell className="font-medium">{campaign.name}</TableCell>
                       <TableCell>{getClientName(campaign.client_id)}</TableCell>
                       <TableCell>
@@ -286,7 +294,8 @@ export default function Campaigns() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            router.push(`/admin/campaigns/${campaign.id}`);
+                            const encryptedId = encryptId(campaign.id);
+                            router.push(`/admin/campaigns/${encodeURIComponent(encryptedId)}`);
                           }}
                         >
                           <Eye className="w-4 h-4" />
@@ -411,10 +420,12 @@ export default function Campaigns() {
                 if (!formData.campaign_type) newErrors.campaign_type = 'Campaign type is required.';
                 setErrors(newErrors);
                 if (Object.keys(newErrors).length > 0) return;
+                // Sanitize budget: remove $ and non-numeric chars, convert to number
+                let sanitizedBudget = formData.budget ? Number(formData.budget.replace(/[^\d.]/g, "")) : 0;
                 const payload = {
                   name: formData.name,
                   client_id: formData.client_id,
-                  budget: formData.budget ? String(formData.budget) : '',
+                  budget: sanitizedBudget,
                   campaign_type: formData.campaign_type,
                   status: formData.status,
                   start_date: formData.start_date,

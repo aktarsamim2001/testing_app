@@ -42,6 +42,10 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
     name?: string;
     client_id?: string;
     type?: string;
+    budget?: string;
+    start_date?: string;
+    end_date?: string;
+    description?: string;
   }>({});
   const { toast } = useToast();
   const { user } = useAuth();
@@ -55,6 +59,8 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
   }, []);
 
   useEffect(() => {
+    // Always clear errors when dialog opens or campaign changes
+    setErrors({});
     if (campaign) {
       setFormData({
         name: campaign.name || '',
@@ -90,6 +96,37 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
     }
     if (!formData.type) {
       newErrors.type = 'Campaign type is required.';
+    }
+    // Budget: allow empty, but if not empty, must be a positive float
+    if (formData.budget && !formData.budget.trim()) {
+      newErrors.budget = 'Budget cannot be only spaces.';
+    } else if (formData.budget) {
+      const budgetVal = parseFloat(formData.budget);
+      if (isNaN(budgetVal) || budgetVal < 0) {
+        newErrors.budget = 'Budget must be a positive number.';
+      }
+    }
+    // Start date: allow empty, but if not empty, must be valid ISO date
+    if (formData.start_date && !formData.start_date.trim()) {
+      newErrors.start_date = 'Start date cannot be only spaces.';
+    } else if (formData.start_date && isNaN(Date.parse(formData.start_date))) {
+      newErrors.start_date = 'Start date must be a valid date.';
+    }
+    // End date: allow empty, but if not empty, must be valid ISO date and after start_date
+    if (formData.end_date && !formData.end_date.trim()) {
+      newErrors.end_date = 'End date cannot be only spaces.';
+    } else if (formData.end_date && isNaN(Date.parse(formData.end_date))) {
+      newErrors.end_date = 'End date must be a valid date.';
+    } else if (formData.start_date && formData.end_date) {
+      const start = Date.parse(formData.start_date);
+      const end = Date.parse(formData.end_date);
+      if (end < start) {
+        newErrors.end_date = 'End date cannot be before start date.';
+      }
+    }
+    // Description: allow empty, but if not empty, must not be only spaces
+    if (formData.description && !formData.description.trim()) {
+      newErrors.description = 'Description cannot be only spaces.';
     }
     return newErrors;
   };

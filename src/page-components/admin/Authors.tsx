@@ -70,7 +70,7 @@ export default function Authors() {
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push('/auth');
+      router.push('/admin/login');
     }
   }, [user, isAdmin, loading, router]);
 
@@ -174,6 +174,7 @@ export default function Authors() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>SL</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Image</TableHead>
                       <TableHead>About</TableHead>
@@ -182,8 +183,9 @@ export default function Authors() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {authors.map((author) => (
+                    {authors.map((author, idx) => (
                       <TableRow key={author.id}>
+                        <TableCell>{idx + 1}</TableCell>
                         <TableCell className="font-medium">{author.name}</TableCell>
                         <TableCell>
                           {author.image && author.image.trim() !== '' ? (

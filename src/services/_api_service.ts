@@ -1,3 +1,4 @@
+
 // Delete a page
 export async function deletePage(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
@@ -81,7 +82,7 @@ axios.interceptors.response.use(
       if (typeof window !== "undefined") {
         localStorage.removeItem("authToken");
         localStorage.removeItem("profileData");
-        window.location.href = "/auth";
+        window.location.href = "/admin/login"; // Redirect to admin login
       }
     }
     return Promise.reject(error);
@@ -454,20 +455,22 @@ async function createBlog(payload: BlogCreatePayload, token?: string | null): Pr
 }
 
 async function updateBlog(payload: BlogUpdatePayload, token?: string | null): Promise<any> {
-  const headers: any = {
-    "Content-Type": "application/json"
-  };
-  
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  } else if (typeof window !== "undefined") {
-    const authToken = localStorage.getItem("authToken");
-    if (authToken) {
-      headers.Authorization = `Bearer ${authToken}`;
-    }
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  // Sanitize estimated_reading_time if present
+  let sanitizedPayload = { ...payload };
+  if (sanitizedPayload.estimated_reading_time && typeof sanitizedPayload.estimated_reading_time === "string") {
+    sanitizedPayload.estimated_reading_time = sanitizedPayload.estimated_reading_time.replace(/[^\d.]/g, "");
   }
-  
-  return axios.post(rootUrl + "api/web/admin/blog/update", payload, { headers: headers as Record<string, string> });
+  try {
+    console.log("updateBlog payload:", sanitizedPayload);
+    return await axios.post(rootUrl + "api/web/admin/blog/update", sanitizedPayload, { headers: headers as Record<string, string> });
+  } catch (error: any) {
+    console.log("updateBlog error status:", error.response?.status);
+    console.log("updateBlog error data:", error.response?.data);
+    console.log("updateBlog error message:", error.message);
+    throw error;
+  }
 }
 
 async function deleteBlog(id: string, token?: string | null): Promise<any> {
@@ -561,20 +564,9 @@ async function createCampaign(payload: CampaignCreatePayload, token?: string | n
 }
 
 async function updateCampaign(payload: CampaignUpdatePayload, token?: string | null): Promise<any> {
-  const headers: any = {
-    "Content-Type": "application/json"
-  };
-  
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  } else if (typeof window !== "undefined") {
-    const authToken = localStorage.getItem("authToken");
-    if (authToken) {
-      headers.Authorization = `Bearer ${authToken}`;
-    }
-  }
-  
-  return axios.post(rootUrl + "api/web/admin/campaign/update", payload, { headers });
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/campaign/update", payload, { headers: headers as Record<string, string> });
 }
 
 async function deleteCampaign(id: string, token?: string | null): Promise<any> {
@@ -610,6 +602,18 @@ export async function removePartnerFromCampaignAPI(id: string): Promise<any> {
   return axios.post(rootUrl + "api/web/admin/campaign/remove-partner", { id }, { headers: headers as Record<string, string> });
 }
 
+// Fetch platform settings
+export async function fetchSettings() {
+  const headers = await authHeader();
+  return axios.get(rootUrl + 'api/web/admin/setting/details', { headers: headers as Record<string, string> }).then(res => res.data);
+}
+
+// Update platform settings
+export async function updateSettings(payload: any) {
+  const headers = await authHeader();
+  return axios.post(rootUrl + 'api/web/admin/setting/update', payload, { headers: headers as Record<string, string> }).then(res => res.data);
+}
+
 export const service = {
   deletePage,
   updatePage,
@@ -641,4 +645,6 @@ export const service = {
   assignPartnerToCampaignAPI,
   removePartnerFromCampaignAPI,
   createPage,
+  fetchSettings,
+  updateSettings
 };

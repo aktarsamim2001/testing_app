@@ -17,7 +17,7 @@ const AdminHeader = ({ isCollapsed, onToggleSidebar }: AdminHeaderProps) => {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/auth");
+    router.push("/admin/login");
   };
 
   return (

@@ -92,7 +92,7 @@ export default function Clients() {
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push('/auth');
+      router.push('/admin/login');
     }
   }, [user, isAdmin, loading, router]);
 
@@ -125,7 +125,7 @@ export default function Clients() {
     setDialogOpen(false);
     setEditingClient(null);
     // Toast logic removed
-    loadClients();
+    // loadClients();
   }, [loadClients]);
 
   const getStatusColor = (status: number) => {
@@ -186,7 +186,7 @@ export default function Clients() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                placeholder="Search clients by name, email, company..."
+                placeholder="Search"
                 className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
               />
             </div>

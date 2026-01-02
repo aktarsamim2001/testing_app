@@ -30,10 +30,11 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
   const [status, setStatus] = useState('pending');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ partner?: string; compensation?: string }>({});
+  const [errors, setErrors] = useState<{ partner?: string; compensation?: string; notes?: string }>({});
   const { toast } = useToast();
 
   const dispatch = useDispatch();
+  
   useEffect(() => {
     if (open) {
       setSelectedPartnerId('');
@@ -45,38 +46,73 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
     }
   }, [open, dispatch]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors: { partner?: string; compensation?: string } = {};
-    if (!selectedPartnerId) {
+  const validate = () => {
+    const newErrors: { partner?: string; compensation?: string; notes?: string } = {};
+    
+    // Partner validation
+    if (!selectedPartnerId || !selectedPartnerId.trim()) {
       newErrors.partner = 'Please select a partner.';
     }
-    if (compensation) {
+    
+    // Compensation validation
+    if (compensation && compensation.trim()) {
       const compValue = Number(compensation);
-      if (isNaN(compValue) || compValue < 0) {
-        newErrors.compensation = 'Compensation must be a non-negative number.';
+      if (isNaN(compValue)) {
+        newErrors.compensation = 'Compensation must be a valid number.';
+      } else if (compValue < 0) {
+        newErrors.compensation = 'Compensation cannot be negative.';
       }
     }
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    
+    // Notes validation: if not empty, must not be only spaces
+    if (notes && !notes.trim()) {
+      newErrors.notes = 'Notes cannot be only spaces.';
+    }
+    
+    return newErrors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+    
     setLoading(true);
-    // Ensure compensation is sent as a string and status is capitalized
-    const formattedCompensation = compensation ? compensation.toString() : "";
-    const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-    await dispatch<any>(assignPartnerToCampaign({
-      campaign_id: campaignId,
-      partner_id: selectedPartnerId,
-      compensation: formattedCompensation,
-      status: formattedStatus,
-      notes: notes || null
-    }));
-    setLoading(false);
-    toast({
-      title: "Partner assigned!",
-      description: "Partner has been successfully assigned to the campaign.",
-      variant: "success",
-    });
-    onOpenChange(false);
+    
+    try {
+      // Ensure compensation is sent as a string and status is capitalized
+      const formattedCompensation = compensation ? compensation.toString() : "";
+      const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      
+      await dispatch<any>(assignPartnerToCampaign({
+        campaign_id: campaignId,
+        partner_id: selectedPartnerId,
+        compensation: formattedCompensation,
+        status: formattedStatus,
+        notes: notes.trim() || null
+      }));
+      
+      toast({
+        title: "Partner assigned!",
+        description: "Partner has been successfully assigned to the campaign.",
+        variant: "success",
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to assign partner. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,11 +125,18 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="partner">Partner <span className="text-red-500">*</span></Label>
-            <Select value={selectedPartnerId} onValueChange={(v) => { setSelectedPartnerId(v); if (errors.partner) setErrors(e => ({ ...e, partner: undefined })); }} disabled={partnersLoading}>
-              <SelectTrigger>
+            <Select 
+              value={selectedPartnerId} 
+              onValueChange={(v) => { 
+                setSelectedPartnerId(v); 
+                if (errors.partner) setErrors(e => ({ ...e, partner: undefined })); 
+              }} 
+              disabled={partnersLoading}
+            >
+              <SelectTrigger className={errors.partner ? "border-red-500" : ""}>
                 <SelectValue placeholder={partnersLoading ? "Loading..." : "Select a partner"} />
               </SelectTrigger>
               <SelectContent>
@@ -111,14 +154,28 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
             <Label htmlFor="compensation">Compensation ($)</Label>
             <Input
               id="compensation"
-              type="number"
-              step="0.01"
+              type="text"
               value={compensation}
               onChange={(e) => {
-                setCompensation(e.target.value);
+                // Only allow numbers and decimal point
+                const value = e.target.value.replace(/[^0-9.]/g, '');
+                // Prevent multiple decimal points
+                const parts = value.split('.');
+                if (parts.length > 2) return;
+                setCompensation(value);
                 if (errors.compensation) setErrors(e => ({ ...e, compensation: undefined }));
               }}
+              onKeyDown={(e) => {
+                // Allow: backspace, delete, tab, escape, enter, arrows, decimal point
+                const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '.'];
+                const allowedChars = /[0-9]/;
+                
+                if (!allowedKeys.includes(e.key) && !allowedChars.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
               placeholder="0.00"
+              className={errors.compensation ? "border-red-500" : ""}
             />
             {errors.compensation && <div className="text-red-500 text-xs mt-1">{errors.compensation}</div>}
           </div>
@@ -142,10 +199,15 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
             <Textarea
               id="notes"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => {
+                setNotes(e.target.value);
+                if (errors.notes) setErrors(e => ({ ...e, notes: undefined }));
+              }}
               rows={3}
               placeholder="Additional notes about this partnership..."
+              className={errors.notes ? "border-red-500" : ""}
             />
+            {errors.notes && <div className="text-red-500 text-xs mt-1">{errors.notes}</div>}
           </div>
 
           <AlertDialogFooter>
@@ -155,12 +217,12 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button type="submit" disabled={loading}>
+              <Button type="button" disabled={loading} onClick={handleSubmit}>
                 {loading ? 'Assigning...' : 'Assign Partner'}
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
-        </form>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

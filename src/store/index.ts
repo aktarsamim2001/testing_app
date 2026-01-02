@@ -11,6 +11,7 @@ import campaignsReducer from "./slices/campaigns";
 import campaignAssignablePartnersReducer from "./slices/campaignAssignablePartners";
 import campaignPartnersReducer from "./slices/campaignPartners";
 import pagesReducer from "./slices/pages";
+import settingsReducer from "./slices/settings";
 
 export const store = configureStore({
   reducer: {
@@ -23,6 +24,7 @@ export const store = configureStore({
     campaignPartners: campaignPartnersReducer,
     campaignAssignablePartners: campaignAssignablePartnersReducer,
     pages: pagesReducer,
+    settings: settingsReducer,
   },
 });
 

@@ -1,11 +1,32 @@
 "use client";
 
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Extension } from '@tiptap/core';
+// Custom extension to improve Enter key behavior in lists
+const CustomListEnter = Extension.create({
+  name: 'customListEnter',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        // If in a list item, split the list item (new bullet/number)
+        if (editor.isActive('listItem')) {
+          return editor.commands.splitListItem('listItem');
+        }
+        return false;
+      },
+      'Shift-Enter': ({ editor }) => {
+        // Insert a soft break (new line inside the same list item)
+        return editor.commands.setHardBreak();
+      },
+    };
+  },
+});
+import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
+import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -60,7 +81,17 @@ export default function TiptapEditor({ value, onChange }: TiptapEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      CustomListEnter,
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
       BulletList,
       OrderedList,
       ListItem,
@@ -82,10 +113,17 @@ export default function TiptapEditor({ value, onChange }: TiptapEditorProps) {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] p-4',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] p-4 tiptap-custom-list',
       },
     },
   });
+
+  // Update editor content if value prop changes (for HTML initialization)
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value || '');
+    }
+  }, [value, editor]);
 
   if (!editor) {
     return null;
@@ -342,6 +380,12 @@ export default function TiptapEditor({ value, onChange }: TiptapEditorProps) {
             <Redo className="h-4 w-4" />
           </Button>
         </div>
+        <style>{`
+          /* Fallback for list styles if Tailwind Typography is missing or overridden */
+          .tiptap-custom-list ul { list-style-type: disc; margin-left: 1.5em; }
+          .tiptap-custom-list ol { list-style-type: decimal; margin-left: 1.5em; }
+          .tiptap-custom-list li { margin-bottom: 0.25em; }
+        `}</style>
         <EditorContent editor={editor} />
       </div>
 

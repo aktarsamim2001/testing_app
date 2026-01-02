@@ -102,7 +102,7 @@ export default function Partners() {
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push("/auth");
+      router.push("/admin/login");
     }
   }, [user, isAdmin, loading, router]);
 
@@ -218,6 +218,7 @@ export default function Partners() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>SL</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Channel</TableHead>
                       <TableHead>Handle</TableHead>
@@ -227,8 +228,9 @@ export default function Partners() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {partners.map((partner) => (
+                    {partners.map((partner, idx) => (
                       <TableRow key={partner.id}>
+                        <TableCell>{(pagination.currentPage - 1) * perPage + idx + 1}</TableCell>
                         <TableCell className="font-medium">
                           {partner.name}
                         </TableCell>

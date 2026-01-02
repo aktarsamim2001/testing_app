@@ -46,7 +46,7 @@ export default function CreatorMarketplace() {
 
   useEffect(() => {
     if (!user) {
-      router.push("/auth");
+      router.push("/admin/login");
       return;
     }
     fetchPartners();

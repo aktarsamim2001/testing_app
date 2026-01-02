@@ -68,7 +68,7 @@ export default function Analytics() {
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push('/auth');
+      router.push('/admin/login');
     }
   }, [user, isAdmin, loading, router]);
 

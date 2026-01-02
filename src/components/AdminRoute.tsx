@@ -31,8 +31,8 @@ export default function AdminRoute({ children }: AdminRouteProps) {
     });
     
     if (!isAuthenticated || !authToken || !isAdmin) {
-      console.warn('AdminRoute: Redirecting to /auth');
-      router.push('/auth');
+      console.warn('AdminRoute: Redirecting to /admin/login');
+      router.push('/admin/login');
     }
   }, [isAuthenticated, authToken, isAdmin, isInitialized, router]);
 

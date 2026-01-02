@@ -35,9 +35,11 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
   const [errors, setErrors] = useState<{
     name?: string;
     image?: string;
+    about?: string;
   }>({});
 
   useEffect(() => {
+    setErrors({});
     if (author) {
       setFormData({
         name: author.name || '',
@@ -75,6 +77,10 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
     if (!author && !imageFile) {
       newErrors.image = 'Image is required for creating a new author.';
     }
+    // About: allow empty, but if not empty, must not be only spaces
+    if (formData.about && !formData.about.trim()) {
+      newErrors.about = 'About cannot be only spaces.';
+    }
     return newErrors;
   };
 
@@ -82,7 +88,10 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
     try {

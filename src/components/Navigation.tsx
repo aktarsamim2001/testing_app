@@ -88,7 +88,7 @@ const Navigation = () => {
               </Link>
             )}
             {!mounted ? (
-              <Link href="/auth">
+              <Link href="/admin/login">
                 <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
                   Sign In / Sign Up
                 </Button>
@@ -105,7 +105,7 @@ const Navigation = () => {
                 </Button>
               </div>
             ) : (
-              <Link href="/auth">
+              <Link href="/admin/login">
                 <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
                   Sign In / Sign Up
                 </Button>
@@ -150,7 +150,7 @@ const Navigation = () => {
               </Link>
             )}
             {!mounted ? (
-              <Link href="/auth" onClick={() => setIsOpen(false)}>
+              <Link href="/admin/login" onClick={() => setIsOpen(false)}>
                 <Button size="sm" className="w-full mt-3 sm:mt-4 bg-gradient-primary text-xs sm:text-sm">
                   Sign In / Sign Up
                 </Button>
@@ -169,7 +169,7 @@ const Navigation = () => {
                 </Button>
               </div>
             ) : (
-              <Link href="/auth" onClick={() => setIsOpen(false)}>
+              <Link href="/admin/login" onClick={() => setIsOpen(false)}>
                 <Button size="sm" className="w-full mt-3 sm:mt-4 bg-gradient-primary text-xs sm:text-sm">
                   Sign In / Sign Up
                 </Button>

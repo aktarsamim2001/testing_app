@@ -46,9 +46,16 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     name?: string;
     email?: string;
     channel_type?: string;
+    platform_handle?: string;
+    follower_count?: string;
+    engagement_rate?: string;
+    categories?: string;
+    notes?: string;
   }>({});
 
   useEffect(() => {
+    // Always clear errors when dialog opens or partner changes
+    setErrors({});
     if (partner) {
       setFormData({
         name: partner.name || '',
@@ -88,6 +95,36 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     }
     if (!formData.channel_type) {
       newErrors.channel_type = 'Channel type is required.';
+    }
+    // Platform handle: allow empty, but if not empty, must not be only spaces
+    if (formData.platform_handle && !formData.platform_handle.trim()) {
+      newErrors.platform_handle = 'Platform handle cannot be only spaces.';
+    }
+    // Follower count: allow empty, but if not empty, must be a positive integer
+    if (formData.follower_count && !formData.follower_count.trim()) {
+      newErrors.follower_count = 'Follower count cannot be only spaces.';
+    } else if (formData.follower_count) {
+      const count = parseInt(formData.follower_count);
+      if (isNaN(count) || count < 0) {
+        newErrors.follower_count = 'Follower count must be a positive number.';
+      }
+    }
+    // Engagement rate: allow empty, but if not empty, must be a positive float
+    if (formData.engagement_rate && !formData.engagement_rate.trim()) {
+      newErrors.engagement_rate = 'Engagement rate cannot be only spaces.';
+    } else if (formData.engagement_rate) {
+      const rate = parseFloat(formData.engagement_rate);
+      if (isNaN(rate) || rate < 0 || rate > 100) {
+        newErrors.engagement_rate = 'Engagement rate must be between 0 and 100.';
+      }
+    }
+    // Categories: allow empty, but if not empty, must not be only spaces
+    if (formData.categories && !formData.categories.trim()) {
+      newErrors.categories = 'Categories cannot be only spaces.';
+    }
+    // Notes: allow empty, but if not empty, must not be only spaces
+    if (formData.notes && !formData.notes.trim()) {
+      newErrors.notes = 'Notes cannot be only spaces.';
     }
     return newErrors;
   };
@@ -144,7 +181,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (errors.name) setErrors({ ...errors, name: undefined });
+                }}
                 aria-invalid={!!errors.name}
                 // required removed for custom validation only
               />
@@ -158,7 +198,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: undefined });
+                }}
                 aria-invalid={!!errors.email}
                 // required removed for custom validation only
               />
@@ -180,10 +223,17 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                   <SelectItem value="linkedin">LinkedIn</SelectItem>
                   <SelectItem value="youtube">YouTube</SelectItem>
                 </SelectContent>
-                {errors.channel_type && (
-                  <div className="text-red-500 text-xs mt-1">{errors.channel_type}</div>
-                )}
               </Select>
+              {errors.channel_type && (
+                <div className="text-red-500 text-xs mt-1">{errors.channel_type}</div>
+              )}
+              {/* Clear error on change */}
+              <span style={{ display: 'none' }}>
+                <Select value={formData.channel_type} onValueChange={(value) => {
+                  setFormData({ ...formData, channel_type: value });
+                  if (errors.channel_type) setErrors({ ...errors, channel_type: undefined });
+                }} />
+              </span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="platform_handle">Platform Handle</Label>
@@ -191,7 +241,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 id="platform_handle"
                 placeholder="@username"
                 value={formData.platform_handle}
-                onChange={(e) => setFormData({ ...formData, platform_handle: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, platform_handle: e.target.value });
+                  if (errors.platform_handle) setErrors({ ...errors, platform_handle: undefined });
+                }}
               />
             </div>
           </div>
@@ -203,7 +256,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 id="follower_count"
                 type="number"
                 value={formData.follower_count}
-                onChange={(e) => setFormData({ ...formData, follower_count: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, follower_count: e.target.value });
+                  if (errors.follower_count) setErrors({ ...errors, follower_count: undefined });
+                }}
               />
             </div>
             <div className="space-y-2">
@@ -213,7 +269,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 type="number"
                 step="0.01"
                 value={formData.engagement_rate}
-                onChange={(e) => setFormData({ ...formData, engagement_rate: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, engagement_rate: e.target.value });
+                  if (errors.engagement_rate) setErrors({ ...errors, engagement_rate: undefined });
+                }}
               />
             </div>
           </div>
@@ -224,7 +283,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
               id="categories"
               placeholder="Tech, SaaS, B2B"
               value={formData.categories}
-              onChange={(e) => setFormData({ ...formData, categories: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, categories: e.target.value });
+                if (errors.categories) setErrors({ ...errors, categories: undefined });
+              }}
             />
           </div>
 
@@ -233,7 +295,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, notes: e.target.value });
+                if (errors.notes) setErrors({ ...errors, notes: undefined });
+              }}
               rows={3}
             />
           </div>
