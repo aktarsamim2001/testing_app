@@ -67,15 +67,13 @@ export default function MenuManagementPage() {
                 <CardTitle>All Menus</CardTitle>
                 <CardDescription>View and manage navigation menus</CardDescription>
               </div>
-              <div className="flex gap-2 items-center">
                 <Input
                   id="menu-search"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Enter Menu Name"
+                  placeholder="Search"
                   className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
                 />
-              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -124,12 +122,12 @@ export default function MenuManagementPage() {
                 ))}
               </TableBody>
             </Table>
-            {/* Pagination UI matching BlogCategories */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end px-4 py-3 text-sm text-muted-foreground gap-2">
-              <div className="mb-2 sm:mb-0">
+            {/* Responsive Pagination UI */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 text-sm text-muted-foreground gap-2">
+              <div className="mb-2 sm:mb-0 w-full sm:w-auto text-center sm:text-left">
                 <span className="text-xs text-muted-foreground">Page 1 of 2</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
                 <nav className="flex items-center gap-1" aria-label="Pagination">
                   <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 transition disabled:opacity-50" disabled>{'<'}</button>
                   <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-500 text-white font-bold shadow" style={{background:'#FF7600'}} tabIndex={0}>1</button>

@@ -152,7 +152,7 @@ export default function Authors() {
                 id="category-title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Enter Author name"
+                placeholder="Search"
                 className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
               />
             </div>
@@ -230,8 +230,8 @@ export default function Authors() {
                 </Table>
                 {/* Pagination Controls */}
                 {pagination.totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center sm:items-end mt-6 gap-2 sm:gap-4">
-                    <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-right">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 gap-2 sm:gap-4">
+                    <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
                       Showing {(pagination.currentPage - 1) * pagination.perPage + 1} to {((pagination.currentPage - 1) * pagination.perPage) + authors.length} of {typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0 ? pagination.totalRecords : authors.length} results
                     </span>
                     <nav className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end" aria-label="Pagination">

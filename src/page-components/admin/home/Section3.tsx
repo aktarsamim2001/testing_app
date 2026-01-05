@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Section3Props {
   section: any;
@@ -72,7 +73,7 @@ export default function Section3({
           {/* Description */}
           <div className="space-y-1">
             <Label className="text-xs font-medium">Description</Label>
-            <textarea
+            <Textarea
               value={section.slides[0]?.description || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { description: e.target.value })
@@ -323,16 +324,12 @@ export default function Section3({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                const newStats = [...((section.slides[0] as any)?.stats || [])];
-                                newStats[statIndex].icon = reader.result as string;
-                                updateSlide(section.id, section.slides[0].id, {
-                                  ...section.slides[0],
-                                  stats: newStats,
-                                } as any);
-                              };
-                              reader.readAsDataURL(file);
+                              const newStats = [...((section.slides[0] as any)?.stats || [])];
+                              newStats[statIndex].icon = `/uploads/icons/${file.name}`;
+                              updateSlide(section.id, section.slides[0].id, {
+                                ...section.slides[0],
+                                stats: newStats,
+                              } as any);
                             }
                           }}
                           disabled={loading}

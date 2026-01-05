@@ -270,6 +270,8 @@ export default function BlogPostWizard() {
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder={formData.title ? generateSlug(formData.title) : 'auto-generated-from-title'}
+                    readOnly={!!editingBlog}
+                    disabled={!!editingBlog}
                   />
                 </div>
 

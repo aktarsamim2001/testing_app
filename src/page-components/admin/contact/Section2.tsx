@@ -64,7 +64,11 @@ export default function Section2({
     if (!slide) return;
 
     const updatedCards = [...((slide as any).cards || [])];
-    updatedCards[cardIndex] = { ...updatedCards[cardIndex], ...updates };
+    // Remove buttonText and buttonUrl from the card object
+    const newCard = { ...updatedCards[cardIndex], ...updates };
+    delete newCard.buttonText;
+    delete newCard.buttonUrl;
+    updatedCards[cardIndex] = newCard;
     updateSlide(section.id, slideId, { cards: updatedCards } as any);
   };
 
@@ -245,11 +249,8 @@ export default function Section2({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                handleCardChange(slide.id, cardIndex, { icon: reader.result as string });
-                              };
-                              reader.readAsDataURL(file);
+                              // Instead of base64, just set a fake path for now
+                              handleCardChange(slide.id, cardIndex, { icon: `/uploads/icons/${file.name}` });
                             }
                           }}
                           disabled={loading}

@@ -90,20 +90,18 @@ export default function BlogPosts() {
           </div>
         <Card className="rounded-xl border bg-white shadow-sm">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
               <div>
                 <h2 className="font-semibold text-lg">All Blog Posts</h2>
                 <p className="text-sm text-muted-foreground">View and manage your blog posts</p>
               </div>
-              <div className="flex gap-2 sm:items-center w-full sm:w-auto">
                 <Input
                   type="text"
-                  placeholder="Search blog posts..."
+                  placeholder="Search"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="sm:w-64"
+                  className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
                 />
-              </div>
             </div>
             <div className="space-y-4">
               {filteredPosts.length === 0 ? (

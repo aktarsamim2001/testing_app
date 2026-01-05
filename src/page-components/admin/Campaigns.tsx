@@ -145,20 +145,29 @@ export default function Campaigns() {
     setDeletingCampaignId(null);
   };
 
-  const handleEdit = (campaign: CampaignItem) => {
-    setEditingCampaign(campaign);
-    setFormData({
-      name: campaign.name || '',
-      client_id: campaign.client_id || '',
-      campaign_type: campaign.campaign_type || 'blogger_outreach',
-      status: campaign.status || 'Planning',
-      budget: campaign.budget ? String(campaign.budget) : '',
-      start_date: campaign.start_date || '',
-      end_date: campaign.end_date || '',
-      description: (campaign as any).description || '',
-    });
-    setDialogOpen(true);
-  };
+const handleEdit = (campaign: CampaignItem) => {
+  setEditingCampaign(campaign);
+  
+  // Clean budget value - remove any formatting and convert to plain number string
+  let budgetValue = '';
+  if (campaign.budget !== null && campaign.budget !== undefined) {
+    // Remove any currency symbols, commas, and other non-numeric characters except decimal point
+    const cleanBudget = String(campaign.budget).replace(/[^\d.]/g, '');
+    budgetValue = cleanBudget;
+  }
+  
+  setFormData({
+    name: campaign.name || '',
+    client_id: campaign.client_id || '',
+    campaign_type: campaign.campaign_type || 'blogger_outreach',
+    status: campaign.status || 'Planning',
+    budget: budgetValue, // Use the cleaned budget value
+    start_date: campaign.start_date || '',
+    end_date: campaign.end_date || '',
+    description: (campaign as any).description || '',
+  });
+  setDialogOpen(true);
+};
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -240,7 +249,7 @@ export default function Campaigns() {
                   setSearch(e.target.value);
                   // Optionally reset page to 1 if you add page state
                 }}
-                placeholder="Search campaigns by name..."
+                placeholder="Search"
                 className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
               />
             </div>
@@ -317,7 +326,7 @@ export default function Campaigns() {
 
         {/* Improved Pagination Controls */}
         {pagination.totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center sm:items-end mt-6 gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 gap-2 sm:gap-4">
             {(() => {
               const start = (pagination.currentPage - 1) * pagination.perPage + 1;
               const end = start + campaigns.length - 1;
@@ -325,7 +334,7 @@ export default function Campaigns() {
                 ? pagination.totalResults
                 : campaigns.length;
               return (
-                <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-right">
+                <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
                   Showing {start} to {end} of {total} results
                 </span>
               );

@@ -1,16 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { AppDispatch } from '@/store';
-import { createPartnerThunk, updatePartnerThunk } from '@/store/slices/partners';
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { AppDispatch } from "@/store";
+import {
+  createPartnerThunk,
+  updatePartnerThunk,
+} from "@/store/slices/partners";
 
 // Use the Partner type from the store to ensure consistency
-import type { Partner } from '@/store/slices/partners';
+import type { Partner } from "@/store/slices/partners";
 
 interface PartnerDialogProps {
   open: boolean;
@@ -18,7 +33,11 @@ interface PartnerDialogProps {
   partner?: Partner | null;
 }
 
-export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDialogProps) {
+export default function PartnerDialog({
+  open,
+  onOpenChange,
+  partner,
+}: PartnerDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState<{
     name: string;
@@ -31,15 +50,15 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     notes: string;
     status: number;
   }>({
-    name: '',
-    email: '',
-    channel_type: 'blogger',
-    platform_handle: '',
-    follower_count: '',
-    engagement_rate: '',
-    categories: '',
-    notes: '',
-    status: 0
+    name: "",
+    email: "",
+    channel_type: "blogger",
+    platform_handle: "",
+    follower_count: "",
+    engagement_rate: "",
+    categories: "",
+    notes: "",
+    status: 0,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -58,27 +77,29 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     setErrors({});
     if (partner) {
       setFormData({
-        name: partner.name || '',
-        email: partner.email || '',
-        channel_type: partner.channel_type || 'blogger',
-        platform_handle: partner.platform_handle || '',
-        follower_count: partner.follower_count?.toString() || '',
-        engagement_rate: partner.engagement_rate?.toString() || '',
-        categories: Array.isArray(partner.categories) ? partner.categories.join(", ") : partner.categories || '',
-        notes: partner.notes || '',
-        status: partner.status ?? 0
+        name: partner.name || "",
+        email: partner.email || "",
+        channel_type: partner.channel_type || "blogger",
+        platform_handle: partner.platform_handle || "",
+        follower_count: partner.follower_count?.toString() || "",
+        engagement_rate: partner.engagement_rate?.toString() || "",
+        categories: Array.isArray(partner.categories)
+          ? partner.categories.join(", ")
+          : partner.categories || "",
+        notes: partner.notes || "",
+        status: partner.status ?? 0,
       });
     } else {
       setFormData({
-        name: '',
-        email: '',
-        channel_type: 'blogger',
-        platform_handle: '',
-        follower_count: '',
-        engagement_rate: '',
-        categories: '',
-        notes: '',
-        status: 0
+        name: "",
+        email: "",
+        channel_type: "blogger",
+        platform_handle: "",
+        follower_count: "",
+        engagement_rate: "",
+        categories: "",
+        notes: "",
+        status: 0,
       });
     }
   }, [partner, open]);
@@ -86,45 +107,46 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
   const validate = () => {
     const newErrors: typeof errors = {};
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required.';
+      newErrors.name = "Name is required.";
     }
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required.';
+      newErrors.email = "Email is required.";
     } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
-      newErrors.email = 'Enter a valid email address.';
+      newErrors.email = "Enter a valid email address.";
     }
     if (!formData.channel_type) {
-      newErrors.channel_type = 'Channel type is required.';
+      newErrors.channel_type = "Channel type is required.";
     }
     // Platform handle: allow empty, but if not empty, must not be only spaces
     if (formData.platform_handle && !formData.platform_handle.trim()) {
-      newErrors.platform_handle = 'Platform handle cannot be only spaces.';
+      newErrors.platform_handle = "Platform handle cannot be only spaces.";
     }
     // Follower count: allow empty, but if not empty, must be a positive integer
     if (formData.follower_count && !formData.follower_count.trim()) {
-      newErrors.follower_count = 'Follower count cannot be only spaces.';
+      newErrors.follower_count = "Follower count cannot be only spaces.";
     } else if (formData.follower_count) {
       const count = parseInt(formData.follower_count);
       if (isNaN(count) || count < 0) {
-        newErrors.follower_count = 'Follower count must be a positive number.';
+        newErrors.follower_count = "Follower count must be a positive number.";
       }
     }
     // Engagement rate: allow empty, but if not empty, must be a positive float
     if (formData.engagement_rate && !formData.engagement_rate.trim()) {
-      newErrors.engagement_rate = 'Engagement rate cannot be only spaces.';
+      newErrors.engagement_rate = "Engagement rate cannot be only spaces.";
     } else if (formData.engagement_rate) {
       const rate = parseFloat(formData.engagement_rate);
       if (isNaN(rate) || rate < 0 || rate > 100) {
-        newErrors.engagement_rate = 'Engagement rate must be between 0 and 100.';
+        newErrors.engagement_rate =
+          "Engagement rate must be between 0 and 100.";
       }
     }
     // Categories: allow empty, but if not empty, must not be only spaces
     if (formData.categories && !formData.categories.trim()) {
-      newErrors.categories = 'Categories cannot be only spaces.';
+      newErrors.categories = "Categories cannot be only spaces.";
     }
     // Notes: allow empty, but if not empty, must not be only spaces
     if (formData.notes && !formData.notes.trim()) {
-      newErrors.notes = 'Notes cannot be only spaces.';
+      newErrors.notes = "Notes cannot be only spaces.";
     }
     return newErrors;
   };
@@ -141,24 +163,30 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
         email: formData.email,
         channel_type: formData.channel_type,
         platform_handle: formData.platform_handle || null,
-        follower_count: formData.follower_count ? parseInt(formData.follower_count) : null,
-        engagement_rate: formData.engagement_rate ? parseFloat(formData.engagement_rate) : null,
+        follower_count: formData.follower_count
+          ? parseInt(formData.follower_count)
+          : null,
+        engagement_rate: formData.engagement_rate
+          ? parseFloat(formData.engagement_rate)
+          : null,
         categories: formData.categories ? formData.categories : null,
         notes: formData.notes || null,
-        status: formData.status
+        status: formData.status,
       };
 
       if (partner) {
-        await dispatch(updatePartnerThunk({
-          id: partner.id,
-          ...payload
-        }));
+        await dispatch(
+          updatePartnerThunk({
+            id: partner.id,
+            ...payload,
+          })
+        );
       } else {
         await dispatch(createPartnerThunk(payload));
       }
       onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting partner:', error);
+      console.error("Error submitting partner:", error);
     } finally {
       setLoading(false);
     }
@@ -168,16 +196,22 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{partner ? 'Edit Partner' : 'Add New Partner'}</DialogTitle>
+          <DialogTitle>
+            {partner ? "Edit Partner" : "Add New Partner"}
+          </DialogTitle>
           <DialogDescription>
-            {partner ? 'Update partner information' : 'Add a new influencer or content creator'}
+            {partner
+              ? "Update partner information"
+              : "Add a new influencer or content creator"}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name">
+                Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -193,7 +227,9 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+              <Label htmlFor="email">
+                Email <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -213,8 +249,17 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="channel_type">Channel Type <span className="text-red-500">*</span></Label>
-              <Select value={formData.channel_type} onValueChange={(value) => setFormData({ ...formData, channel_type: value })}>
+              <Label htmlFor="channel_type">
+                Channel Type <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.channel_type}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, channel_type: value });
+                  if (errors.channel_type)
+                    setErrors({ ...errors, channel_type: undefined });
+                }}
+              >
                 <SelectTrigger aria-invalid={!!errors.channel_type}>
                   <SelectValue />
                 </SelectTrigger>
@@ -225,15 +270,10 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 </SelectContent>
               </Select>
               {errors.channel_type && (
-                <div className="text-red-500 text-xs mt-1">{errors.channel_type}</div>
+                <div className="text-red-500 text-xs mt-1">
+                  {errors.channel_type}
+                </div>
               )}
-              {/* Clear error on change */}
-              <span style={{ display: 'none' }}>
-                <Select value={formData.channel_type} onValueChange={(value) => {
-                  setFormData({ ...formData, channel_type: value });
-                  if (errors.channel_type) setErrors({ ...errors, channel_type: undefined });
-                }} />
-              </span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="platform_handle">Platform Handle</Label>
@@ -243,7 +283,8 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 value={formData.platform_handle}
                 onChange={(e) => {
                   setFormData({ ...formData, platform_handle: e.target.value });
-                  if (errors.platform_handle) setErrors({ ...errors, platform_handle: undefined });
+                  if (errors.platform_handle)
+                    setErrors({ ...errors, platform_handle: undefined });
                 }}
               />
             </div>
@@ -258,7 +299,8 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 value={formData.follower_count}
                 onChange={(e) => {
                   setFormData({ ...formData, follower_count: e.target.value });
-                  if (errors.follower_count) setErrors({ ...errors, follower_count: undefined });
+                  if (errors.follower_count)
+                    setErrors({ ...errors, follower_count: undefined });
                 }}
               />
             </div>
@@ -271,7 +313,8 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
                 value={formData.engagement_rate}
                 onChange={(e) => {
                   setFormData({ ...formData, engagement_rate: e.target.value });
-                  if (errors.engagement_rate) setErrors({ ...errors, engagement_rate: undefined });
+                  if (errors.engagement_rate)
+                    setErrors({ ...errors, engagement_rate: undefined });
                 }}
               />
             </div>
@@ -285,7 +328,8 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
               value={formData.categories}
               onChange={(e) => {
                 setFormData({ ...formData, categories: e.target.value });
-                if (errors.categories) setErrors({ ...errors, categories: undefined });
+                if (errors.categories)
+                  setErrors({ ...errors, categories: undefined });
               }}
             />
           </div>
@@ -304,11 +348,15 @@ export default function PartnerDialog({ open, onOpenChange, partner }: PartnerDi
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : partner ? 'Update' : 'Create'}
+              {loading ? "Saving..." : partner ? "Update" : "Create"}
             </Button>
           </div>
         </form>

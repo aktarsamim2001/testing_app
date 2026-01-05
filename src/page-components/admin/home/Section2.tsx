@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Section2Props {
   section: any;
@@ -69,7 +71,7 @@ export default function Section2({
           {/* Description */}
           <div className="space-y-1">
             <Label className="text-xs font-medium">Description</Label>
-            <textarea
+            <Textarea
               value={section.slides[0]?.description || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { description: e.target.value })
@@ -172,7 +174,7 @@ export default function Section2({
                               const updatedCards = [
                                 ...((section.slides[0] as any)?.cards || []),
                               ];
-                              updatedCards[index].icon = e.target.files[0].name;
+                              updatedCards[index].icon = `/uploads/icons/${e.target.files[0].name}`;
                               updateSlide(section.id, section.slides[0].id, {
                                 ...section.slides[0],
                                 cards: updatedCards,
@@ -239,7 +241,7 @@ export default function Section2({
                     {/* Description */}
                     <div className="space-y-1">
                       <Label className="text-xs font-medium">Description</Label>
-                      <textarea
+                      <Textarea
                         value={card.description || ''}
                         onChange={(e) => {
                           const updatedCards = [

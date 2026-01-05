@@ -87,7 +87,7 @@ const Navigation = () => {
                 Admin
               </Link>
             )}
-            {!mounted ? (
+            {/* {!mounted ? (
               <Link href="/admin/login">
                 <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
                   Sign In / Sign Up
@@ -110,7 +110,7 @@ const Navigation = () => {
                   Sign In / Sign Up
                 </Button>
               </Link>
-            )}
+            )} */}
           </div>
 
           {/* Mobile Menu Button */}

@@ -50,7 +50,8 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
           placeholder="auto-generated"
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          disabled={loading}
+          disabled={loading || isEditMode}
+          readOnly={isEditMode}
           className="text-sm bg-muted"
         />
         <p className="text-xs text-muted-foreground">Auto-generated from title</p>

@@ -207,13 +207,9 @@ export default function Section4({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                const updated = [...((slide as any).titles || [])];
-                                updated[titleIndex].icon = reader.result as string;
-                                updateSlide(section.id, slide.id, { titles: updated } as any);
-                              };
-                              reader.readAsDataURL(file);
+                              const updated = [...((slide as any).titles || [])];
+                              updated[titleIndex].icon = `/uploads/icons/${file.name}`;
+                              updateSlide(section.id, slide.id, { titles: updated } as any);
                             }
                           }}
                           disabled={loading}

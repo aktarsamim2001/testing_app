@@ -28,7 +28,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -47,7 +47,7 @@ import {
 } from "@/store/slices/partners";
 
 // Use the Partner type from the store to ensure consistency
-import type { Partner } from '@/store/slices/partners';
+import type { Partner } from "@/store/slices/partners";
 
 export default function Partners() {
   const router = useRouter();
@@ -77,7 +77,6 @@ export default function Partners() {
   // Pagination state
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
-
 
   // Debounce search input
   useEffect(() => {
@@ -196,7 +195,7 @@ export default function Partners() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                placeholder="Search partners by name..."
+                placeholder="Search"
                 className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
               />
             </div>
@@ -230,7 +229,9 @@ export default function Partners() {
                   <TableBody>
                     {partners.map((partner, idx) => (
                       <TableRow key={partner.id}>
-                        <TableCell>{(pagination.currentPage - 1) * perPage + idx + 1}</TableCell>
+                        <TableCell>
+                          {(pagination.currentPage - 1) * perPage + idx + 1}
+                        </TableCell>
                         <TableCell className="font-medium">
                           {partner.name}
                         </TableCell>
@@ -273,20 +274,25 @@ export default function Partners() {
                   </TableBody>
                 </Table>
                 {/* Improved Pagination Controls */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-end mt-4 gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2 sm:gap-4">
                   {(() => {
                     const start = (pagination.currentPage - 1) * perPage + 1;
                     const end = start + partners.length - 1;
-                    const total = (typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0)
-                      ? pagination.totalRecords
-                      : partners.length;
+                    const total =
+                      typeof pagination.totalRecords === "number" &&
+                      pagination.totalRecords >= 0
+                        ? pagination.totalRecords
+                        : partners.length;
                     return (
-                      <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-right">
+                      <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
                         Showing {start} to {end} of {total} results
                       </span>
                     );
                   })()}
-                  <nav className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end" aria-label="Pagination">
+                  <nav
+                    className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end"
+                    aria-label="Pagination"
+                  >
                     <Button
                       variant="outline"
                       size="sm"
@@ -306,33 +312,63 @@ export default function Partners() {
                         }
                       } else {
                         if (current <= 3) {
-                          pages.push(1, 2, 3, 4, '...', total);
+                          pages.push(1, 2, 3, 4, "...", total);
                         } else if (current >= total - 2) {
-                          pages.push(1, '...', total - 3, total - 2, total - 1, total);
+                          pages.push(
+                            1,
+                            "...",
+                            total - 3,
+                            total - 2,
+                            total - 1,
+                            total
+                          );
                         } else {
-                          pages.push(1, '...', current - 1, current, current + 1, '...', total);
+                          pages.push(
+                            1,
+                            "...",
+                            current - 1,
+                            current,
+                            current + 1,
+                            "...",
+                            total
+                          );
                         }
                       }
                       return pages.map((p, idx) =>
-                        p === '...'
-                          ? <span key={"ellipsis-" + idx} className="px-2 text-muted-foreground">...</span>
-                          : <Button
-                              key={p}
-                              variant={p === current ? "default" : "outline"}
-                              size="sm"
-                              className={p === current ? "bg-orange-500 text-white" : ""}
-                              onClick={() => setPage(Number(p))}
-                              aria-current={p === current ? "page" : undefined}
-                            >
-                              {p}
-                            </Button>
+                        p === "..." ? (
+                          <span
+                            key={"ellipsis-" + idx}
+                            className="px-2 text-muted-foreground"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <Button
+                            key={p}
+                            variant={p === current ? "default" : "outline"}
+                            size="sm"
+                            className={
+                              p === current ? "bg-orange-500 text-white" : ""
+                            }
+                            onClick={() => setPage(Number(p))}
+                            aria-current={p === current ? "page" : undefined}
+                          >
+                            {p}
+                          </Button>
+                        )
                       );
                     })()}
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={pagination.currentPage === pagination.totalPages}
-                      onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                      disabled={
+                        pagination.currentPage === pagination.totalPages
+                      }
+                      onClick={() =>
+                        setPage((prev) =>
+                          Math.min(pagination.totalPages, prev + 1)
+                        )
+                      }
                       aria-label="Next page"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -351,19 +387,30 @@ export default function Partners() {
         />
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!open) closeDeleteDialog(); }}>
+        <AlertDialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) closeDeleteDialog();
+          }}
+        >
           <AlertDialogTrigger asChild />
           <AlertDialogContent>
             <AlertDialogTitle>Delete Partner</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <span className="font-bold">{deletingPartner?.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-bold">{deletingPartner?.name}</span>? This
+              action cannot be undone.
             </AlertDialogDescription>
             <div className="flex justify-end gap-2">
               <AlertDialogCancel asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
+                <Button variant="outline" size="sm">
+                  Cancel
+                </Button>
               </AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  Delete
+                </Button>
               </AlertDialogAction>
             </div>
           </AlertDialogContent>
