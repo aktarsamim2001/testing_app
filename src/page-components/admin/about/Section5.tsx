@@ -32,6 +32,7 @@ interface TitleItem {
   id: string;
   text: string;
   icon?: string;
+  file?: File | string;
 }
 
 interface Section5Props {

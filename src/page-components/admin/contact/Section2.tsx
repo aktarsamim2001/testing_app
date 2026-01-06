@@ -26,6 +26,7 @@ interface SlideData {
   image?: string;
   button1Url?: string;
   button2Url?: string;
+  expectTitle?: string;
 }
 
 interface CardItem {
