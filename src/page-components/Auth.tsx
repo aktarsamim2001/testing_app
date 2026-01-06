@@ -113,15 +113,6 @@ export default function AdminAuth() {
                 <CardDescription>Sign in to the admin panel</CardDescription>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/')}
-              className="h-8 w-8 p-0"
-              title="Back to Home"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
           </div>
         </CardHeader>
         <CardContent>

@@ -97,9 +97,9 @@ const Blog = () => {
       <section className="pt-16 sm:pt-24 pb-16 sm:pb-20 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <Badge className="mb-4 bg-accent text-accent-foreground">Partnership Marketing Insights</Badge>
-            <h1 className="mb-6">Partnership Marketing Blog</h1>
-            <p className="text-lg text-muted-foreground">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Partnership Marketing Insights</Badge>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">Partnership Marketing Blog</h1>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
               Expert insights, strategies, and case studies to help you scale your SaaS through influencer partnerships
             </p>
           </div>

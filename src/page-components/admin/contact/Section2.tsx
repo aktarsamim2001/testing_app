@@ -128,6 +128,13 @@ export default function Section2({
     updateSlide(section.id, slideId, { [field]: updatedTitles } as any);
   };
 
+  // Add expectTitle support per slide
+  const handleExpectTitleChange = (slideId: string, value: string) => {
+    const slide = section.slides.find(s => s.id === slideId);
+    if (!slide) return;
+    updateSlide(section.id, slideId, { expectTitle: value } as any);
+  };
+
   return (
     <div className="space-y-4">
       {section.slides.length === 0 ? (
@@ -280,15 +287,22 @@ export default function Section2({
 
             {/* What to Expect Section */}
             <div className="space-y-3 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">What to Expect</Label>
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  className="text-sm font-medium w-full"
+                  placeholder="Section Title (e.g., What to Expect)"
+                  value={slide.expectTitle || ''}
+                  onChange={e => handleExpectTitleChange(slide.id, e.target.value)}
+                  disabled={loading}
+                />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => addTitle(slide.id, 'titles')}
                   disabled={loading}
-                  className="text-xs"
+                  className="w-full text-xs mt-1"
                 >
                   <Plus className="w-3 h-3 mr-1" />
                   Add Item

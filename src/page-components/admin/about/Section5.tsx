@@ -99,7 +99,7 @@ export default function Section5({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {removeSlide && (
+          {/* {removeSlide && (
             <Button
               type="button"
               variant="ghost"
@@ -110,7 +110,7 @@ export default function Section5({
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          )}
+          )} */}
           <CardContent className="space-y-4">
             {/* Title */}
             <div className="space-y-2">
@@ -197,6 +197,29 @@ export default function Section5({
                         />
                       </div>
 
+                      {/* File Upload */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Upload File</Label>
+                        <Input
+                          type="file"
+                          className="text-xs"
+                          disabled={loading}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            // You can handle the file upload logic here, e.g., upload to server or update state
+                            // For now, just update the file name in the title object as an example
+                            const updated = [...((slide as any).titles || [])];
+                            updated[titleIndex].file = file;
+                            updateSlide(section.id, slide.id, { titles: updated } as any);
+                          }}
+                        />
+                        {/* Optionally, show the uploaded file name */}
+                        {title.file && (
+                          <div className="text-xs text-muted-foreground">{typeof title.file === 'string' ? title.file : title.file.name}</div>
+                        )}
+                      </div>
+
                       <Button
                         type="button"
                         variant="ghost"
@@ -215,7 +238,7 @@ export default function Section5({
             </div>
 
             {/* Add Slide Button */}
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               onClick={() => addSlide(section.id)}
@@ -224,7 +247,7 @@ export default function Section5({
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Slide
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
         ))

@@ -88,10 +88,10 @@ const Services = () => {
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               Our Services
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               Multi-Channel Partnership Solutions
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
               Choose the channels that align with your growth goals, or leverage all three 
               for maximum impact. Each service is designed to scale with your business.
             </p>
@@ -101,8 +101,8 @@ const Services = () => {
 
       {/* Services Grid */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="space-y-12 max-w-6xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="space-y-12">
             {services.map((service, index) => (
               <Card key={index} className="shadow-medium hover:shadow-large transition-all overflow-hidden">
                 <div className={`h-2 bg-gradient-${service.color}`} />
@@ -158,12 +158,14 @@ const Services = () => {
                   </div>
 
                   <div className="pt-4">
-                    <Link href="/contact">
-                      <Button className="bg-gradient-primary">
-                        Get Started with {service.title}
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Button>
-                    </Link>
+                    <div className="w-full">
+                      <Link href="/contact" className="block">
+                        <Button className="bg-gradient-primary w-full sm:w-auto">
+                          Get Started with {service.title}
+                          <ArrowRight className="ml-2 w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -174,8 +176,8 @@ const Services = () => {
 
       {/* Full Service Option */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <Card className="max-w-4xl mx-auto shadow-large">
+        <div className="container mx-auto px-4 sm:px-6">
+          <Card className=" shadow-large">
             <CardContent className="p-12">
               <div className="text-center mb-8">
                 <Badge className="mb-4 bg-gradient-primary text-primary-foreground border-0">

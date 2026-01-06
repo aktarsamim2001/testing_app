@@ -140,6 +140,37 @@ export default function Section6({
                   className="text-sm"
                 />
               </div>
+            {/* Second Button Text and URL */}
+            <div className="space-y-2">
+              <Label htmlFor={`slide-button2text-${slide.id}`} className="text-sm font-medium">
+                Second Button Text
+              </Label>
+              <Input
+                id={`slide-button2text-${slide.id}`}
+                placeholder="e.g., Learn More"
+                value={slide.button2Text || ''}
+                onChange={(e) =>
+                  updateSlide(section.id, slide.id, { button2Text: e.target.value })
+                }
+                disabled={loading}
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`slide-button2url-${slide.id}`} className="text-sm font-medium">
+                Second Button URL
+              </Label>
+              <Input
+                id={`slide-button2url-${slide.id}`}
+                placeholder="e.g., /learn-more"
+                value={slide.button2Url || ''}
+                onChange={(e) =>
+                  updateSlide(section.id, slide.id, { button2Url: e.target.value })
+                }
+                disabled={loading}
+                className="text-sm"
+              />
+            </div>
             </div>
           </CardContent>
         </Card>

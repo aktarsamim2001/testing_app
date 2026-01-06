@@ -81,7 +81,7 @@ const Home = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-12 sm:mt-16 md:mt-20 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-12 sm:mt-16 md:mt-20">
             {stats.map((stat, index) => (
               <Card key={index} className="text-center shadow-soft hover:shadow-medium transition-all">
                 <CardContent className="pt-4 sm:pt-6 px-3 sm:px-4">
@@ -111,7 +111,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="relative group overflow-hidden shadow-soft hover:shadow-large transition-all">
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity" />
@@ -135,7 +135,7 @@ const Home = () => {
       {/* Why Choose Us */}
       <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
               <div>
                 <Badge className="mb-3 sm:mb-4 bg-accent/10 text-accent border-accent/20 text-xs sm:text-sm">
@@ -199,24 +199,20 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-background">
-        <div className="container mx-auto px-4 sm:px-6">
-          <Card className="max-w-4xl mx-auto shadow-large overflow-hidden">
-            <div className="bg-gradient-primary p-6 sm:p-8 md:p-12 text-center text-primary-foreground">
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-                Ready to Scale Your SaaS?
-              </h2>
-              <p className="text-base sm:text-lg mb-6 sm:mb-8 opacity-90">
-                Join 500+ growing companies leveraging strategic partnerships for exponential growth
-              </p>
-              <Link href="/contact">
-                <Button size="lg" variant="secondary" className="shadow-medium hover:shadow-large h-10 sm:h-12 text-sm sm:text-base px-6 sm:px-8">
-                  Get Started Today
-                  <ArrowRight className="ml-2 w-4 sm:w-5 h-4 sm:h-5" />
-                </Button>
-              </Link>
-            </div>
-          </Card>
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
+            Ready to Scale Your SaaS?
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
+           Join 500+ growing companies leveraging strategic partnerships for exponential growth
+          </p>
+          <Link href="/auth?type=creator">
+            <Button size="lg" variant="secondary" className="text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 shadow-large">
+             Get Started Today
+              <ArrowRight className="ml-2 w-4 sm:w-5 h-4 sm:h-5" />
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

@@ -90,8 +90,8 @@ const ForCreators = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className=" pt-16 sm:pt-24 pb-16 sm:pb-20 bg-gradient-subtle">
-        <div className="container mx-auto max-w-6xl text-center">
-          <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
+        <div className="container mx-auto text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
             Turn Your Influence Into Income
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
@@ -114,7 +114,7 @@ const ForCreators = () => {
 
       {/* Stats Section */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {stats.map((stat, index) => (
               <Card key={index} className="border-border hover:border-primary transition-colors">
@@ -136,7 +136,7 @@ const ForCreators = () => {
 
       {/* Channels Section */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto">
           <div className="text-center mb-10 sm:mb-12">
             <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">Choose Your Channel</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
@@ -164,7 +164,7 @@ const ForCreators = () => {
 
       {/* How It Works Section */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto">
           <div className="text-center mb-10 sm:mb-12">
             <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">How It Works</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">

@@ -53,18 +53,18 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="h-full">
       {/* Hero Section */}
       <section className="bg-gradient-subtle py-16">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               About PartnerScale
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               Built by SaaS Marketers, For SaaS Marketers
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
               We started PartnerScale because we were frustrated by traditional marketing agencies 
               that didn't understand the unique challenges of scaling SaaS businesses.
             </p>
@@ -74,8 +74,7 @@ const About = () => {
 
       {/* Story Section */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
             <Card className="shadow-soft">
               <CardContent className="p-8 md:p-12">
                 <div className="prose prose-lg max-w-none">
@@ -104,14 +103,12 @@ const About = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
         </div>
       </section>
 
       {/* Stats */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Impact in Numbers</h2>
               <p className="text-lg text-muted-foreground">
@@ -131,14 +128,12 @@ const About = () => {
                 </Card>
               ))}
             </div>
-          </div>
         </div>
       </section>
 
       {/* Values */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Our Core Values</h2>
               <p className="text-lg text-muted-foreground">
@@ -164,13 +159,11 @@ const About = () => {
               ))}
             </div>
           </div>
-        </div>
       </section>
 
       {/* Team Expertise */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Expert Team</h2>
               <p className="text-lg text-muted-foreground">
@@ -191,12 +184,11 @@ const About = () => {
                 </Card>
               ))}
             </div>
-          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16">
+      {/* <section className="py-16">
         <div className="container mx-auto px-4">
           <Card className="max-w-3xl mx-auto shadow-large overflow-hidden">
             <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
@@ -221,6 +213,29 @@ const About = () => {
               </div>
             </div>
           </Card>
+        </div>
+      </section> */}
+       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
+             Let's Grow Together
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
+          Ready to leverage the power of strategic partnerships for your SaaS?
+          </p>
+         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/contact">
+                  <Button size="lg" variant="secondary" className="shadow-medium">
+                    Get Started
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link href="/how-it-works">
+                  <Button size="lg" variant="outline" className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20">
+                    See How It Works
+                  </Button>
+                </Link>
+              </div>
         </div>
       </section>
     </div>

@@ -77,7 +77,7 @@ const Navigation = () => {
                 {link.name}
               </Link>
             ))}
-            {mounted && user && isAdmin && (
+            {/* {mounted && user && isAdmin && (
               <Link
                 href="/admin"
                 className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
@@ -86,7 +86,7 @@ const Navigation = () => {
               >
                 Admin
               </Link>
-            )}
+            )} */}
             {/* {!mounted ? (
               <Link href="/admin/login">
                 <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">

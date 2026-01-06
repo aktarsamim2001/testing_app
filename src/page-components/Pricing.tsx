@@ -12,7 +12,8 @@ const Pricing = () => {
       name: "Starter",
       partnerships: "1-5",
       price: "499",
-      description: "Perfect for early-stage SaaS companies testing partnership marketing",
+      description:
+        "Perfect for early-stage SaaS companies testing partnership marketing",
       features: [
         "1-5 active partnerships",
         "All three channels included",
@@ -28,7 +29,8 @@ const Pricing = () => {
       name: "Growth",
       partnerships: "6-15",
       price: "1,299",
-      description: "Ideal for growing SaaS companies ready to scale partnerships",
+      description:
+        "Ideal for growing SaaS companies ready to scale partnerships",
       features: [
         "6-15 active partnerships",
         "All three channels included",
@@ -46,7 +48,8 @@ const Pricing = () => {
       name: "Scale",
       partnerships: "16-30",
       price: "2,499",
-      description: "Complete solution for established SaaS companies seeking maximum impact",
+      description:
+        "Complete solution for established SaaS companies seeking maximum impact",
       features: [
         "16-30 active partnerships",
         "All three channels included",
@@ -83,10 +86,11 @@ const Pricing = () => {
   ];
 
   const addOns = [
-    { 
-      name: "Fully Managed Partnerships", 
+    {
+      name: "Fully Managed Partnerships",
       price: "$2,499/month",
-      description: "Let our team handle everything from partner outreach to campaign execution and reporting"
+      description:
+        "Let our team handle everything from partner outreach to campaign execution and reporting",
     },
   ];
 
@@ -99,11 +103,12 @@ const Pricing = () => {
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               Transparent Pricing
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               Flexible Pricing That Scales With You
             </h1>
-            <p className="text-xl text-muted-foreground mb-4">
-              Pay based on the number of active partnerships you manage. All plans include a one-time onboarding fee of $500.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
+              Pay based on the number of active partnerships you manage. All
+              plans include a one-time onboarding fee of $500.
             </p>
             <Badge className="bg-accent/10 text-accent border-accent/20 text-base px-4 py-2">
               One-time onboarding fee: $500
@@ -114,13 +119,13 @@ const Pricing = () => {
 
       {/* Pricing Cards */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative shadow-soft hover:shadow-large transition-all ${
-                  plan.popular ? 'border-2 border-primary shadow-large' : ''
+              <Card
+                key={index}
+                className={`relative shadow-soft hover:shadow-large transition-all flex flex-col h-full min-h-[520px] ${
+                  plan.popular ? "border-2 border-primary shadow-large" : ""
                 }`}
               >
                 {plan.popular && (
@@ -131,7 +136,6 @@ const Pricing = () => {
                     </Badge>
                   </div>
                 )}
-                
                 <CardHeader>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <div className="mt-2 mb-3">
@@ -144,15 +148,20 @@ const Pricing = () => {
                       <span className="text-3xl font-bold">{plan.price}</span>
                     ) : (
                       <>
-                        <span className="text-3xl font-bold">${plan.price}</span>
-                        <span className="text-muted-foreground text-sm">/month</span>
+                        <span className="text-3xl font-bold">
+                          ${plan.price}
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          /month
+                        </span>
                       </>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {plan.description}
+                  </p>
                 </CardHeader>
-
-                <CardContent className="space-y-6">
+                <CardContent className="flex flex-col flex-grow">
                   <ul className="space-y-3">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2">
@@ -161,18 +170,21 @@ const Pricing = () => {
                       </li>
                     ))}
                   </ul>
-
-                  <Link href="/contact" className="block">
-                    <Button 
-                      className={`w-full ${
-                        plan.popular ? 'bg-gradient-primary shadow-medium' : ''
-                      }`}
-                      variant={plan.popular ? 'default' : 'outline'}
-                    >
-                      {plan.cta}
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
-                  </Link>
+                  <div className="mt-auto pt-5">
+                    <Link href="/contact" className="block">
+                      <Button
+                        className={`w-full ${
+                          plan.popular
+                            ? "bg-gradient-primary shadow-medium"
+                            : ""
+                        }`}
+                        variant={plan.popular ? "default" : "outline"}
+                      >
+                        {plan.cta}
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -182,31 +194,45 @@ const Pricing = () => {
 
       {/* Add-ons */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Premium Add-on Service</h2>
+              <h2 className="text-3xl font-bold mb-4">
+                Premium Add-on Service
+              </h2>
               <p className="text-lg text-muted-foreground">
-                Want us to handle everything? Upgrade to our fully managed service
+                Want us to handle everything? Upgrade to our fully managed
+                service
               </p>
             </div>
 
-            <div className="max-w-2xl mx-auto">
+            <div className="">
               {addOns.map((addOn, index) => (
-                <Card key={index} className="shadow-large border-2 border-primary/20 hover:border-primary/40 transition-all">
+                <Card
+                  key={index}
+                  className="shadow-large border-2 border-primary/20 hover:border-primary/40 transition-all"
+                >
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between flex-col md:flex-row gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-2xl mb-2">{addOn.name}</h3>
-                        <p className="text-muted-foreground mb-4">{addOn.description}</p>
-                        <p className="text-3xl font-bold text-primary">{addOn.price}</p>
+                        <h3 className="font-semibold text-2xl mb-2">
+                          {addOn.name}
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          {addOn.description}
+                        </p>
                       </div>
-                      <Link href="/contact">
+                      <div className="flex flex-col items-center gap-4">
+                        <Link href="/contact">
                         <Button className="whitespace-nowrap" size="lg">
                           Learn More
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </Link>
+                         <p className="text-2xl font-bold text-primary">
+                          {addOn.price}
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -218,34 +244,45 @@ const Pricing = () => {
 
       {/* FAQ Preview */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-8 text-center">Common Questions</h2>
-            
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="">
+            <h2 className="text-3xl font-bold mb-8 text-center">
+              Common Questions
+            </h2>
+
             <div className="space-y-6">
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">Can I switch plans later?</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Can I switch plans later?
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Absolutely! You can upgrade or downgrade at any time. Changes take effect at your next billing cycle.
+                    Absolutely! You can upgrade or downgrade at any time.
+                    Changes take effect at your next billing cycle.
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">What's your cancellation policy?</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    What's your cancellation policy?
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    No long-term contracts. You can cancel anytime with 30 days notice. We'll wrap up active campaigns professionally.
+                    No long-term contracts. You can cancel anytime with 30 days
+                    notice. We'll wrap up active campaigns professionally.
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="shadow-soft">
                 <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">Do you offer custom enterprise packages?</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Do you offer custom enterprise packages?
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Yes! For companies with unique needs or larger budgets, we create fully customized solutions. Contact us to discuss.
+                    Yes! For companies with unique needs or larger budgets, we
+                    create fully customized solutions. Contact us to discuss.
                   </p>
                 </CardContent>
               </Card>
@@ -255,7 +292,7 @@ const Pricing = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-background">
+      {/* <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <Card className="max-w-3xl mx-auto shadow-large overflow-hidden">
             <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
@@ -273,6 +310,23 @@ const Pricing = () => {
               </Link>
             </div>
           </Card>
+        </div>
+      </section> */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
+            Not Sure Which Plan is Right?
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
+            Schedule a free consultation and we'll help you choose the perfect
+            plan for your goals
+          </p>
+          <Link href="/contact">
+            <Button size="lg" variant="secondary" className="shadow-medium">
+              Talk to Our Team
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

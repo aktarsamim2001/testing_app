@@ -4,9 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { 
-  Search, UserPlus, FileText, Rocket, BarChart3, 
-  CheckCircle2, ArrowRight, Clock, Shield, TrendingUp 
+import {
+  Search,
+  UserPlus,
+  FileText,
+  Rocket,
+  BarChart3,
+  CheckCircle2,
+  ArrowRight,
+  Clock,
+  Shield,
+  TrendingUp,
 } from "lucide-react";
 
 const HowItWorks = () => {
@@ -14,7 +22,8 @@ const HowItWorks = () => {
     {
       icon: Search,
       title: "Discovery & Strategy",
-      description: "We start by understanding your SaaS product, target audience, and growth goals through an in-depth consultation.",
+      description:
+        "We start by understanding your SaaS product, target audience, and growth goals through an in-depth consultation.",
       details: [
         "Competitor analysis",
         "Audience research",
@@ -26,7 +35,8 @@ const HowItWorks = () => {
     {
       icon: UserPlus,
       title: "Partner Identification",
-      description: "Our team identifies and vets the most relevant influencers, bloggers, and creators aligned with your brand and audience.",
+      description:
+        "Our team identifies and vets the most relevant influencers, bloggers, and creators aligned with your brand and audience.",
       details: [
         "Influencer database search",
         "Audience match scoring",
@@ -38,7 +48,8 @@ const HowItWorks = () => {
     {
       icon: FileText,
       title: "Campaign Development",
-      description: "We create compelling campaign briefs, negotiate partnerships, and develop content guidelines that resonate with your message.",
+      description:
+        "We create compelling campaign briefs, negotiate partnerships, and develop content guidelines that resonate with your message.",
       details: [
         "Campaign brief creation",
         "Partnership negotiations",
@@ -50,7 +61,8 @@ const HowItWorks = () => {
     {
       icon: Rocket,
       title: "Launch & Execution",
-      description: "Your campaigns go live across chosen channels with real-time monitoring and optimization for maximum impact.",
+      description:
+        "Your campaigns go live across chosen channels with real-time monitoring and optimization for maximum impact.",
       details: [
         "Multi-channel coordination",
         "Content approval process",
@@ -62,7 +74,8 @@ const HowItWorks = () => {
     {
       icon: BarChart3,
       title: "Tracking & Optimization",
-      description: "Continuous performance tracking with data-driven insights and optimization to improve ROI throughout the campaign.",
+      description:
+        "Continuous performance tracking with data-driven insights and optimization to improve ROI throughout the campaign.",
       details: [
         "Performance dashboards",
         "A/B testing",
@@ -87,7 +100,8 @@ const HowItWorks = () => {
     {
       icon: TrendingUp,
       title: "Scalable Growth",
-      description: "Start small and scale as you see results - no long-term lock-in",
+      description:
+        "Start small and scale as you see results - no long-term lock-in",
     },
   ];
 
@@ -95,17 +109,18 @@ const HowItWorks = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="bg-gradient-subtle pt-16 sm:pt-24 pb-16 sm:pb-20">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               Our Process
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               From Strategy to Scale in 5 Simple Steps
             </h1>
-            <p className="text-xl text-muted-foreground">
-              A proven methodology that turns partnership opportunities into measurable growth. 
-              Transparent, data-driven, and designed for SaaS companies.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
+              A proven methodology that turns partnership opportunities into
+              measurable growth. Transparent, data-driven, and designed for SaaS
+              companies.
             </p>
           </div>
         </div>
@@ -113,10 +128,13 @@ const HowItWorks = () => {
 
       {/* Process Steps */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto space-y-8">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className=" space-y-8">
             {steps.map((step, index) => (
-              <Card key={index} className="shadow-soft hover:shadow-medium transition-all overflow-hidden group">
+              <Card
+                key={index}
+                className="shadow-soft hover:shadow-medium transition-all overflow-hidden group"
+              >
                 <CardContent className="p-8">
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Step Number & Icon */}
@@ -125,7 +143,7 @@ const HowItWorks = () => {
                         <div className="w-16 h-16 bg-gradient-primary rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                           <step.icon className="w-8 h-8 text-primary-foreground" />
                         </div>
-                        <Badge className="absolute -top-2 -right-2 bg-background border-2 border-primary">
+                        <Badge className="absolute -top-2 -right-2 bg-background text-primary border-2 border-primary">
                           {index + 1}
                         </Badge>
                       </div>
@@ -137,11 +155,16 @@ const HowItWorks = () => {
                     {/* Content */}
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-                      <p className="text-muted-foreground mb-4">{step.description}</p>
-                      
+                      <p className="text-muted-foreground mb-4">
+                        {step.description}
+                      </p>
+
                       <div className="grid sm:grid-cols-2 gap-2">
                         {step.details.map((detail, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-sm"
+                          >
                             <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                             <span>{detail}</span>
                           </div>
@@ -158,8 +181,8 @@ const HowItWorks = () => {
 
       {/* Advantages */}
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Why Our Process Works</h2>
               <p className="text-lg text-muted-foreground">
@@ -174,8 +197,12 @@ const HowItWorks = () => {
                     <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <advantage.icon className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3">{advantage.title}</h3>
-                    <p className="text-muted-foreground">{advantage.description}</p>
+                    <h3 className="text-xl font-bold mb-3">
+                      {advantage.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {advantage.description}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -185,31 +212,32 @@ const HowItWorks = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <Card className="max-w-3xl mx-auto shadow-large overflow-hidden">
-            <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
-              <h2 className="text-3xl font-bold mb-4">
-                Ready to Get Started?
-              </h2>
-              <p className="text-lg mb-8 opacity-90">
-                Schedule a free consultation to discuss your growth goals and see how we can help
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact">
-                  <Button size="lg" variant="secondary" className="shadow-medium">
-                    Schedule Consultation
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link href="/pricing">
-                  <Button size="lg" variant="outline" className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20">
-                    View Pricing
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
+            Ready to Get Started?
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
+            Schedule a free consultation to discuss your growth goals and see
+            how we can help
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/contact">
+              <Button size="lg" variant="secondary" className="shadow-medium">
+                Schedule Consultation
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <Link href="/pricing">
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20"
+              >
+                View Pricing
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>
