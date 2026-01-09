@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from 'react';
-import { LayoutDashboard, Users, UserCircle, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Package, Megaphone, Building2, LogOut, Settings, TrendingUp, FileText, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,9 @@ const menuItems = [
   { title: 'Clients', path: '/admin/clients', icon: Building2 },
   { title: 'Partners', path: '/admin/partners', icon: Users },
   { title: 'Campaigns', path: '/admin/campaigns', icon: Megaphone },
+  { title: 'Services', path: '/admin/services', icon: TrendingUp },
+  { title: 'Subscriptions', path: '/admin/subscriptions', icon: Package },
+  
   {
     group: 'Blogs',
     icon: FileText,

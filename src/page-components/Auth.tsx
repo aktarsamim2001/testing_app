@@ -128,7 +128,7 @@ export default function AdminAuth() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@partnerscale.com"
+                placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />

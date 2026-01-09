@@ -124,7 +124,7 @@ export default function Section3({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {removeSlide && (
+          {/* {removeSlide && (
             <Button
               type="button"
               variant="ghost"
@@ -135,7 +135,7 @@ export default function Section3({
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          )}
+          )} */}
           <CardContent className="space-y-4">
             {/* Section Title */}
             <div className="space-y-2">
@@ -172,7 +172,7 @@ export default function Section3({
             </div>
 
             {/* Add-on Cards Section */}
-            <div className="space-y-3 border-t pt-4">
+            {/* <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Add-on Services</Label>
                 <Button
@@ -192,7 +192,6 @@ export default function Section3({
                 {((slide as any).titles || []).map((title: TitleItem, titleIndex: number) => (
                   <Card key={titleIndex} className="p-3 bg-muted/50">
                     <div className="space-y-2">
-                      {/* Service Title */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Service Title</Label>
                         <Input
@@ -206,7 +205,6 @@ export default function Section3({
                         />
                       </div>
 
-                      {/* Service Description */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Description</Label>
                         <Textarea
@@ -222,7 +220,6 @@ export default function Section3({
                         />
                       </div>
 
-                      {/* Service Price */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Price</Label>
                         <Input
@@ -238,7 +235,6 @@ export default function Section3({
                         />
                       </div>
 
-                      {/* Button Text */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Button Text</Label>
                         <Input
@@ -254,7 +250,6 @@ export default function Section3({
                         />
                       </div>
 
-                      {/* Button URL */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Button URL</Label>
                         <Input
@@ -285,7 +280,7 @@ export default function Section3({
                   </Card>
                 ))}
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
         ))

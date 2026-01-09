@@ -95,28 +95,13 @@ export default function CampaignDetails() {
       const result = await dispatch<any>(
         removePartnerFromCampaign({ id: partnerToRemove, campaignId: id })
       );
-      await fetchCampaign();
       if (result?.success) {
-        toast({
-          title: "Partner removed!",
-          description:
-            "Partner has been successfully removed from the campaign.",
-          variant: "success",
-        });
-      } else {
-        toast({
-          title: "Error removing partner",
-          description:
-            result?.message || "An error occurred while removing the partner.",
-          variant: "destructive",
-        });
+        await fetchCampaign();
       }
+      // Redux slice handles toast notifications
     } catch (error: any) {
-      toast({
-        title: "Error removing partner",
-        description: error?.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      // Redux slice already handles error toast
+      console.error("Error removing partner:", error);
     } finally {
       setLoading(false);
       setRemoveDialogOpen(false);

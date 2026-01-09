@@ -1,20 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, CircleUserRound } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserRole } from '@/hooks/useUserRole';
-import AdminLayout from '@/components/admin/AdminLayout';
-import AdminPageLoader from '@/components/admin/AdminPageLoader';
-import AuthorDialog from '@/components/admin/AuthorDialog';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  CircleUserRound,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import AdminLayout from "@/components/admin/AdminLayout";
+import AdminPageLoader from "@/components/admin/AdminPageLoader";
+import AuthorDialog from "@/components/admin/AuthorDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,16 +43,16 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import type { AppDispatch, RootState } from '@/store';
-import { 
-  fetchAuthors, 
-  deleteAuthorThunk, 
-  selectAuthors, 
-  selectAuthorsLoading, 
-  selectAuthorsPagination, 
-  setPage 
-} from '@/store/slices/authors';
+} from "@/components/ui/alert-dialog";
+import type { AppDispatch, RootState } from "@/store";
+import {
+  fetchAuthors,
+  deleteAuthorThunk,
+  selectAuthors,
+  selectAuthorsLoading,
+  selectAuthorsPagination,
+  setPage,
+} from "@/store/slices/authors";
 
 interface Author {
   id: string;
@@ -47,30 +67,54 @@ export default function Authors() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  
+
   const authors = useSelector(selectAuthors);
   const dataLoading = useSelector(selectAuthorsLoading);
-  const pagination = useSelector((state: RootState) => selectAuthorsPagination(state));
+  const pagination = useSelector((state: RootState) =>
+    selectAuthorsPagination(state)
+  );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAuthor, setEditingAuthor] = useState<Author | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingAuthor, setDeletingAuthor] = useState<Author | null>(null);
-  const [newTitle, setNewTitle] = useState("");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
 
-  const loadAuthors = useCallback(() => {
-    dispatch(fetchAuthors(1, 100));
-  }, [dispatch]);
+  const loadAuthors = useCallback(
+    (page = 1, limit = 10, search = "") => {
+      dispatch(fetchAuthors(page, limit, search));
+    },
+    [dispatch]
+  );
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]);
 
   useEffect(() => {
     if (user && isAdmin) {
-      loadAuthors();
+      loadAuthors(page, perPage, debouncedSearch);
     }
-  }, [user, isAdmin, loadAuthors]);
+  }, [user, isAdmin, loadAuthors, page, perPage, debouncedSearch]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push('/admin/login');
+      router.push("/admin/login");
     }
   }, [user, isAdmin, loading, router]);
 
@@ -104,9 +148,13 @@ export default function Authors() {
 
   // Pagination handler
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= pagination.totalPages && page !== pagination.currentPage) {
-      dispatch(setPage(page));
-      dispatch(fetchAuthors(page, pagination.perPage));
+    if (
+      page >= 1 &&
+      page <= pagination.totalPages &&
+      page !== pagination.currentPage
+    ) {
+      setPage(page);
+      dispatch(fetchAuthors(page, perPage, debouncedSearch));
     }
   };
 
@@ -128,9 +176,11 @@ export default function Authors() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Authors</h1>
-            <p className="text-muted-foreground">Manage blog and content authors</p>
+            <p className="text-muted-foreground">
+              Manage blog and content authors
+            </p>
           </div>
-          <Button 
+          <Button
             onClick={() => {
               setEditingAuthor(null);
               setDialogOpen(true);
@@ -145,13 +195,18 @@ export default function Authors() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-            <CardTitle>All Authors</CardTitle>
-            <CardDescription>View and manage content authors</CardDescription>
-             </div>
+                <CardTitle>All Authors</CardTitle>
+                <CardDescription>
+                  View and manage content authors
+                </CardDescription>
+              </div>
               <Input
-                id="category-title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+                id="author-search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search"
                 className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
               />
@@ -185,42 +240,59 @@ export default function Authors() {
                   <TableBody>
                     {authors.map((author, idx) => (
                       <TableRow key={author.id}>
-                        <TableCell>{idx + 1}</TableCell>
-                        <TableCell className="font-medium">{author.name}</TableCell>
+                        <TableCell>{(pagination.currentPage - 1) * perPage + idx + 1}</TableCell>
+                        <TableCell className="font-medium">
+                          {author.name}
+                        </TableCell>
                         <TableCell>
-                          {author.image && author.image.trim() !== '' ? (
-                            <img 
+                          {author.image && author.image.trim() !== "" ? (
+                            <img
                               src={author.image}
                               alt={author.name}
                               className="w-10 h-10 rounded-full object-cover"
-                              onError={e => {
+                              onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.onerror = null;
-                                target.src = '';
-                                target.style.display = 'none';
-                                target.parentElement?.querySelector('.profile-icon')?.classList.remove('hidden');
+                                target.src = "";
+                                target.style.display = "none";
+                                target.parentElement
+                                  ?.querySelector(".profile-icon")
+                                  ?.classList.remove("hidden");
                               }}
                             />
                           ) : null}
-                          {(!author.image || author.image.trim() === '') && (
+                          {(!author.image || author.image.trim() === "") && (
                             <CircleUserRound className="w-10 h-10 text-gray-400 profile-icon" />
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {author.about ? author.about.substring(0, 50) + (author.about.length > 50 ? '...' : '') : 'N/A'}
+                          {author.about
+                            ? author.about.substring(0, 50) +
+                              (author.about.length > 50 ? "..." : "")
+                            : "N/A"}
                         </TableCell>
                         <TableCell>
                           {author.status === 1 ? (
                             <Badge className="font-semibold">Active</Badge>
                           ) : (
-                            <Badge className="bg-gray-100 text-gray-400">Inactive</Badge>
+                            <Badge className="bg-gray-100 text-gray-400">
+                              Inactive
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(author)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(author)}
+                          >
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(author)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(author)}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -232,14 +304,28 @@ export default function Authors() {
                 {pagination.totalPages > 1 && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 gap-2 sm:gap-4">
                     <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
-                      Showing {(pagination.currentPage - 1) * pagination.perPage + 1} to {((pagination.currentPage - 1) * pagination.perPage) + authors.length} of {typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0 ? pagination.totalRecords : authors.length} results
+                      Showing{" "}
+                      {(pagination.currentPage - 1) * pagination.perPage + 1} to{" "}
+                      {(pagination.currentPage - 1) * pagination.perPage +
+                        authors.length}{" "}
+                      of{" "}
+                      {typeof pagination.totalRecords === "number" &&
+                      pagination.totalRecords >= 0
+                        ? pagination.totalRecords
+                        : authors.length}{" "}
+                      results
                     </span>
-                    <nav className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end" aria-label="Pagination">
+                    <nav
+                      className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end"
+                      aria-label="Pagination"
+                    >
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={pagination.currentPage === 1}
-                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage - 1)
+                        }
                         aria-label="Previous page"
                       >
                         <ChevronLeft className="w-4 h-4" />
@@ -254,33 +340,61 @@ export default function Authors() {
                           }
                         } else {
                           if (current <= 3) {
-                            pages.push(1, 2, 3, 4, '...', total);
+                            pages.push(1, 2, 3, 4, "...", total);
                           } else if (current >= total - 2) {
-                            pages.push(1, '...', total - 3, total - 2, total - 1, total);
+                            pages.push(
+                              1,
+                              "...",
+                              total - 3,
+                              total - 2,
+                              total - 1,
+                              total
+                            );
                           } else {
-                            pages.push(1, '...', current - 1, current, current + 1, '...', total);
+                            pages.push(
+                              1,
+                              "...",
+                              current - 1,
+                              current,
+                              current + 1,
+                              "...",
+                              total
+                            );
                           }
                         }
                         return pages.map((p, idx) =>
-                          p === '...'
-                            ? <span key={"ellipsis-" + idx} className="px-2 text-muted-foreground">...</span>
-                            : <Button
-                                key={p}
-                                variant={p === current ? "default" : "outline"}
-                                size="sm"
-                                className={p === current ? "bg-orange-500 text-white" : ""}
-                                onClick={() => handlePageChange(Number(p))}
-                                aria-current={p === current ? "page" : undefined}
-                              >
-                                {p}
-                              </Button>
+                          p === "..." ? (
+                            <span
+                              key={"ellipsis-" + idx}
+                              className="px-2 text-muted-foreground"
+                            >
+                              ...
+                            </span>
+                          ) : (
+                            <Button
+                              key={p}
+                              variant={p === current ? "default" : "outline"}
+                              size="sm"
+                              className={
+                                p === current ? "bg-orange-500 text-white" : ""
+                              }
+                              onClick={() => handlePageChange(Number(p))}
+                              aria-current={p === current ? "page" : undefined}
+                            >
+                              {p}
+                            </Button>
+                          )
                         );
                       })()}
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={pagination.currentPage === pagination.totalPages}
-                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={
+                          pagination.currentPage === pagination.totalPages
+                        }
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage + 1)
+                        }
                         aria-label="Next page"
                       >
                         <ChevronRight className="w-4 h-4" />
@@ -304,14 +418,20 @@ export default function Authors() {
           <AlertDialogContent>
             <AlertDialogTitle>Delete Author</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <span className="font-bold">{deletingAuthor?.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-bold">{deletingAuthor?.name}</span>? This
+              action cannot be undone.
             </AlertDialogDescription>
             <div className="flex justify-end gap-2 pt-4">
               <AlertDialogCancel asChild>
-                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={closeDeleteDialog}>
+                  Cancel
+                </Button>
               </AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  Delete
+                </Button>
               </AlertDialogAction>
             </div>
           </AlertDialogContent>

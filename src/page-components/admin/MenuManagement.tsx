@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
+import { fetchMenus, selectMenus, selectMenusLoading } from '@/store/slices/menus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,31 +22,22 @@ import {
 import AdminLayout from '@/components/admin/AdminLayout';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
-
-const initialMenus = [
-  {
-    id: 1,
-    name: 'Header Menu',
-    locations: ['Header'],
-    items: 4,
-    visible: true,
-  },
-  {
-    id: 2,
-    name: 'Footer Menu',
-    locations: ['Footer'],
-    items: 11,
-    visible: true,
-  },
-];
+import { useRouter } from 'next/navigation';
 
 export default function MenuManagementPage() {
-  const [menus] = useState(initialMenus);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const menus = useAppSelector(selectMenus);
+  const menusLoading = useAppSelector(selectMenusLoading);
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    dispatch(fetchMenus());
+  }, [dispatch]);
+
   // Filter menus by search
-  const filteredMenus = menus.filter(menu =>
-    menu.name.toLowerCase().includes(search.toLowerCase())
+  const filteredMenus = (menus ?? []).filter((menu: any) =>
+    String(menu.menu_name || menu.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -55,9 +48,6 @@ export default function MenuManagementPage() {
             <h1 className="text-3xl font-bold">Menus</h1>
             <p className="text-muted-foreground">View and manage navigation menus</p>
           </div>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => {}}>
-            + New Menu
-          </Button>
         </div>
 
         <Card>
@@ -67,55 +57,52 @@ export default function MenuManagementPage() {
                 <CardTitle>All Menus</CardTitle>
                 <CardDescription>View and manage navigation menus</CardDescription>
               </div>
-                <Input
+                {/* <Input
                   id="menu-search"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search"
                   className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
-                />
+                /> */}
             </div>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Locations</TableHead>
-                  <TableHead>Items</TableHead>
+                  <TableHead>SL</TableHead>
+                  <TableHead>Menu Name</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMenus.map((menu) => (
+                {filteredMenus.map((menu: any) => (
                   <TableRow key={menu.id} className="hover:bg-muted/40 transition-colors">
-                    <TableCell className="font-medium text-foreground">{menu.name}</TableCell>
+                    <TableCell className="font-medium text-foreground">{menu.id}</TableCell>
                     <TableCell>
-                      {menu.locations.map((loc) => (
-                        <Badge key={loc} className=" px-2 py-0.5 rounded-full text-xs font-semibold mr-1">
-                          {loc}
-                        </Badge>
-                      ))}
+                      {/* API doesn't provide locations in screenshot; show id as badge */}
+                      <Badge className=" px-2 py-0.5 rounded-full text-xs font-semibold mr-1">{menu.menu_name}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{menu.items}</TableCell>
+                    {/* <TableCell className="text-muted-foreground text-sm">{menu.items ?? 0}</TableCell> */}
                     <TableCell>
                       <Badge
                         className={
-                          menu.visible
+                          (menu.status === 1)
                             ? "bg-blue-900 text-white px-4 py-1 rounded-full text-xs font-semibold"
                             : "text-gray-300 bg-gray-700 px-4 py-1 rounded-full text-xs font-semibold"
                         }
                       >
-                        {menu.visible ? "Active" : "Inactive"}
+                        {(menu.status === 1) ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/admin/menu-management/${menu.id}`)}
+                      >
                         <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -123,7 +110,7 @@ export default function MenuManagementPage() {
               </TableBody>
             </Table>
             {/* Responsive Pagination UI */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 text-sm text-muted-foreground gap-2">
+            {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 text-sm text-muted-foreground gap-2">
               <div className="mb-2 sm:mb-0 w-full sm:w-auto text-center sm:text-left">
                 <span className="text-xs text-muted-foreground">Page 1 of 2</span>
               </div>
@@ -135,7 +122,7 @@ export default function MenuManagementPage() {
                   <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 transition">{'>'}</button>
                 </nav>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>

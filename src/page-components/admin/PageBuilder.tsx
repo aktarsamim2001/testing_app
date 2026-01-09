@@ -68,8 +68,6 @@ const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
   ],
   services: [
     { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
   ],
   'how-it-works': [
     { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
@@ -79,10 +77,9 @@ const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
   ],
   pricing: [
     { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
-    { id: 'section5', name: 'Section 5', type: 'section5', slides: [] },
+    { id: 'features', name: 'Section 2', type: 'features', slides: [] },
+    { id: 'stats', name: 'Section 3', type: 'stats', slides: [] },
+    { id: 'section5', name: 'Section 4', type: 'section5', slides: [] },
   ],
   about: [
     { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },

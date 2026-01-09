@@ -128,7 +128,7 @@ export default function Section1({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {removeSlide && (
+          {/* {removeSlide && (
             <Button
               type="button"
               variant="ghost"
@@ -139,7 +139,7 @@ export default function Section1({
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          )}
+          )} */}
           <CardContent className="space-y-4">
             {/* Slide Title */}
             <div className="space-y-2">
@@ -148,7 +148,7 @@ export default function Section1({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="Enter slide title"
+                placeholder="Enter title"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })

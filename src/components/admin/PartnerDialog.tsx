@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CategoriesInput from "@/components/ui/CategoriesInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { AppDispatch } from "@/store";
+import type { AppDispatch, RootState } from "@/store";
+import { fetchCategories, createCategoryThunk } from "@/store/slices/categorySlice";
 import {
   createPartnerThunk,
   updatePartnerThunk,
@@ -39,6 +41,14 @@ export default function PartnerDialog({
   partner,
 }: PartnerDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const categoryList = useSelector((state: RootState) => state.categories.data);
+  
+  // Fetch categories on mount
+  useEffect(() => {
+    if (categoryList.length === 0) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, categoryList.length]);
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
@@ -46,7 +56,7 @@ export default function PartnerDialog({
     platform_handle: string;
     follower_count: string;
     engagement_rate: string;
-    categories: string;
+    categories: string[];
     notes: string;
     status: number;
   }>({
@@ -56,7 +66,7 @@ export default function PartnerDialog({
     platform_handle: "",
     follower_count: "",
     engagement_rate: "",
-    categories: "",
+    categories: [],
     notes: "",
     status: 0,
   });
@@ -76,6 +86,24 @@ export default function PartnerDialog({
     // Always clear errors when dialog opens or partner changes
     setErrors({});
     if (partner) {
+      // Convert category IDs to names
+      let categoryNames: string[] = [];
+      if (partner.categories) {
+        if (Array.isArray(partner.categories)) {
+          // Categories is an array of objects
+          categoryNames = partner.categories.map((c: any) =>
+            typeof c === "string" ? c : c && c.name ? c.name : String(c.id ?? "")
+          );
+        } else if (typeof partner.categories === "string" && partner.categories) {
+          // Categories is a comma-separated string of IDs
+          const categoryIds = partner.categories.split(/,\s*/).filter(Boolean);
+          categoryNames = categoryIds.map((id) => {
+            const category = categoryList.find((c) => c.id === id);
+            return category ? category.name : id;
+          });
+        }
+      }
+
       setFormData({
         name: partner.name || "",
         email: partner.email || "",
@@ -83,9 +111,7 @@ export default function PartnerDialog({
         platform_handle: partner.platform_handle || "",
         follower_count: partner.follower_count?.toString() || "",
         engagement_rate: partner.engagement_rate?.toString() || "",
-        categories: Array.isArray(partner.categories)
-          ? partner.categories.join(", ")
-          : partner.categories || "",
+        categories: categoryNames,
         notes: partner.notes || "",
         status: partner.status ?? 0,
       });
@@ -97,7 +123,7 @@ export default function PartnerDialog({
         platform_handle: "",
         follower_count: "",
         engagement_rate: "",
-        categories: "",
+        categories: [],
         notes: "",
         status: 0,
       });
@@ -141,8 +167,10 @@ export default function PartnerDialog({
       }
     }
     // Categories: allow empty, but if not empty, must not be only spaces
-    if (formData.categories && !formData.categories.trim()) {
-      newErrors.categories = "Categories cannot be only spaces.";
+    if (formData.categories && Array.isArray(formData.categories)) {
+      if (formData.categories.some((cat) => !cat.trim())) {
+        newErrors.categories = "Categories cannot be only spaces.";
+      }
     }
     // Notes: allow empty, but if not empty, must not be only spaces
     if (formData.notes && !formData.notes.trim()) {
@@ -158,6 +186,50 @@ export default function PartnerDialog({
     if (Object.keys(validationErrors).length > 0) return;
     setLoading(true);
     try {
+      // Separate new categories from existing ones
+      let categoryIds: string | null = null;
+      if (formData.categories && formData.categories.length > 0) {
+        const existingCategoryIds: string[] = [];
+        const newCategoryNames: string[] = [];
+
+        for (const catName of formData.categories) {
+          const found = categoryList.find((c) => c.name === catName);
+          if (found) {
+            existingCategoryIds.push(found.id);
+          } else {
+            newCategoryNames.push(catName);
+          }
+        }
+
+        // Create new categories first
+        for (const categoryName of newCategoryNames) {
+          const result = await dispatch(
+            createCategoryThunk({ name: categoryName, status: 1 })
+          );
+          // Refresh categories to get the new IDs
+          await dispatch(fetchCategories(1, 100));
+        }
+
+        // After creating new categories, fetch the updated list and get all IDs
+        const updatedCategoryList = await new Promise((resolve) => {
+          setTimeout(() => {
+            const state = (dispatch as any).getState?.() as RootState | undefined;
+            resolve(state?.categories?.data ?? []);
+          }, 100);
+        }) as typeof categoryList;
+
+        const allIds = formData.categories
+          .map((catName) => {
+            const found =
+              updatedCategoryList.length > 0
+                ? updatedCategoryList.find((c) => c.name === catName)
+                : categoryList.find((c) => c.name === catName);
+            return found ? found.id : null;
+          })
+          .filter(Boolean);
+        categoryIds = allIds.length > 0 ? allIds.join(",") : null;
+      }
+
       const payload = {
         name: formData.name,
         email: formData.email,
@@ -169,7 +241,7 @@ export default function PartnerDialog({
         engagement_rate: formData.engagement_rate
           ? parseFloat(formData.engagement_rate)
           : null,
-        categories: formData.categories ? formData.categories : null,
+        categories: categoryIds,
         notes: formData.notes || null,
         status: formData.status,
       };
@@ -321,17 +393,19 @@ export default function PartnerDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="categories">Categories (comma-separated)</Label>
-            <Input
-              id="categories"
-              placeholder="Tech, SaaS, B2B"
+            <Label htmlFor="categories">Categories</Label>
+            <CategoriesInput
               value={formData.categories}
-              onChange={(e) => {
-                setFormData({ ...formData, categories: e.target.value });
-                if (errors.categories)
-                  setErrors({ ...errors, categories: undefined });
+              onChange={(tags) => {
+                setFormData({ ...formData, categories: tags });
+                if (errors.categories) setErrors({ ...errors, categories: undefined });
               }}
+              availableCategories={categoryList}
+              placeholder="Search and add categories..."
             />
+            {errors.categories && (
+              <div className="text-red-500 text-xs mt-1">{errors.categories}</div>
+            )}
           </div>
 
           <div className="space-y-2">

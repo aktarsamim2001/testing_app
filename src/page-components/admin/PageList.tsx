@@ -58,12 +58,12 @@ const PageList = () => {
                 <CardTitle>All Pages</CardTitle>
                 <CardDescription>View and manage site pages</CardDescription>
               </div>
-                <Input
+                {/* <Input
                   id="page-search"
                   placeholder="Search"
                   className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
                   // Add search logic if needed
-                />
+                /> */}
             </div>
           </CardHeader>
           <CardContent>

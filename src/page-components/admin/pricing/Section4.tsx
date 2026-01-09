@@ -80,11 +80,13 @@ export default function Section4({
     const slide = section.slides.find(s => s.id === slideId);
     if (!slide) return;
 
-    const updatedTitles = [...((slide as any).titles || [])];
+    const existing = (slide as any).titles || [];
+    const updatedTitles = existing.slice();
     if (!updatedTitles[titleIndex]) {
-      updatedTitles[titleIndex] = { id: `title-${Date.now()}`, text: '' };
+      updatedTitles[titleIndex] = { id: `title-${Date.now()}`, text: value };
+    } else {
+      updatedTitles[titleIndex] = { ...updatedTitles[titleIndex], text: value };
     }
-    updatedTitles[titleIndex].text = value;
     updateSlide(section.id, slideId, { titles: updatedTitles } as any);
   };
 
@@ -120,18 +122,6 @@ export default function Section4({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {removeSlide && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeSlide(section.id, slide.id)}
-              disabled={loading}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
           <CardContent className="space-y-4">
             {/* Section Title */}
             <div className="space-y-2">
@@ -192,8 +182,9 @@ export default function Section4({
                           placeholder="e.g., Absolutely! You can upgrade or downgrade at any time. Changes take effect at your next billing cycle."
                           value={title.answer || ''}
                           onChange={(e) => {
-                            const updated = [...((slide as any).titles || [])];
-                            updated[titleIndex].answer = e.target.value;
+                            const existing = (slide as any).titles || [];
+                            const updated = existing.slice();
+                            updated[titleIndex] = { ...updated[titleIndex], answer: e.target.value };
                             updateSlide(section.id, slide.id, { titles: updated } as any);
                           }}
                           disabled={loading}

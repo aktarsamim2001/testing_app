@@ -6,7 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BarChart3, MessageSquare } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
+import { fetchAdminDashboard, selectAdminDashboard, selectAdminDashboardLoading } from '@/store/slices/adminDashboard';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
@@ -14,29 +15,13 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
-  const [stats, setStats] = useState({
-    totalClients: 0,
-    activeCampaigns: 0,
-    totalPartners: 0
-  });
+  const dispatch = useAppDispatch();
+  const statsState = useAppSelector(selectAdminDashboard);
+  const statsLoading = useAppSelector(selectAdminDashboardLoading);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const [clients, campaigns, partners] = await Promise.all([
-        supabase.from('clients').select('id', { count: 'exact', head: true }),
-        supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('partners').select('id', { count: 'exact', head: true })
-      ]);
-
-      setStats({
-        totalClients: clients.count || 0,
-        activeCampaigns: campaigns.count || 0,
-        totalPartners: partners.count || 0
-      });
-    };
-
     if (user && isAdmin) {
-      fetchStats();
+      dispatch(fetchAdminDashboard());
     }
   }, [user, isAdmin]);
 
@@ -59,9 +44,9 @@ export default function AdminDashboard() {
   }
 
   const statsData = [
-    { title: 'Total Clients', value: stats.totalClients.toString(), icon: Users, description: 'SAAS companies' },
-    { title: 'Active Campaigns', value: stats.activeCampaigns.toString(), icon: BarChart3, description: 'Running campaigns' },
-    { title: 'Partners', value: stats.totalPartners.toString(), icon: MessageSquare, description: 'Influencers' }
+    { title: 'Total Clients', value: statsState.totalClients.toString(), icon: Users, description: 'SAAS companies' },
+    { title: 'Active Campaigns', value: statsState.totalCampaigns.toString(), icon: BarChart3, description: 'Running campaigns' },
+    { title: 'Partners', value: statsState.totalPartners.toString(), icon: MessageSquare, description: 'Influencers' }
   ];
 
   return (

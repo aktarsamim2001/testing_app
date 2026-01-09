@@ -1,0 +1,40 @@
+/* Custom scrollbar for react-select dropdown */
+.react-select__menu-list {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(25, 95%, 55%) hsl(220, 25%, 96%);
+}
+
+.react-select__menu-list::-webkit-scrollbar {
+  width: 6px;
+  background: hsl(220, 25%, 96%);
+}
+.react-select__menu-list::-webkit-scrollbar-thumb {
+  background: hsl(25, 95%, 55%);
+  border-radius: 6px;
+}
+.react-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: hsl(25, 95%, 45%);
+}
+.react-select__control--is-focused {
+  border-color: hsl(25, 95%, 55%) !important; /* orange border */
+  box-shadow: 0 0 0 0.8px hsl(25, 95%, 55%) !important; /* strong orange ring */
+  outline: none !important;
+}
+
+.react-select__option--is-focused:not(.react-select__option--is-selected) {
+  background-color: transparent !important; /* orange for focused option */
+  color: #3f3f3f !important;
+  cursor: pointer;
+}
+.react-select__option--is-selected {
+  background-color: hsl(25, 95%, 55%) !important; /* slightly darker orange for selected */
+  color: #fff !important;
+  cursor: pointer;
+}
+
+.react-select__control {
+  transition: border-color 0.2s;
+  border-radius: 0.6rem !important;
+  background-color: hsl(220, 25%, 96%) !important; /* match input bg */
+}
+

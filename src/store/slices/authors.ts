@@ -63,12 +63,12 @@ export const { setAuthors, setAuthorsLoading, setAuthorsError, setPage } = autho
 export default authorsSlice.reducer;
 
 // Thunk to fetch authors list
-export const fetchAuthors = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const fetchAuthors = (page = 1, limit = 10, search="") => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setAuthorsLoading(true));
   const token = getState().auth.authToken;
 
   try {
-    const response = await service.fetchAuthors(page, limit, token);
+    const response = await service.fetchAuthors(page, limit, token, search);
     const body = response.data;
 
     dispatch(

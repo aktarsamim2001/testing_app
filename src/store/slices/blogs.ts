@@ -14,6 +14,7 @@ export interface Blog {
   slug: string;
   excerpt: string;
   author_id: string;
+  category_id?: string;
   image: string;
   description: string;
   estimated_reading_time: string;
@@ -80,18 +81,18 @@ export const { setBlogs, setBlogsLoading, setBlogsError, setPage } = blogsSlice.
 export default blogsSlice.reducer;
 
 // Thunk to fetch blogs list
-export const fetchBlogs = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const fetchBlogs = (page = 1, limit = 10, search = "") => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setBlogsLoading(true));
   const token = getState().auth.authToken;
 
   try {
-    const response = await service.fetchBlogs(page, limit, token);
+    const response = await service.fetchBlogs(page, limit, token, search);
     const body = response.data;
 
     dispatch(
       setBlogs({
         blogs: body?.data ?? [],
-        pagination: {
+          pagination: {
           currentPage: body?.pagination?.current_page ?? page,
           perPage: body?.pagination?.per_page ?? limit,
           totalPages: body?.pagination?.total_pages ?? 1,

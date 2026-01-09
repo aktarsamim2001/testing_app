@@ -138,7 +138,7 @@ export default function Section4({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="Enter slide title"
+                placeholder="Enter title"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })

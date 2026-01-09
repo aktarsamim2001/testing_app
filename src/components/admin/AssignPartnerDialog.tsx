@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ReactSelect, { OptionType } from '@/components/ui/ReactSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { useDispatch, useSelector } from 'react-redux';
 import { assignPartnerToCampaign } from '@/store/slices/campaignPartners';
@@ -89,7 +90,7 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
       const formattedCompensation = compensation ? compensation.toString() : "";
       const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
       
-      await dispatch<any>(assignPartnerToCampaign({
+      const result = await dispatch<any>(assignPartnerToCampaign({
         campaign_id: campaignId,
         partner_id: selectedPartnerId,
         compensation: formattedCompensation,
@@ -97,19 +98,12 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
         notes: notes.trim() || null
       }));
       
-      toast({
-        title: "Partner assigned!",
-        description: "Partner has been successfully assigned to the campaign.",
-        variant: "success",
-      });
-      
-      onOpenChange(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to assign partner. Please try again.",
-        variant: "destructive",
-      });
+      // Only close dialog on success, keep open if there's an error
+      if (result?.success) {
+        onOpenChange(false);
+      }
+    } catch (error: any) {
+      console.error("Error assigning partner:", error);
     } finally {
       setLoading(false);
     }
@@ -128,25 +122,29 @@ export default function AssignPartnerDialog({ open, onOpenChange, campaignId }: 
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="partner">Partner <span className="text-red-500">*</span></Label>
-            <Select 
-              value={selectedPartnerId} 
-              onValueChange={(v) => { 
-                setSelectedPartnerId(v); 
-                if (errors.partner) setErrors(e => ({ ...e, partner: undefined })); 
-              }} 
-              disabled={partnersLoading}
-            >
-              <SelectTrigger className={errors.partner ? "border-red-500" : ""}>
-                <SelectValue placeholder={partnersLoading ? "Loading..." : "Select a partner"} />
-              </SelectTrigger>
-              <SelectContent>
-                {partners.map((partner) => (
-                  <SelectItem key={partner.id} value={partner.id}>
-                    {partner.name} ({partner.channel_type.replace(/_/g, ' ')})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ReactSelect
+              options={partners.map((partner) => ({
+                value: partner.id,
+                label: `${partner.name} (${partner.email.replace(/_/g, ' ')})`,
+              }))}
+              value={
+                selectedPartnerId
+                  ? partners
+                      .filter((p) => p.id === selectedPartnerId)
+                      .map((partner) => ({
+                        value: partner.id,
+                        label: `${partner.name} (${partner.email.replace(/_/g, ' ')})`,
+                      }))[0]
+                  : null
+              }
+              onChange={(option: OptionType | null) => {
+                setSelectedPartnerId(option ? option.value : '');
+                if (errors.partner) setErrors(e => ({ ...e, partner: undefined }));
+              }}
+              isClearable
+              placeholder={partnersLoading ? 'Loading...' : 'Select a partner'}
+              isDisabled={partnersLoading}
+            />
             {errors.partner && <div className="text-red-500 text-xs mt-1">{errors.partner}</div>}
           </div>
 

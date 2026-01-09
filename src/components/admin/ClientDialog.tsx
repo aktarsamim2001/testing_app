@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { AppDispatch } from '@/store';
 import { createClientThunk, updateClientThunk } from '@/store/slices/clients';
+import { useDispatch } from 'react-redux';
 
 interface Client {
   id: string;
@@ -28,22 +30,14 @@ interface ClientDialogProps {
 
 export default function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const [formData, setFormData] = useState<{
-    company_name: string;
-    name: string;
-    email: string;
-    phone: string;
-    website: string;
-    status: number;
-    notes: string;
-  }>({
+  const [formData, setFormData] = useState({
     company_name: '',
     name: '',
     email: '',
     phone: '',
     website: '',
     status: 2,
-    notes: ''
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -56,7 +50,6 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
   }>({});
 
   useEffect(() => {
-    // Always clear errors when dialog opens or client changes
     setErrors({});
     if (client) {
       setFormData({
@@ -66,7 +59,7 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
         phone: client.phone || '',
         website: client.website || '',
         status: client.status ?? 2,
-        notes: client.notes || ''
+        notes: client.notes || '',
       });
     } else {
       setFormData({
@@ -76,13 +69,86 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
         phone: '',
         website: '',
         status: 2,
-        notes: ''
+        notes: '',
       });
     }
   }, [client, open]);
 
+  const validatePhoneNumber = (phone: string, countryData: any): { valid: boolean; error?: string } => {
+    if (!phone || !phone.trim()) {
+      return { valid: true }; // Optional field
+    }
+
+    // Remove country code and get only digits
+    const phoneWithoutCode = phone.substring(countryData.dialCode.length);
+    const digitsOnly = phoneWithoutCode.replace(/\D/g, '');
+
+    // Country-specific validation rules
+    const validationRules: { [key: string]: { min: number; max: number; name: string } } = {
+      'us': { min: 10, max: 10, name: 'US' },
+      'ca': { min: 10, max: 10, name: 'Canada' },
+      'gb': { min: 10, max: 10, name: 'UK' },
+      'in': { min: 10, max: 10, name: 'India' },
+      'cn': { min: 11, max: 11, name: 'China' },
+      'jp': { min: 10, max: 10, name: 'Japan' },
+      'de': { min: 10, max: 11, name: 'Germany' },
+      'fr': { min: 9, max: 9, name: 'France' },
+      'au': { min: 9, max: 9, name: 'Australia' },
+      'br': { min: 10, max: 11, name: 'Brazil' },
+      'ru': { min: 10, max: 10, name: 'Russia' },
+      'ae': { min: 9, max: 9, name: 'UAE' },
+      'sa': { min: 9, max: 9, name: 'Saudi Arabia' },
+      'pk': { min: 10, max: 10, name: 'Pakistan' },
+      'bd': { min: 10, max: 10, name: 'Bangladesh' },
+      'sg': { min: 8, max: 8, name: 'Singapore' },
+      'my': { min: 9, max: 10, name: 'Malaysia' },
+      'lk': { min: 9, max: 9, name: 'Sri Lanka' },
+      'np': { min: 10, max: 10, name: 'Nepal' },
+    };
+
+    const rule = validationRules[countryData.countryCode];
+    if (!rule) {
+      // Generic validation for unsupported countries
+      if (digitsOnly.length < 8) {
+        return { valid: false, error: 'Phone number is too short' };
+      }
+      if (digitsOnly.length > 15) {
+        return { valid: false, error: 'Phone number is too long' };
+      }
+      return { valid: true };
+    }
+
+    if (digitsOnly.length < rule.min) {
+      return { 
+        valid: false, 
+        error: `${rule.name} requires at least ${rule.min} digits` 
+      };
+    }
+
+    if (digitsOnly.length > rule.max) {
+      return { 
+        valid: false, 
+        error: `${rule.name} allows maximum ${rule.max} digits` 
+      };
+    }
+
+    // India-specific validation: must start with 6, 7, 8, or 9
+    if (countryData.countryCode === 'in' && digitsOnly.length > 0) {
+      const firstDigit = digitsOnly.charAt(0);
+      if (!['6', '7', '8', '9'].includes(firstDigit)) {
+        return { 
+          valid: false, 
+          error: 'Indian mobile numbers must start with 6, 7, 8, or 9' 
+        };
+      }
+    }
+
+    return { valid: true };
+  };
+
   const validate = () => {
-    const newErrors: typeof errors & { phone?: string; website?: string; notes?: string } = {};
+    const newErrors: typeof errors = {};
+    
     if (!formData.company_name.trim()) {
       newErrors.company_name = 'Company name is required.';
     }
@@ -91,30 +157,49 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     }
     if (!formData.email.trim()) {
       newErrors.email = 'Contact email is required.';
-    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Enter a valid email address.';
     }
-    // Phone validation: allow empty, but if not empty, must have at least 10 digits
-    if (formData.phone && !formData.phone.trim()) {
-      newErrors.phone = 'Contact phone cannot be only spaces.';
-    } else if (formData.phone) {
-      const digitsOnly = formData.phone.replace(/[^0-9]/g, '');
-      if (digitsOnly.length < 10) {
-        newErrors.phone = 'Phone number must contain at least 10 digits.';
-      } else if (digitsOnly.length > 15) {
-        newErrors.phone = 'Phone number cannot exceed 15 digits.';
+    
+    // Phone validation will be handled by isValid prop in PhoneInput
+    // But we can add additional checks here if needed
+    
+    if (formData.website && formData.website.trim()) {
+      if (!/^https?:\/\/.+\..+/.test(formData.website.trim())) {
+        newErrors.website = 'Enter a valid URL (must start with http:// or https://).';
       }
     }
-    // Website validation: allow empty, but if not empty, must not be only spaces and must be valid URL
-    if (formData.website && !formData.website.trim()) {
-      newErrors.website = 'Website cannot be only spaces.';
-    } else if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website.trim())) {
-      newErrors.website = 'Enter a valid website URL (must start with http:// or https://).';
-    }
-    // Notes validation: allow empty, but if not empty, must not be only spaces
+    
     if (formData.notes && !formData.notes.trim()) {
       newErrors.notes = 'Notes cannot be only spaces.';
     }
+
+    // Phone validation: ensure invalid phone prevents form submission
+    if (formData.phone && formData.phone.trim()) {
+      const raw = formData.phone;
+      const digitsOnly = raw.replace(/\D/g, '');
+
+      // India-specific detection: handles values starting with +91 or 91
+      if (/^(\+?91)/.test(raw)) {
+        // remove leading country code if present
+        const after = digitsOnly.replace(/^91/, '');
+        if (after.length < 10) {
+          newErrors.phone = 'India requires at least 10 digits';
+        } else if (after.length > 10) {
+          newErrors.phone = 'India allows maximum 10 digits';
+        } else if (!['6', '7', '8', '9'].includes(after.charAt(0))) {
+          newErrors.phone = 'Indian mobile numbers must start with 6, 7, 8, or 9';
+        }
+      } else {
+        // Generic fallback validation for other countries
+        if (digitsOnly.length < 8) {
+          newErrors.phone = 'Phone number is too short';
+        } else if (digitsOnly.length > 15) {
+          newErrors.phone = 'Phone number is too long';
+        }
+      }
+    }
+    
     return newErrors;
   };
 
@@ -122,17 +207,26 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+    
     setLoading(true);
+    
     try {
       if (client) {
         await dispatch(updateClientThunk({
           id: client.id,
-          ...formData
+          ...formData,
+          phone: formData.phone ? `+${formData.phone}` : null,
         }));
         onOpenChange({ success: "Client updated successfully" });
       } else {
-        await dispatch(createClientThunk(formData));
+        await dispatch(createClientThunk({
+          ...formData,
+          phone: formData.phone ? `+${formData.phone}` : null,
+        }));
         onOpenChange({ success: "Client created successfully" });
       }
     } catch (error: any) {
@@ -152,12 +246,63 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
             {client ? 'Update client information' : 'Add a new SAAS company client'}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4" onClick={(e) => {
-          if ((e.target as HTMLElement).tagName === 'BUTTON' && (e.target as HTMLButtonElement).type === 'submit') {
-            handleSubmit(e as any);
+        <style>{`
+          .phone-input-container .react-tel-input {
+            font-family: inherit;
           }
-        }}>
+          
+          .phone-input-container .react-tel-input .form-control {
+            width: 100%;
+            height: 40px;
+            border-radius: 0.375rem;
+            border: 1px solid hsl(var(--input));
+            background-color: transparent;
+            padding: 0.5rem 0.75rem 0.5rem 48px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          
+          .phone-input-container .react-tel-input .form-control:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+          }
+          
+          .phone-input-container .react-tel-input .flag-dropdown {
+            border: none;
+            background-color: transparent;
+            border-right: 1px solid hsl(var(--input));
+          }
+          
+          .phone-input-container .react-tel-input .flag-dropdown:hover,
+          .phone-input-container .react-tel-input .flag-dropdown.open {
+            background-color: transparent;
+          }
+          
+          .phone-input-container .react-tel-input .selected-flag {
+            padding: 0 0 0 8px;
+            width: 40px;
+          }
+          
+          .phone-input-container .react-tel-input .selected-flag:hover,
+          .phone-input-container .react-tel-input .selected-flag:focus {
+            background-color: transparent;
+          }
+
+          .phone-input-container .react-tel-input .country-list {
+            width: 300px;
+            max-height: 200px;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.375rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+          }
+
+          .phone-input-container .react-tel-input .country-list .country.highlight {
+            background-color: hsl(var(--accent));
+          }
+        `}</style>
+
+        <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="company_name">Company Name <span className="text-red-500">*</span></Label>
@@ -210,33 +355,38 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Contact Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9+\-() ]/g, '');
-                  setFormData({ ...formData, phone: value });
-                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
-                }}
-                onKeyDown={(e) => {
-                  const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-                  const allowedChars = /[0-9+\-() ]/;
-                  
-                  if (!allowedKeys.includes(e.key) && !allowedChars.test(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-                onPaste={(e) => {
-                  e.preventDefault();
-                  const pastedText = e.clipboardData.getData('text');
-                  const filteredText = pastedText.replace(/[^0-9+\-() ]/g, '');
-                  setFormData({ ...formData, phone: formData.phone + filteredText });
-                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
-                }}
-                placeholder="+1 (555) 123-4567"
-                aria-invalid={!!errors.phone}
-              />
+              <div className={`phone-input-container ${errors.phone ? 'error' : ''}`}>
+                <PhoneInput
+                  country={'in'}
+                  value={formData.phone}
+                  onChange={(phone, countryData: any) => {
+                    setFormData({ ...formData, phone });
+                    
+                    // Clear error when typing
+                    if (errors.phone) {
+                      setErrors(prev => ({ ...prev, phone: undefined }));
+                    }
+                    
+                    // Validate on change
+                    if (phone) {
+                      const validation = validatePhoneNumber(phone, countryData);
+                      if (!validation.valid) {
+                        setErrors(prev => ({ ...prev, phone: validation.error }));
+                      }
+                    }
+                  }}
+                  isValid={(inputNumber, country: any, countries) => {
+                    if (!inputNumber) return true;
+                    
+                    const validation = validatePhoneNumber(inputNumber, country);
+                    return validation.valid;
+                  }}
+                  countryCodeEditable={false}
+                  enableSearch={true}
+                  disableSearchIcon={false}
+                  placeholder="Enter phone number"
+                />
+              </div>
               {errors.phone && (
                 <div className="text-red-500 text-xs mt-1">{errors.phone}</div>
               )}
@@ -246,7 +396,10 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status.toString()} onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}>
+              <Select 
+                value={formData.status.toString()} 
+                onValueChange={(value) => setFormData({ ...formData, status: parseInt(value) })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

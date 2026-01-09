@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { fetchBlogs, deleteBlogThunk, selectBlogs, selectBlogsLoading } from '@/store/slices/blogs';
+import { fetchBlogs, deleteBlogThunk, selectBlogs, selectBlogsLoading, selectBlogsPagination, setPage } from '@/store/slices/blogs';
 import { encryptId } from '@/helpers/crypto';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -47,23 +47,40 @@ export default function BlogPosts() {
 
   const posts = useSelector((state: RootState) => selectBlogs(state));
   const loading = useSelector((state: RootState) => selectBlogsLoading(state));
+  const pagination = useSelector((state: RootState) => selectBlogsPagination(state));
 
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Debounce search input
   useEffect(() => {
-    dispatch(fetchBlogs(1, 100) as any);
-  }, [dispatch]);
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [search]);
+
+  // Fetch blogs whenever page/perPage/search changes
+  useEffect(() => {
+    const page = pagination.currentPage || 1;
+    const perPage = pagination.perPage || 10;
+    dispatch(fetchBlogs(page, perPage, debouncedSearch) as any);
+  }, [dispatch, pagination.currentPage, pagination.perPage, debouncedSearch]);
 
   const handleDelete = async (id: string) => {
     dispatch(deleteBlogThunk(id) as any);
   };
 
+  // If server-side search is used, posts already reflect the query; keep client-side fallback
   const filteredPosts = posts.filter(post => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!q) return true;
     return (
       post.title.toLowerCase().includes(q) ||
       post.excerpt.toLowerCase().includes(q) ||
-      (post.tags && post.tags.toLowerCase().includes(q))
+      (post.tags && String(post.tags).toLowerCase().includes(q))
     );
   });
 
@@ -106,7 +123,9 @@ export default function BlogPosts() {
             <div className="space-y-4">
               {filteredPosts.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No blog posts found</div>
-              ) : filteredPosts.map((post) => (
+              ) : (
+                <>
+                  {filteredPosts.map((post) => (
                 <div key={post.id} className="border rounded-lg p-6 hover:bg-gray-50 transition">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex-1">
@@ -166,7 +185,74 @@ export default function BlogPosts() {
                     </div>
                   </div>
                 </div>
-              ))}
+                  ))}
+
+                {/* Pagination controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2 sm:gap-4">
+                  {(() => {
+                    const start = (pagination.currentPage - 1) * pagination.perPage + 1;
+                    const end = Math.min(start + posts.length - 1, pagination.totalRecords || posts.length);
+                    const total = typeof pagination.totalRecords === 'number' && pagination.totalRecords >= 0 ? pagination.totalRecords : posts.length;
+                    return (
+                      <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
+                        Showing {start} to {end} of {total} results
+                      </span>
+                    );
+                  })()}
+                  <nav
+                    className="flex items-center gap-1 select-none w-full sm:w-auto justify-center sm:justify-end"
+                    aria-label="Pagination"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === 1}
+                      onClick={() => dispatch(setPage(Math.max(1, pagination.currentPage - 1)))}
+                      aria-label="Previous page"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </Button>
+                    {(() => {
+                      const pages: (number | string)[] = [];
+                      const total = pagination.totalPages || 1;
+                      const current = pagination.currentPage || 1;
+                      if (total <= 5) {
+                        for (let i = 1; i <= total; i++) pages.push(i);
+                      } else {
+                        if (current <= 3) pages.push(1,2,3,4,'...', total);
+                        else if (current >= total - 2) pages.push(1, '...', total-3, total-2, total-1, total);
+                        else pages.push(1, '...', current-1, current, current+1, '...', total);
+                      }
+                      return pages.map((p, idx) =>
+                        p === '...' ? (
+                          <span key={'ellipsis-'+idx} className="px-2 text-muted-foreground">...</span>
+                        ) : (
+                          <Button
+                            key={p}
+                            variant={p === current ? 'default' : 'outline'}
+                            size="sm"
+                            className={p === current ? 'bg-orange-500 text-white' : ''}
+                            onClick={() => dispatch(setPage(Number(p)))}
+                            aria-current={p === current ? 'page' : undefined}
+                          >
+                            {p}
+                          </Button>
+                        )
+                      );
+                    })()}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pagination.currentPage === pagination.totalPages}
+                      onClick={() => dispatch(setPage(Math.min(pagination.totalPages, (pagination.currentPage || 1) + 1)))}
+                      aria-label="Next page"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </Button>
+                  </nav>
+                </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
