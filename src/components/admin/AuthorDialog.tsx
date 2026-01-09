@@ -95,6 +95,7 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
     setLoading(true);
 
     try {
+      let result;
       if (author) {
         // Update author
         const payload: any = {
@@ -115,7 +116,7 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
           }
         }
 
-        await dispatch(updateAuthorThunk(payload));
+        result = await dispatch(updateAuthorThunk(payload));
       } else {
         // Create author
         let imageUrl: string = '';
@@ -128,13 +129,18 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
           return;
         }
 
-        await dispatch(createAuthorThunk({
+        result = await dispatch(createAuthorThunk({
           name: formData.name,
           image: imageUrl,
           about: formData.about || null
         }));
       }
-      onOpenChange(false);
+      
+      // Only close dialog on success, keep it open on error
+      if (result?.success) {
+        onOpenChange(false);
+      }
+      // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error) {
       console.error('Error submitting author:', error);
     } finally {

@@ -165,7 +165,7 @@ export default function Section1({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -188,7 +188,7 @@ export default function Section1({
                   updateSlide(section.id, slide.id, { description: e.target.value })
                 }
                 disabled={loading}
-                className="w-full text-xs border rounded p-2 min-h-20 font-sans"
+                className="w-full text-sm border rounded p-2 min-h-20 font-sans"
               />
             </div>
           </CardContent>

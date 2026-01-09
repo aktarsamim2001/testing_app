@@ -44,13 +44,13 @@ export default function Section3({
         <div className="space-y-3">
           {/* Title 1 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 1</Label>
+            <Label className="text-xs font-medium">Badge Title</Label>
             <Input
               value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { title: e.target.value })
               }
-              placeholder="e.g., Why Join?"
+              placeholder="Badge Title"
               className="text-sm"
               disabled={loading}
             />
@@ -58,13 +58,13 @@ export default function Section3({
 
           {/* Title 2 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 2 (Subtitle)</Label>
+            <Label className="text-xs font-medium">Title</Label>
             <Input
               value={section.slides[0]?.subtitle || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { subtitle: e.target.value })
               }
-              placeholder="e.g., Everything you need"
+              placeholder="Title"
               className="text-sm"
               disabled={loading}
             />
@@ -78,7 +78,7 @@ export default function Section3({
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { description: e.target.value })
               }
-              placeholder="Enter section description..."
+              placeholder="Description"
               className="w-full text-sm border rounded p-2 min-h-20 font-sans"
               disabled={loading}
             />
@@ -96,14 +96,14 @@ export default function Section3({
                       button1Text: e.target.value,
                     })
                   }
-                  placeholder="e.g., Get Started"
+                  placeholder="Button Text"
                   className="text-sm"
                   disabled={loading}
                 />
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium">Button URL / Endpoint</Label>
+                <Label className="text-xs font-medium">Button URL</Label>
                 <Input
                   value={(section.slides[0] as any)?.button1Url || ''}
                   onChange={(e) =>
@@ -112,7 +112,7 @@ export default function Section3({
                       button1Url: e.target.value,
                     } as any)
                   }
-                  placeholder="e.g., /signup or https://example.com"
+                  placeholder="/example"
                   className="text-sm"
                   disabled={loading}
                 />
@@ -190,7 +190,7 @@ export default function Section3({
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs font-medium">Title</Label>
+                      <Label className="text-xs font-medium">Item</Label>
                       <Input
                         value={step.title || ''}
                         onChange={(e) => {
@@ -203,7 +203,7 @@ export default function Section3({
                             steps: updatedSteps,
                           } as any);
                         }}
-                        placeholder="e.g., Create Your Profile"
+                        placeholder="Item"
                         className="text-sm"
                         disabled={loading}
                       />
@@ -220,7 +220,7 @@ export default function Section3({
                 <div className="space-y-1">
                   <Label className="text-xs font-medium">Button Text</Label>
                   <Input
-                    placeholder="e.g., Get Started Today"
+                    placeholder="Button Text"
                     value={(section.slides[0] as any)?.button1Text || ''}
                     onChange={(e) =>
                       updateSlide(section.id, section.slides[0].id, {
@@ -235,7 +235,7 @@ export default function Section3({
                 <div className="space-y-1">
                   <Label className="text-xs font-medium">Button URL</Label>
                   <Input
-                    placeholder="e.g., /get-started"
+                    placeholder="/example"
                     value={(section.slides[0] as any)?.button1Url || ''}
                     onChange={(e) =>
                       updateSlide(section.id, section.slides[0].id, {
@@ -279,9 +279,9 @@ export default function Section3({
                     <div className="space-y-2">
                       {/* Stat Number */}
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Number/Value</Label>
+                        <Label className="text-xs font-medium">Number</Label>
                         <Input
-                          placeholder="e.g., 5X, $2M+, 10K+, 92%"
+                          placeholder="5X, $2M+, 10K+, 92%"
                           value={stat.number}
                           onChange={(e) => {
                             const newStats = [...((section.slides[0] as any)?.stats || [])];
@@ -298,9 +298,9 @@ export default function Section3({
 
                       {/* Stat Label */}
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Label/Description</Label>
+                        <Label className="text-xs font-medium">Description</Label>
                         <Input
-                          placeholder="e.g., Average traffic increase"
+                          placeholder="Average traffic increase"
                           value={stat.label}
                           onChange={(e) => {
                             const newStats = [...((section.slides[0] as any)?.stats || [])];

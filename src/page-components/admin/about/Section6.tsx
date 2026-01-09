@@ -81,7 +81,7 @@ export default function Section6({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="e.g., Join Our Mission"
+                placeholder="Enter CTA title"
                  value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -98,7 +98,7 @@ export default function Section6({
               </Label>
               <Textarea
                 id={`slide-description-${slide.id}`}
-                placeholder="e.g., Be part of our growing community"
+                placeholder="Be part of our growing community"
                 value={slide.description || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { description: e.target.value })
@@ -131,7 +131,7 @@ export default function Section6({
                 </Label>
                 <Input
                   id={`slide-button1url-${slide.id}`}
-                  placeholder="e.g., /signup"
+                  placeholder="/example"
                   value={slide.button1Url || ''}
                   onChange={(e) =>
                     updateSlide(section.id, slide.id, { button1Url: e.target.value })
@@ -147,7 +147,7 @@ export default function Section6({
               </Label>
               <Input
                 id={`slide-button2text-${slide.id}`}
-                placeholder="e.g., Learn More"
+                placeholder="Second Button Text"
                 value={slide.button2Text || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { button2Text: e.target.value })
@@ -162,7 +162,7 @@ export default function Section6({
               </Label>
               <Input
                 id={`slide-button2url-${slide.id}`}
-                placeholder="e.g., /learn-more"
+                placeholder="/example"
                 value={slide.button2Url || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { button2Url: e.target.value })

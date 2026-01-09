@@ -64,7 +64,10 @@ export default function Section5({
     if (!updatedTitles[titleIndex]) {
       updatedTitles[titleIndex] = { id: `title-${Date.now()}`, text: '', icon: '' };
     }
-    updatedTitles[titleIndex].text = value;
+    updatedTitles[titleIndex] = {
+      ...updatedTitles[titleIndex],
+      text: value,
+    };
     updateSlide(section.id, slideId, { titles: updatedTitles } as any);
   };
 
@@ -120,7 +123,7 @@ export default function Section5({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="e.g., Testimonials"
+                placeholder="Enter title"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -172,7 +175,7 @@ export default function Section5({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Client Name</Label>
                         <Input
-                          placeholder="e.g., John Smith"
+                          placeholder="Enter the client name"
                           value={title.text}
                           onChange={(e) =>
                             handleTitleChange(slide.id, titleIndex, e.target.value)
@@ -186,11 +189,14 @@ export default function Section5({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Testimonial</Label>
                         <Textarea
-                          placeholder="e.g., This company provided exceptional service..."
+                          placeholder="This company provided exceptional service..."
                           value={title.icon || ''}
                           onChange={(e) => {
                             const updated = [...((slide as any).titles || [])];
-                            updated[titleIndex].icon = e.target.value;
+                            updated[titleIndex] = {
+                              ...updated[titleIndex],
+                              icon: e.target.value,
+                            };
                             updateSlide(section.id, slide.id, { titles: updated } as any);
                           }}
                           disabled={loading}
@@ -211,7 +217,10 @@ export default function Section5({
                             // You can handle the file upload logic here, e.g., upload to server or update state
                             // For now, just update the file name in the title object as an example
                             const updated = [...((slide as any).titles || [])];
-                            updated[titleIndex].file = file;
+                            updated[titleIndex] = {
+                              ...updated[titleIndex],
+                              file: file,
+                            };
                             updateSlide(section.id, slide.id, { titles: updated } as any);
                           }}
                         />

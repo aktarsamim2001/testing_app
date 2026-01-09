@@ -144,11 +144,11 @@ export default function Section1({
             {/* Slide Title */}
             <div className="space-y-2">
               <Label htmlFor={`slide-title-${slide.id}`} className="text-sm font-medium">
-                Title
+                Badge Title
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="Enter title"
+                placeholder="Enter badge title"
                  value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -161,11 +161,11 @@ export default function Section1({
             {/* Slide Subtitle */}
             <div className="space-y-2">
               <Label htmlFor={`slide-subtitle-${slide.id}`} className="text-sm font-medium">
-                Subtitle
+                Title
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter title"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -182,7 +182,7 @@ export default function Section1({
               </Label>
               <Textarea
                 id={`slide-description-${slide.id}`}
-                placeholder="Enter slide description"
+                placeholder="Enter description"
                 value={slide.description || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { description: e.target.value })

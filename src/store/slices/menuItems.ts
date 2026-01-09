@@ -78,10 +78,15 @@ const menuItemsSlice = createSlice({
     setMenuItemsPerPage(state, action: PayloadAction<number>) {
       state.pagination.perPage = action.payload;
     },
+    reorderMenuItems(state, action: PayloadAction<MenuItem[]>) {
+      state.data = action.payload;
+      state.status = "succeeded";
+      state.error = null;
+    },
   },
 });
 
-export const { setMenuItems, setMenuItemsLoading, setMenuItemsError, setCurrentMenuId, setMenuItemsPageNumber, setMenuItemsPerPage } = menuItemsSlice.actions;
+export const { setMenuItems, setMenuItemsLoading, setMenuItemsError, setCurrentMenuId, setMenuItemsPageNumber, setMenuItemsPerPage, reorderMenuItems: reorderMenuItemsAction } = menuItemsSlice.actions;
 
 export default menuItemsSlice.reducer;
 
@@ -192,16 +197,26 @@ export const deleteMenuItemThunk = (id: string | number) => async (dispatch: App
 
 // Thunk to reorder menu items
 export const reorderMenuItemsThunk = (itemIds: Array<string | number>) => async (dispatch: AppDispatch, getState: () => RootState) => {
-  dispatch(setMenuItemsLoading(true));
   const token = getState().auth.authToken;
+  const currentState = getState().menuItems;
+  const currentItems = currentState.data;
+  
   try {
+    // Create reordered items array based on the new order of IDs
+    const reorderedItems = itemIds
+      .map((id) => currentItems.find((item: MenuItem) => item.id === id))
+      .filter((item): item is MenuItem => item !== undefined);
+
+    // Immediately update local state with new order (optimistic update)
+    dispatch(reorderMenuItemsAction(reorderedItems));
+
+    console.log('Sending reorder with item_id:', itemIds);
+
+    // Call API with simple item_id array format
+    // The array order itself represents the new position: [2, 1] means item 2 is first, item 1 is second
     const response = await service.reorderMenuItems({ item_id: itemIds }, token);
     const body = response.data;
-    // refresh list
-    const currentMenuId = getState().menuItems.currentMenuId;
-    if (currentMenuId) {
-      dispatch(fetchMenuItems(currentMenuId));
-    }
+
     if (body?.message) {
       toast({ title: 'Success', description: body.message, variant: 'success' });
     }
@@ -210,9 +225,12 @@ export const reorderMenuItemsThunk = (itemIds: Array<string | number>) => async 
     const message = error?.response?.data?.message || error?.message || "Failed to reorder menu items";
     dispatch(setMenuItemsError(message));
     toast({ title: 'Error', description: message, variant: 'destructive' });
+    // Refresh list to show previous valid state on error
+    const currentMenuId = getState().menuItems.currentMenuId;
+    if (currentMenuId) {
+      dispatch(fetchMenuItems(currentMenuId));
+    }
     return { error: message };
-  } finally {
-    dispatch(setMenuItemsLoading(false));
   }
 };
 

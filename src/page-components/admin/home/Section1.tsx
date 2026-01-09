@@ -42,13 +42,13 @@ export default function Section1({
         <div className="space-y-3">
           {/* Title 1 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 1</Label>
+            <Label className="text-xs font-medium">Badge Title</Label>
             <Input
               value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { title: e.target.value })
               }
-              placeholder="e.g., Slide 1"
+              placeholder="Badge Title"
               className="text-sm"
               disabled={loading}
             />
@@ -56,13 +56,13 @@ export default function Section1({
 
           {/* Title 2 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 2</Label>
+            <Label className="text-xs font-medium">Title</Label>
             <Input
               value={section.slides[0]?.subtitle || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { subtitle: e.target.value })
               }
-              placeholder="e.g., Additional title"
+              placeholder="Title"
               className="text-sm"
               disabled={loading}
             />
@@ -84,13 +84,13 @@ export default function Section1({
 
           {/* Button 1 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Button 1 Text</Label>
+            <Label className="text-xs font-medium">Button 1</Label>
             <Input
               value={section.slides[0]?.button1Text || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { button1Text: e.target.value })
               }
-              placeholder="e.g., Start Growing Today"
+              placeholder="Button 1"
               className="text-sm"
               disabled={loading}
             />
@@ -107,7 +107,7 @@ export default function Section1({
                   button1Url: e.target.value,
                 } as any)
               }
-              placeholder="e.g., /start or https://example.com"
+              placeholder="/example"
               className="text-sm"
               disabled={loading}
             />
@@ -115,13 +115,13 @@ export default function Section1({
 
           {/* Button 2 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Button 2 Text</Label>
+            <Label className="text-xs font-medium">Button 2</Label>
             <Input
               value={section.slides[0]?.button2Text || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { button2Text: e.target.value })
               }
-              placeholder="e.g., See How It Works"
+              placeholder="Button 2"
               className="text-sm"
               disabled={loading}
             />
@@ -138,7 +138,7 @@ export default function Section1({
                   button2Url: e.target.value,
                 } as any)
               }
-              placeholder="e.g., /how-it-works or https://example.com/info"
+              placeholder="/how-it-works"
               className="text-sm"
               disabled={loading}
             />
@@ -242,9 +242,9 @@ export default function Section1({
                           </p>
                         </label>
                       </div>
-                      {stat.icon && (
+                      {/* {stat.icon && (
                         <p className="text-xs text-muted-foreground">Selected: {stat.icon}</p>
-                      )}
+                      )} */}
                     </div>
 
                     <div className="space-y-1">
@@ -261,7 +261,7 @@ export default function Section1({
                             stats: updatedStats,
                           } as any);
                         }}
-                        placeholder="e.g., 500+"
+                        placeholder="Number"
                         className="text-sm"
                         disabled={loading}
                       />
@@ -281,7 +281,7 @@ export default function Section1({
                             stats: updatedStats,
                           } as any);
                         }}
-                        placeholder="e.g., Active Campaigns"
+                        placeholder="Label"
                         className="text-sm"
                         disabled={loading}
                       />

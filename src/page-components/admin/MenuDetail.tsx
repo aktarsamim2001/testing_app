@@ -111,6 +111,7 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Search + pagination
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -169,7 +170,8 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
   }, [menuId, dispatch, pagination?.currentPage, pagination?.perPage, debouncedSearch]);
 
   const handleCreateSave = async () => {
-    if (!newTitle.trim()) return;
+    // Validate form before submitting
+    if (!validateDialogForm()) return false;
 
     const payload: any = {
       menu_id: String(menuId || 1),
@@ -192,6 +194,8 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
     setNewPageId("");
     setNewStatus("1");
     setNewCustomValue("");
+    setErrors({});
+    return true;
   };
 
   const handleDeleteItem = (id: string | number) => {
@@ -216,11 +220,12 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
     setEditCustomValue(item.custom_value || "");
     dispatch(fetchPages(1, 100) as any);
     setDialogMode("edit");
+    setErrors({});
     setDialogOpen(true);
   };
 
   const handleSaveEdit = async () => {
-    if (!editTitle.trim()) return;
+    if (!validateDialogForm()) return false;
 
     const payload: any = {
       id: editingItem.id,
@@ -237,6 +242,35 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
 
     await dispatch(updateMenuItemThunk(payload) as any);
     setEditingItem(null);
+    setErrors({});
+    return true;
+  };
+
+  const validateDialogForm = () => {
+    const errs: Record<string, string> = {};
+    const type = dialogMode === "create" ? newType : editType;
+    const title = dialogMode === "create" ? newTitle.trim() : editTitle.trim();
+
+    const target = dialogMode === "create" ? newTarget : editTarget;
+    const status = dialogMode === "create" ? newStatus : editStatus;
+
+    if (!title) errs.title = "Title is required";
+
+    if (!type) errs.type = "Type is required";
+
+    if (!target) errs.target = "Target is required";
+    if (!status) errs.status = "Status is required";
+
+    if (type === "page") {
+      const pageId = dialogMode === "create" ? newPageId : editPageId;
+      if (!pageId) errs.page = "Please select a page";
+    } else {
+      const custom = dialogMode === "create" ? newCustomValue.trim() : editCustomValue.trim();
+      if (!custom) errs.custom = "URL is required";
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   // Drag handlers
@@ -301,64 +335,6 @@ const handleSaveOrder = async () => {
           </Button>
         </div>
 
-        {/* Menu Info */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Menu Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Menu Name</label>
-                <Input
-                  value={editingMenuName}
-                  onChange={(e) => setEditingMenuName(e.target.value)}
-                  placeholder="Enter menu name"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Status</label>
-                <Select
-                  value={menu.status === 1 ? "Active" : "Inactive"}
-                  onValueChange={(v) => {
-                    setMenu({ ...menu, status: v === "Active" ? 1 : 0 });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end pt-4 border-t">
-              <Button variant="outline" onClick={() => setEditingMenuName(menu.menu_name)}>
-                Cancel
-              </Button>
-              <Button
-                className="bg-orange-500 text-white"
-                onClick={async () => {
-                  if (editingMenuName.trim()) {
-                    await dispatch(
-                      updateMenuThunk({
-                        id: menu.id,
-                        menu_name: editingMenuName.trim(),
-                        status: menu.status,
-                      }) as any
-                    );
-                    setMenu({ ...menu, menu_name: editingMenuName.trim() });
-                  }
-                }}
-              >
-                Update
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Drag & Drop Reorder Section */}
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -366,9 +342,12 @@ const handleSaveOrder = async () => {
               <CardTitle>Menu Items Configuration</CardTitle>
               <CardDescription>Drag to reorder menu items</CardDescription>
             </div>
-            {/* <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={handleSaveOrder}>
+            <Button 
+              size="sm" 
+              onClick={handleSaveOrder}
+            >
               Save
-            </Button> */}
+            </Button>
           </CardHeader>
           <CardContent>
             {menuItems && menuItems.length > 0 ? (
@@ -410,6 +389,64 @@ const handleSaveOrder = async () => {
           </CardContent>
         </Card>
 
+        {/* Menu Info */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Edit Menu</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Menu Name</label>
+                <Input
+                  value={editingMenuName}
+                  onChange={(e) => setEditingMenuName(e.target.value)}
+                  placeholder="Enter menu name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={menu.status === 1 ? "Active" : "Inactive"}
+                  onValueChange={(v) => {
+                    setMenu({ ...menu, status: v === "Active" ? 1 : 0 });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end pt-4 ">
+              <Button variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-orange-500 text-white"
+                onClick={async () => {
+                  if (editingMenuName.trim()) {
+                    await dispatch(
+                      updateMenuThunk({
+                        id: menu.id,
+                        menu_name: editingMenuName.trim(),
+                        status: menu.status,
+                      }) as any
+                    );
+                    setMenu({ ...menu, menu_name: editingMenuName.trim() });
+                  }
+                }}
+              >
+                Update
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Menu Items Table */}
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -424,6 +461,7 @@ const handleSaveOrder = async () => {
                 setNewType("page");
                 setNewTarget("_self");
                 dispatch(fetchPages(1, 10) as any);
+                setErrors({});
                 setDialogOpen(true);
               }}
             >
@@ -536,46 +574,48 @@ const handleSaveOrder = async () => {
           <div className="py-2">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm mb-1">Title</label>
+                <label className="block text-sm mb-1">Title <span className="text-red-600">*</span></label>
                 <Input
                   value={dialogMode === "create" ? newTitle : editTitle}
-                  onChange={(e) => (dialogMode === "create" ? setNewTitle(e.target.value) : setEditTitle(e.target.value))}
+                  onChange={(e) => {
+                    (dialogMode === "create" ? setNewTitle(e.target.value) : setEditTitle(e.target.value));
+                    setErrors({});
+                  }}
                   placeholder="Write here"
                 />
+                {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">Type</label>
+                <label className="block text-sm mb-1">Type <span className="text-red-600">*</span></label>
                 <Select
                   value={dialogMode === "create" ? newType : editType}
-                  onValueChange={(v) => (dialogMode === "create" ? setNewType(v) : setEditType(v))}
+                  onValueChange={(v) => {
+                    if (dialogMode === "create") setNewType(v);
+                    else setEditType(v);
+                    setErrors({});
+                  }}
                 >
                   <SelectTrigger><SelectValue placeholder="Select an option" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="page">Page</SelectItem>
-                    <SelectItem value="external">External</SelectItem>
                     <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">Target</label>
-                <Select
-                  value={dialogMode === "create" ? newTarget : editTarget}
-                  onValueChange={(v) => (dialogMode === "create" ? setNewTarget(v) : setEditTarget(v))}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select an option" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_self">_self</SelectItem>
-                    <SelectItem value="_blank">_blank</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Page</label>
+                <label className="block text-sm mb-1">{(dialogMode === "create" ? newType : editType) === "page" ? "Page" : "Custom url"} <span className="text-red-600">*</span></label>
                 {(dialogMode === "create" ? newType : editType) === "page" ? (
                   <Select
                     value={dialogMode === "create" ? newPageId : editPageId}
-                    onValueChange={(v) => (dialogMode === "create" ? setNewPageId(v) : setEditPageId(v))}
+                    onValueChange={(v) => {
+                      (dialogMode === "create" ? setNewPageId(v) : setEditPageId(v));
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.page;
+                        return newErrors;
+                      });
+                    }}
                   >
                     <SelectTrigger><SelectValue placeholder="Select a page" /></SelectTrigger>
                     <SelectContent>
@@ -590,19 +630,50 @@ const handleSaveOrder = async () => {
                       )}
                     </SelectContent>
                   </Select>
-                ) : (
+                  ) : (
                   <Input
                     value={dialogMode === "create" ? newCustomValue : editCustomValue}
-                    onChange={(e) => (dialogMode === "create" ? setNewCustomValue(e.target.value) : setEditCustomValue(e.target.value))}
+                    onChange={(e) => {
+                      (dialogMode === "create" ? setNewCustomValue(e.target.value) : setEditCustomValue(e.target.value));
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.custom;
+                        return newErrors;
+                      });
+                    }}
                     placeholder="Enter URL"
                   />
                 )}
+                {errors.page && <p className="text-sm text-red-600 mt-1">{errors.page}</p>}
+                {errors.custom && <p className="text-sm text-red-600 mt-1">{errors.custom}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">Status</label>
+                <label className="block text-sm mb-1">Target <span className="text-red-600">*</span></label>
+                <Select
+                  value={dialogMode === "create" ? newTarget : editTarget}
+                  onValueChange={(v) => {
+                    if (dialogMode === "create") setNewTarget(v);
+                    else setEditTarget(v);
+                    setErrors({});
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select an option" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_self">_self</SelectItem>
+                    <SelectItem value="_blank">_blank</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.target && <p className="text-sm text-red-600 mt-1">{errors.target}</p>}
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Status <span className="text-red-600">*</span></label>
                 <Select
                   value={dialogMode === "create" ? newStatus : editStatus}
-                  onValueChange={(v) => (dialogMode === "create" ? setNewStatus(v) : setEditStatus(v))}
+                  onValueChange={(v) => {
+                    if (dialogMode === "create") setNewStatus(v);
+                    else setEditStatus(v);
+                    setErrors({});
+                  }}
                 >
                   <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                   <SelectContent>
@@ -610,6 +681,7 @@ const handleSaveOrder = async () => {
                     <SelectItem value="0">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.status && <p className="text-sm text-red-600 mt-1">{errors.status}</p>}
               </div>
             </div>
           </div>
@@ -617,11 +689,20 @@ const handleSaveOrder = async () => {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <DialogClose asChild>
-              <Button onClick={() => { dialogMode === "create" ? handleCreateSave() : handleSaveEdit(); setDialogOpen(false); }}>
-                {dialogMode === "create" ? "Create" : "Save"}
-              </Button>
-            </DialogClose>
+            <Button
+              onClick={async () => {
+                let success = false;
+                if (dialogMode === "create") {
+                  success = await handleCreateSave();
+                } else {
+                  success = await handleSaveEdit();
+                }
+
+                if (success) setDialogOpen(false);
+              }}
+            >
+              {dialogMode === "create" ? "Create" : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

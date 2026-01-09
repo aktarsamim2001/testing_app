@@ -114,7 +114,7 @@ export default function Section5({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -134,7 +134,7 @@ export default function Section5({
                   </Label>
                   <Input
                     id={`button1-text-${slide.id}`}
-                    placeholder="e.g., Get Started Today"
+                    placeholder="Get Started Today"
                     value={slide.button1Text || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Text: e.target.value })
@@ -149,7 +149,7 @@ export default function Section5({
                   </Label>
                   <Input
                     id={`button1-url-${slide.id}`}
-                    placeholder="e.g., /get-started"
+                    placeholder="/example"
                     value={slide.button1Url || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Url: e.target.value })

@@ -164,7 +164,7 @@ export default function Section3({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -211,7 +211,7 @@ export default function Section3({
                         <div className="space-y-1">
                           <Label className="text-xs font-medium">Title</Label>
                           <Input
-                            placeholder="e.g., Create Your Profile"
+                            placeholder="Create Your Profile"
                             value={card.title}
                             onChange={(e) =>
                               handleCardChange(slide.id, cardIndex, 'title', e.target.value)
@@ -225,7 +225,7 @@ export default function Section3({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Description</Label>
                         <Input
-                          placeholder="e.g., Sign up and showcase your channel, audience, and expertise"
+                          placeholder="Sign up and showcase your channel, audience, and expertise"
                           value={card.description}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, 'description', e.target.value)

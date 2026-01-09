@@ -188,6 +188,7 @@ export default function BlogPosts() {
                   ))}
 
                 {/* Pagination controls */}
+                {pagination.totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2 sm:gap-4">
                   {(() => {
                     const start = (pagination.currentPage - 1) * pagination.perPage + 1;
@@ -251,6 +252,7 @@ export default function BlogPosts() {
                     </Button>
                   </nav>
                 </div>
+                )}
                 </>
               )}
             </div>

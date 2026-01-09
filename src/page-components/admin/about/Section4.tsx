@@ -64,7 +64,10 @@ export default function Section4({
     if (!updatedTitles[titleIndex]) {
       updatedTitles[titleIndex] = { id: `title-${Date.now()}`, text: '' };
     }
-    updatedTitles[titleIndex].text = value;
+    updatedTitles[titleIndex] = {
+      ...updatedTitles[titleIndex],
+      text: value,
+    };
     updateSlide(section.id, slideId, { titles: updatedTitles } as any);
   };
 
@@ -120,7 +123,7 @@ export default function Section4({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="e.g., Our Core Values"
+                placeholder="Enter title"
                  value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -137,7 +140,7 @@ export default function Section4({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="e.g., The principles that guide everything we do"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -172,7 +175,7 @@ export default function Section4({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Value Title</Label>
                         <Input
-                          placeholder="e.g., Results-Driven"
+                          placeholder="Enter title"
                           value={title.text}
                           onChange={(e) =>
                             handleTitleChange(slide.id, titleIndex, e.target.value)
@@ -186,11 +189,14 @@ export default function Section4({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Description</Label>
                         <Textarea
-                          placeholder="e.g., Every partnership is measured by ROI. We're obsessed with delivering tangible growth metrics."
+                          placeholder="Every partnership is measured by ROI. We're obsessed with delivering tangible growth metrics."
                           value={title.description || ''}
                           onChange={(e) => {
                             const updated = [...((slide as any).titles || [])];
-                            updated[titleIndex].description = e.target.value;
+                            updated[titleIndex] = {
+                              ...updated[titleIndex],
+                              description: e.target.value,
+                            };
                             updateSlide(section.id, slide.id, { titles: updated } as any);
                           }}
                           disabled={loading}
@@ -208,7 +214,10 @@ export default function Section4({
                             const file = e.target.files?.[0];
                             if (file) {
                               const updated = [...((slide as any).titles || [])];
-                              updated[titleIndex].icon = `/uploads/icons/${file.name}`;
+                              updated[titleIndex] = {
+                                ...updated[titleIndex],
+                                icon: `/uploads/icons/${file.name}`,
+                              };
                               updateSlide(section.id, slide.id, { titles: updated } as any);
                             }
                           }}

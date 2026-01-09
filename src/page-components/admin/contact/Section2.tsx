@@ -172,7 +172,7 @@ export default function Section2({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="e.g., Contact Information"
+                placeholder="Contact Information"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -189,7 +189,7 @@ export default function Section2({
               </Label>
               <Textarea
                 id={`slide-description-${slide.id}`}
-                placeholder="e.g., We typically respond within 24 hours. For urgent inquiries, call us directly."
+                placeholder="We typically respond within 24 hours. For urgent inquiries, call us directly."
                 value={slide.description || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { description: e.target.value })
@@ -224,7 +224,7 @@ export default function Section2({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Contact Type</Label>
                         <Input
-                          placeholder="e.g., Email, Phone, Office"
+                          placeholder="Email, Phone, Office"
                           value={card.title}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, { title: e.target.value })
@@ -238,7 +238,7 @@ export default function Section2({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Contact Details</Label>
                         <Input
-                          placeholder="e.g., hello@example.com or 123 Growth Street&#10;San Francisco, CA 94105"
+                          placeholder="hello@example.com or 123 Growth Street&#10;San Francisco, CA 94105"
                           value={card.description}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, { description: e.target.value })
@@ -315,7 +315,7 @@ export default function Section2({
                   <div key={titleIndex} className="flex gap-2 items-end">
                     <div className="flex-1">
                       <Input
-                        placeholder="e.g., Free 30-minute consultation"
+                        placeholder="Free 30-minute consultation"
                         value={title.text}
                         onChange={(e) =>
                           handleTitleChange(slide.id, titleIndex, e.target.value, 'titles')

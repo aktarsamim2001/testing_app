@@ -148,11 +148,11 @@ export default function Section1({
             {/* Slide Title */}
             <div className="space-y-2">
               <Label htmlFor={`slide-title-${slide.id}`} className="text-sm font-medium">
-                Title
+                Badge Title
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="Enter title"
+                placeholder="Enter badge title"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -165,11 +165,11 @@ export default function Section1({
             {/* Slide Subtitle */}
             <div className="space-y-2">
               <Label htmlFor={`slide-subtitle-${slide.id}`} className="text-sm font-medium">
-                Subtitle
+                Title
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter title"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -182,11 +182,11 @@ export default function Section1({
             {/* Slide Badge */}
             <div className="space-y-2">
               <Label htmlFor={`slide-badge-${slide.id}`} className="text-sm font-medium">
-                Badge
+                Subtitle
               </Label>
               <Input
                 id={`slide-badge-${slide.id}`}
-                placeholder="e.g., New, Featured, Recommended"
+                placeholder="Enter subtitle"
                 value={slide.button1Text || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { button1Text: e.target.value })
@@ -203,13 +203,30 @@ export default function Section1({
               </Label>
               <Textarea
                 id={`slide-description-${slide.id}`}
-                placeholder="Enter slide description"
+                placeholder="Enter description"
                 value={slide.description || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { description: e.target.value })
                 }
                 disabled={loading}
                 className="text-sm min-h-[100px]"
+              />
+            </div>
+
+            {/* Onboarding Fee */}
+            <div className="space-y-2">
+              <Label htmlFor={`slide-fee-${slide.id}`} className="text-sm font-medium">
+                Badge title 2
+              </Label>
+              <Input
+                id={`slide-fee-${slide.id}`}
+                placeholder="One-time onboarding fee: $500"
+                value={slide.button2Text || ''}
+                onChange={(e) =>
+                  updateSlide(section.id, slide.id, { button2Text: e.target.value })
+                }
+                disabled={loading}
+                className="text-sm"
               />
             </div>
           </CardContent>

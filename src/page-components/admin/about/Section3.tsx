@@ -122,7 +122,7 @@ export default function Section3({
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
-                placeholder="e.g., Impact in Numbers"
+                placeholder="Enter title"
                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { title: e.target.value })
@@ -139,7 +139,7 @@ export default function Section3({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="e.g., Real results from real partnerships"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -174,7 +174,7 @@ export default function Section3({
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Number</Label>
                         <Input
-                          placeholder="e.g., 500+"
+                          placeholder="500+"
                           value={card.title}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, { title: e.target.value })
@@ -186,9 +186,9 @@ export default function Section3({
 
                       {/* Stat Title */}
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Title</Label>
+                        <Label className="text-xs font-medium">Subtitle</Label>
                         <Input
-                          placeholder="e.g., SaaS Companies Scaled"
+                          placeholder="Enter subtitle"
                           value={card.description}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, { description: e.target.value })

@@ -208,7 +208,7 @@ export default function ServiceBuilder({ pageId }: Props) {
       newErrors.description = "Description is required for Service type";
     }
 
-    if (isFullService && !form.service_ids.trim()) {
+    if (isFullService && selectedServiceIds.length === 0) {
       newErrors.service_ids =
         "Service IDs are required for Full Service Package";
     }
@@ -696,7 +696,7 @@ export default function ServiceBuilder({ pageId }: Props) {
                                 e.target.value
                               )
                             }
-                            placeholder={`e.g., Unified reporting dashboard`}
+                            placeholder={`Unified reporting dashboard`}
                             className="flex-1"
                           />
                           <Button
@@ -720,9 +720,9 @@ export default function ServiceBuilder({ pageId }: Props) {
 
             {/* Form Actions */}
             <>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="md:col-span-2 space-y-2 w-52">
+              <CardContent>
+                <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+                  <div className="col-span-1 md:col-span-2 space-y-2 w-full md:w-52">
                     <Label>Status</Label>
                     <Select
                       value={form.status}
@@ -756,7 +756,7 @@ export default function ServiceBuilder({ pageId }: Props) {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="bg-gradient-primary min-w-[120px]"
+                      className="min-w-[120px]"
                     >
                       {loading
                         ? isEditMode

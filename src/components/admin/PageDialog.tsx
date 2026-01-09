@@ -247,14 +247,17 @@ export default function PageDialog({ open, onOpenChange, page }: PageDialogProps
         });
       }
 
-      onOpenChange(false);
     } catch (error) {
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'An error occurred',
         variant: 'destructive',
       });
+      // Dialog stays open on error so user can fix and retry
+      return;
     } finally {
+      // Only close dialog on success
+      onOpenChange(false);
       setLoading(false);
     }
   };

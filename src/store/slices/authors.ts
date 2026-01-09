@@ -106,10 +106,12 @@ export const createAuthorThunk = (payload: {
     toast({ title: 'Success', description: apiMessage, variant: 'success' });
     const { currentPage, perPage } = getState().authors.pagination;
     dispatch(fetchAuthors(currentPage, perPage));
+    return { success: apiMessage };
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to create author";
     dispatch(setAuthorsError(message));
     toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
   } finally {
     dispatch(setAuthorsLoading(false));
   }
@@ -130,10 +132,12 @@ export const updateAuthorThunk = (payload: {
     toast({ title: 'Success', description: apiMessage, variant: 'success' });
     const { currentPage, perPage } = getState().authors.pagination;
     dispatch(fetchAuthors(currentPage, perPage));
+    return { success: apiMessage };
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to update author";
     dispatch(setAuthorsError(message));
     toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
   } finally {
     dispatch(setAuthorsLoading(false));
   }

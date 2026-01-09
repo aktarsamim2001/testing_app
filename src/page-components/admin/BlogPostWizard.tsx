@@ -84,6 +84,14 @@ export default function BlogPostWizard() {
     author_id?: string;
     category_id?: string;
     description?: string;
+    image?: string;
+    excerpt?: string;
+    tags?: string;
+    meta_title?: string;
+    meta_description?: string;
+    meta_author?: string;
+    meta_keywords?: string;
+    estimated_reading_time?: string;
   }>({});
 
   useEffect(() => {
@@ -138,6 +146,9 @@ export default function BlogPostWizard() {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
+      if (errors.image) {
+        setErrors((prev) => ({ ...prev, image: undefined }));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -155,6 +166,34 @@ export default function BlogPostWizard() {
   };
 
   const handleSubmit = async () => {
+    // Final validation before submit
+    const newErrors: typeof errors = {};
+    if (!formData.title.trim()) newErrors.title = "Title is required.";
+    if (!formData.author_id) newErrors.author_id = "Author is required.";
+    if (!formData.category_id) newErrors.category_id = "Category is required.";
+    if (!imagePreview) newErrors.image = "Blog image is required.";
+    if (!formData.description.trim()) newErrors.description = "Content is required.";
+    if (!formData.excerpt.trim()) newErrors.excerpt = "Excerpt is required.";
+    
+    const tagsArray = typeof formData.tags === "string"
+      ? formData.tags.split(",").map((t) => t.trim()).filter(Boolean)
+      : Array.isArray(formData.tags)
+      ? formData.tags
+      : [];
+    if (tagsArray.length === 0) newErrors.tags = "At least one tag is required.";
+    
+    if (!formData.meta_title.trim()) newErrors.meta_title = "SEO Title is required.";
+    if (!formData.meta_description.trim()) newErrors.meta_description = "SEO Description is required.";
+    if (!formData.meta_author.trim()) newErrors.meta_author = "Meta Author is required.";
+    if (!formData.meta_keywords.trim()) newErrors.meta_keywords = "Meta Keywords are required.";
+    if (!formData.estimated_reading_time.trim()) newErrors.estimated_reading_time = "Estimated reading time is required.";
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const slug = formData.slug || generateSlug(formData.title);
@@ -162,6 +201,15 @@ export default function BlogPostWizard() {
       if (imageFile) {
         imageUrl = await uploadImage(); // will just set file path for now
       }
+      
+      // Format tags as comma-separated string
+      let tagsString = "";
+      if (typeof formData.tags === "string") {
+        tagsString = formData.tags;
+      } else if (Array.isArray(formData.tags)) {
+        tagsString = (formData.tags as string[]).join(",");
+      }
+      
       const postData = {
         title: formData.title,
         slug,
@@ -169,14 +217,14 @@ export default function BlogPostWizard() {
         description: formData.description,
         image: imageUrl,
         status: formData.status,
-        tags: formData.tags,
+        tags: tagsString,
         meta_title: formData.meta_title || formData.title,
         meta_description: formData.meta_description || formData.excerpt,
         author_id: formData.author_id,
         category_id: formData.category_id,
-        estimated_reading_time: formData.estimated_reading_time,
-        meta_author: formData.meta_author,
-        meta_keywords: formData.meta_keywords,
+        estimated_reading_time: formData.estimated_reading_time || "5 min read",
+        meta_author: formData.meta_author || formData.title,
+        meta_keywords: formData.meta_keywords || formData.title,
         faq: faqs,
         published_at:
           formData.status?.toLowerCase() === "published"
@@ -214,10 +262,18 @@ export default function BlogPostWizard() {
       if (!formData.title.trim()) newErrors.title = "Title is required.";
       if (!formData.author_id) newErrors.author_id = "Author is required.";
       if (!formData.category_id) newErrors.category_id = "Category is required.";
+      if (!imagePreview && !editingBlog) newErrors.image = "Blog image is required.";
+      if (!formData.excerpt.trim()) newErrors.excerpt = "Excerpt is required.";
     }
     if (step === 2) {
       if (!formData.description.trim())
         newErrors.description = "Content is required.";
+      const tagsArray = typeof formData.tags === "string"
+        ? formData.tags.split(",").map((t) => t.trim()).filter(Boolean)
+        : Array.isArray(formData.tags)
+        ? formData.tags
+        : [];
+      if (tagsArray.length === 0) newErrors.tags = "At least one tag is required.";
     }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -336,16 +392,26 @@ export default function BlogPostWizard() {
                 </div>
 
                 <div>
-                  <Label htmlFor="excerpt">Excerpt</Label>
+                  <Label htmlFor="excerpt">
+                    Excerpt <span className="text-red-500">*</span>
+                  </Label>
                   <Textarea
                     id="excerpt"
                     value={formData.excerpt}
-                    onChange={(e) =>
-                      setFormData({ ...formData, excerpt: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, excerpt: e.target.value });
+                      if (errors.excerpt)
+                        setErrors((prev) => ({ ...prev, excerpt: undefined }));
+                    }}
+                    aria-invalid={!!errors.excerpt}
                     placeholder="Brief summary of your post"
                     rows={3}
                   />
+                  {errors.excerpt && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.excerpt}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -429,13 +495,21 @@ export default function BlogPostWizard() {
                 </div>
 
                 <div>
-                  <Label htmlFor="image">Blog Image</Label>
+                  <Label htmlFor="image">
+                    Blog Image <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
+                    aria-invalid={!!errors.image}
                   />
+                  {errors.image && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.image}
+                    </div>
+                  )}
                   {imagePreview && (
                     <div className="mt-2">
                       <img
@@ -487,7 +561,9 @@ export default function BlogPostWizard() {
                     </div>
 
                     <div>
-                      <Label htmlFor="tags">Tags</Label>
+                      <Label htmlFor="tags">
+                        Tags <span className="text-red-500">*</span>
+                      </Label>
                       <TagsInput
                         value={
                           typeof formData.tags === "string"
@@ -499,11 +575,18 @@ export default function BlogPostWizard() {
                             ? formData.tags
                             : []
                         }
-                        onChange={(tagsArr) =>
-                          setFormData({ ...formData, tags: tagsArr.join(",") })
-                        }
+                        onChange={(tagsArr) => {
+                          setFormData({ ...formData, tags: tagsArr.join(",") });
+                          if (errors.tags)
+                            setErrors((prev) => ({ ...prev, tags: undefined }));
+                        }}
                         placeholder="Type and press enter"
                       />
+                      {errors.tags && (
+                        <div className="text-red-500 text-xs mt-1">
+                          {errors.tags}
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                   <TabsContent value="preview" className="mt-4">
@@ -532,35 +615,123 @@ export default function BlogPostWizard() {
                   <h1 className="font-semibold text-sm">SEO Settings</h1>
 
                   <div>
-                    <Label htmlFor="meta_title">SEO Title</Label>
+                    <Label htmlFor="meta_title">
+                      SEO Title <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="meta_title"
                       value={formData.meta_title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, meta_title: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ ...formData, meta_title: e.target.value });
+                        if (errors.meta_title)
+                          setErrors((prev) => ({ ...prev, meta_title: undefined }));
+                      }}
+                      aria-invalid={!!errors.meta_title}
                       placeholder={
                         formData.title || "Leave empty to use post title"
                       }
                     />
+                    {errors.meta_title && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.meta_title}
+                      </div>
+                    )}
                   </div>
 
                   <div>
-                    <Label htmlFor="meta_description">SEO Description</Label>
+                    <Label htmlFor="meta_description">
+                      SEO Description <span className="text-red-500">*</span>
+                    </Label>
                     <Textarea
                       id="meta_description"
                       value={formData.meta_description}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setFormData({
                           ...formData,
                           meta_description: e.target.value,
-                        })
-                      }
+                        });
+                        if (errors.meta_description)
+                          setErrors((prev) => ({ ...prev, meta_description: undefined }));
+                      }}
+                      aria-invalid={!!errors.meta_description}
                       placeholder={
                         formData.excerpt || "Leave empty to use excerpt"
                       }
                       rows={3}
                     />
+                    {errors.meta_description && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.meta_description}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="meta_author">
+                      Meta Author <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="meta_author"
+                      value={formData.meta_author}
+                      onChange={(e) => {
+                        setFormData({ ...formData, meta_author: e.target.value });
+                        if (errors.meta_author)
+                          setErrors((prev) => ({ ...prev, meta_author: undefined }));
+                      }}
+                      aria-invalid={!!errors.meta_author}
+                      placeholder="Author name for meta tags"
+                    />
+                    {errors.meta_author && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.meta_author}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="meta_keywords">
+                      Meta Keywords <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="meta_keywords"
+                      value={formData.meta_keywords}
+                      onChange={(e) => {
+                        setFormData({ ...formData, meta_keywords: e.target.value });
+                        if (errors.meta_keywords)
+                          setErrors((prev) => ({ ...prev, meta_keywords: undefined }));
+                      }}
+                      aria-invalid={!!errors.meta_keywords}
+                      placeholder="Comma-separated keywords for SEO"
+                    />
+                    {errors.meta_keywords && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.meta_keywords}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="estimated_reading_time">
+                      Estimated Reading Time <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="estimated_reading_time"
+                      type="number"
+                      value={formData.estimated_reading_time}
+                      onChange={(e) => {
+                        setFormData({ ...formData, estimated_reading_time: e.target.value });
+                        if (errors.estimated_reading_time)
+                          setErrors((prev) => ({ ...prev, estimated_reading_time: undefined }));
+                      }}
+                      aria-invalid={!!errors.estimated_reading_time}
+                      placeholder="Reading time in minutes"
+                      min="1"
+                    />
+                    {errors.estimated_reading_time && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.estimated_reading_time}
+                      </div>
+                    )}
                   </div>
 
                   <div>

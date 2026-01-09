@@ -246,17 +246,23 @@ export default function PartnerDialog({
         status: formData.status,
       };
 
+      let result;
       if (partner) {
-        await dispatch(
+        result = await dispatch(
           updatePartnerThunk({
             id: partner.id,
             ...payload,
           })
         );
       } else {
-        await dispatch(createPartnerThunk(payload));
+        result = await dispatch(createPartnerThunk(payload));
       }
-      onOpenChange(false);
+      
+      // Only close dialog on success, keep it open on error
+      if (result?.success) {
+        onOpenChange(false);
+      }
+      // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error) {
       console.error("Error submitting partner:", error);
     } finally {

@@ -14,16 +14,21 @@ interface PageBuilderSEOProps {
   };
   setSeoData: (data: any) => void;
   loading: boolean;
+  errors?: {
+    seoTitle?: string;
+    seoDescription?: string;
+    seoImage?: string;
+  };
 }
 
-const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, loading }) => (
+const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, loading, errors = {} }) => (
   <Card className="p-5">
   <div className="space-y-4 mt-4">
     <h3 className="font-semibold text-sm">SEO Settings</h3>
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="seo-title" className="text-sm font-medium">
-          Seo title
+          Seo title<span className="text-red-500">*</span>
         </Label>
         <Input
           id="seo-title"
@@ -31,7 +36,7 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
           value={seoData.title}
           onChange={(e) => setSeoData({ ...seoData, title: e.target.value })}
           disabled={loading}
-          className="text-sm"
+          className={`text-sm`}
         />
       </div>
       <div className="space-y-2">
@@ -50,7 +55,7 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
     </div>
     <div className="space-y-2">
       <Label htmlFor="seo-description" className="text-sm font-medium">
-        Meta description
+        Meta description<span className="text-red-500">*</span>
       </Label>
       <Textarea
         id="seo-description"
@@ -58,7 +63,7 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
         value={seoData.description}
         onChange={(e) => setSeoData({ ...seoData, description: e.target.value })}
         disabled={loading}
-        className="w-full text-xs border rounded p-2 min-h-20 font-sans"
+        className={`w-full text-xs border rounded p-2 min-h-20 font-sans`}
       />
     </div>
     <div className="space-y-2">
@@ -76,9 +81,12 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
     </div>
     <div className="space-y-2">
       <Label htmlFor="seo-image" className="text-sm font-medium">
-        Image
+        Image<span className="text-red-500">*</span>
       </Label>
-      <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+      <div 
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors ${errors.seoImage ? 'border-red-500' : ''}`}
+        onClick={() => document.getElementById('seo-image')?.click()}
+      >
         <p className="text-sm text-muted-foreground">
           Drag & Drop your files or <span className="text-primary font-medium">Browse</span>
         </p>
@@ -88,7 +96,11 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
           accept="image/*"
           onChange={(e) => {
             if (e.target.files?.[0]) {
-              setSeoData({ ...seoData, image: e.target.files[0].name });
+              const file = e.target.files[0];
+              // Create a URL for the file
+              const fileUrl = URL.createObjectURL(file);
+              // Store the file path
+              setSeoData({ ...seoData, image: fileUrl });
             }
           }}
           disabled={loading}
@@ -96,8 +108,16 @@ const PageBuilderSEO: React.FC<PageBuilderSEOProps> = ({ seoData, setSeoData, lo
         />
       </div>
       {seoData.image && (
-        <p className="text-xs text-muted-foreground">Selected: {seoData.image}</p>
+        <div className="space-y-2">
+          <img 
+            src={seoData.image} 
+            alt="SEO Preview" 
+            className="w-full h-32 object-cover rounded-lg border"
+          />
+          <p className="text-xs text-muted-foreground">Image selected and ready to upload</p>
+        </div>
       )}
+      {errors.seoImage && <p className="text-xs text-red-500">{errors.seoImage}</p>}
     </div>
   </div>
 </Card>

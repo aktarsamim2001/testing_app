@@ -81,7 +81,10 @@ export default function Section1({
         buttonUrl: '',
       };
     }
-    updatedCards[cardIndex][field] = value;
+    updatedCards[cardIndex] = {
+      ...updatedCards[cardIndex],
+      [field]: value,
+    };
     updateSlide(section.id, slideId, { cards: updatedCards });
   };
 
@@ -164,7 +167,7 @@ export default function Section1({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -184,7 +187,7 @@ export default function Section1({
                   </Label>
                   <Input
                     id={`button1-text-${slide.id}`}
-                    placeholder="e.g., Get Started Today"
+                    placeholder="Get Started Today"
                     value={slide.button1Text || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Text: e.target.value })
@@ -199,7 +202,7 @@ export default function Section1({
                   </Label>
                   <Input
                     id={`button1-url-${slide.id}`}
-                    placeholder="e.g., /get-started"
+                    placeholder="/example"
                     value={slide.button1Url || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Url: e.target.value })
@@ -221,7 +224,7 @@ export default function Section1({
                   </Label>
                   <Input
                     id={`button2-text-${slide.id}`}
-                    placeholder="e.g., Learn More"
+                    placeholder="Learn More"
                     value={slide.button2Text || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button2Text: e.target.value })
@@ -236,7 +239,7 @@ export default function Section1({
                   </Label>
                   <Input
                     id={`button2-url-${slide.id}`}
-                    placeholder="e.g., /learn-more"
+                    placeholder="/example"
                     value={slide.button2Url || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button2Url: e.target.value })
@@ -294,9 +297,9 @@ export default function Section1({
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs font-medium">Title</Label>
+                          <Label className="text-xs font-medium">Number</Label>
                           <Input
-                            placeholder="e.g., $100+"
+                            placeholder="$100+"
                             value={card.title}
                             onChange={(e) =>
                               handleCardChange(slide.id, cardIndex, 'title', e.target.value)
@@ -308,9 +311,9 @@ export default function Section1({
                       </div>
                       
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Description</Label>
+                        <Label className="text-xs font-medium">Subtitle</Label>
                         <Input
-                          placeholder="e.g., Per LinkedIn Post"
+                          placeholder="Per LinkedIn Post"
                           value={card.description}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, 'description', e.target.value)
@@ -321,9 +324,9 @@ export default function Section1({
                       </div>
 
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Subtitle/Details</Label>
+                        <Label className="text-xs font-medium">Description</Label>
                         <Input
-                          placeholder="e.g., Minimum guaranteed earnings"
+                          placeholder="Minimum guaranteed earnings"
                           value={card.buttonText}
                           onChange={(e) =>
                             handleCardChange(slide.id, cardIndex, 'buttonText', e.target.value)

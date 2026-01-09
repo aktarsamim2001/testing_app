@@ -54,52 +54,52 @@ interface SlideData {
 // Template sections mapping
 const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
   home: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
+    { id: 'hero', name: 'Banner', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Channels', type: 'channels', slides: [] },
+    { id: 'features', name: 'Features', type: 'features', slides: [] },
+    { id: 'stats', name: 'CTA Banner', type: 'stats', slides: [] },
   ],
   creators: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
-    { id: 'section5', name: 'Section 5', type: 'stats', slides: [] },
+    { id: 'hero', name: 'Creators Header', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Channels', type: 'channels', slides: [] },
+    { id: 'features', name: 'Process', type: 'features', slides: [] },
+    { id: 'stats', name: 'Benefits', type: 'stats', slides: [] },
+    { id: 'section5', name: 'CTA Banner', type: 'stats', slides: [] },
   ],
   services: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
+    { id: 'hero', name: 'Services Header', type: 'hero', slides: [] },
   ],
   'how-it-works': [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Steps', type: 'channels', slides: [] },
+    { id: 'features', name: 'Process', type: 'features', slides: [] },
+    { id: 'stats', name: 'CTA Banner', type: 'stats', slides: [] },
   ],
   pricing: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'features', name: 'Section 2', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 3', type: 'stats', slides: [] },
-    { id: 'section5', name: 'Section 4', type: 'section5', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
+    { id: 'features', name: 'Add On', type: 'features', slides: [] },
+    { id: 'stats', name: 'Faq', type: 'stats', slides: [] },
+    { id: 'section5', name: 'CTA Banner', type: 'section5', slides: [] },
   ],
   about: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
-    { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
-    { id: 'section5', name: 'Section 5', type: 'section5', slides: [] },
-    { id: 'section6', name: 'Section 6', type: 'section6', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Story', type: 'channels', slides: [] },
+    { id: 'features', name: 'Impact', type: 'features', slides: [] },
+    { id: 'stats', name: 'Values', type: 'stats', slides: [] },
+    { id: 'section5', name: 'Experts', type: 'section5', slides: [] },
+    { id: 'section6', name: 'CTA Banner', type: 'section6', slides: [] },
   ],
   contact: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Contact Info', type: 'channels', slides: [] },
   ],
   blog: [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
   ],
   'blog-details': [
-    { id: 'hero', name: 'Section 1', type: 'hero', slides: [] },
-    { id: 'channels', name: 'Section 2', type: 'channels', slides: [] },
-    { id: 'features', name: 'Section 3', type: 'features', slides: [] },
+    { id: 'hero', name: 'Header', type: 'hero', slides: [] },
+    { id: 'channels', name: 'Story', type: 'channels', slides: [] },
+    { id: 'features', name: 'Impact', type: 'features', slides: [] },
     { id: 'stats', name: 'Section 4', type: 'stats', slides: [] },
   ],
 };
@@ -139,6 +139,15 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     image: '',
   });
 
+  const [errors, setErrors] = useState<{
+    title?: string;
+    template?: string;
+    slug?: string;
+    sections?: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    seoImage?: string;
+  }>({});
 
   const isEditMode = !!pageId;
 
@@ -353,24 +362,58 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Clear previous errors
+    const newErrors: typeof errors = {};
+
     // Validation
     if (!formData.title.trim()) {
+      newErrors.title = 'Page title is required';
+    }
+
+    if (!formData.slug.trim()) {
+      newErrors.slug = 'Slug is required';
+    }
+
+    if (!formData.template) {
+      newErrors.template = 'Template selection is required';
+    }
+
+    if (sections.length === 0) {
+      newErrors.sections = 'Page must have at least one section';
+    } else {
+      // Check if at least one section has content
+      const hasContent = sections.some(section => section.slides.length > 0);
+      if (!hasContent) {
+        newErrors.sections = 'At least one section must have content';
+      }
+    }
+
+    // SEO validation
+    if (!seoData.title.trim()) {
+      newErrors.seoTitle = 'SEO title is required';
+    }
+
+    if (!seoData.description.trim()) {
+      newErrors.seoDescription = 'SEO description is required';
+    }
+
+    if (!seoData.image.trim()) {
+      newErrors.seoImage = 'SEO image is required';
+    }
+
+    // If there are errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       toast({
         title: 'Error',
-        description: 'Page title is required',
+        description: 'Please fill in all required fields',
         variant: 'destructive',
       });
       return;
     }
 
-    if (sections.length === 0) {
-      toast({
-        title: 'Error',
-        description: 'Page must have at least one section',
-        variant: 'destructive',
-      });
-      return;
-    }
+    // Clear errors if validation passed
+    setErrors({});
 
     // Build payload
     let payload = buildApiPayload();
@@ -446,6 +489,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                 handleTitleChange={handleTitleChange}
                 setFormData={setFormData}
                 handleTemplateChange={handleTemplateChange}
+                errors={errors}
               />
             </div>
             {/* Right Panel - Sections/SEO */}
@@ -480,12 +524,14 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
                       addSlide={addSlide}
                       removeSlide={removeSlide}
                       TEMPLATE_SECTIONS={TEMPLATE_SECTIONS}
+                      sectionError={errors.sections}
                     />
                   ) : (
                     <PageBuilderSEO
                       seoData={seoData}
                       setSeoData={setSeoData}
                       loading={loading}
+                      errors={errors}
                     />
                   )}
                 </div>

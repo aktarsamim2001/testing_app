@@ -116,7 +116,7 @@ export default function Section4({
             {/* Slide Title */}
             <div className="space-y-2">
               <Label htmlFor={`slide-title-${slide.id}`} className="text-sm font-medium">
-                Slide Title
+                Title
               </Label>
               <Input
                 id={`slide-title-${slide.id}`}
@@ -133,11 +133,11 @@ export default function Section4({
             {/* Slide Subtitle */}
             <div className="space-y-2">
               <Label htmlFor={`slide-subtitle-${slide.id}`} className="text-sm font-medium">
-                Subtitle
+                Description
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter description"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -149,15 +149,14 @@ export default function Section4({
 
             {/* Button 1 */}
             <div className="space-y-2 border-t pt-4">
-              <Label className="text-sm font-medium">Button 1</Label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor={`button1-text-${slide.id}`} className="text-xs font-medium">
+                  <Label htmlFor={`button1-text-${slide.id}`} className="text-sm font-medium">
                     Button Text
                   </Label>
                   <Input
                     id={`button1-text-${slide.id}`}
-                    placeholder="e.g., Get Started Today"
+                    placeholder="Button Text"
                     value={slide.button1Text || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Text: e.target.value })
@@ -167,12 +166,12 @@ export default function Section4({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor={`button1-url-${slide.id}`} className="text-xs font-medium">
+                  <Label htmlFor={`button1-url-${slide.id}`} className="text-sm font-medium">
                     Button URL
                   </Label>
                   <Input
                     id={`button1-url-${slide.id}`}
-                    placeholder="e.g., /get-started"
+                    placeholder="/example"
                     value={slide.button1Url || ''}
                     onChange={(e) =>
                       updateSlide(section.id, slide.id, { button1Url: e.target.value })

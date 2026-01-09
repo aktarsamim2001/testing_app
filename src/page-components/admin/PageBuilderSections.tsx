@@ -24,6 +24,7 @@ interface PageBuilderSectionsProps {
   addSlide: any;
   removeSlide: any;
   TEMPLATE_SECTIONS: Record<string, SectionData[]>;
+  sectionError?: string;
 }
 
 const PageBuilderSections: React.FC<PageBuilderSectionsProps> = ({
@@ -38,19 +39,19 @@ const PageBuilderSections: React.FC<PageBuilderSectionsProps> = ({
   addSlide,
   removeSlide,
   TEMPLATE_SECTIONS,
+  sectionError,
 }) => (
   <Card>
     <CardContent className="pt-6">
+      {sectionError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          {sectionError}
+        </div>
+      )}
       <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList className="w-full justify-start overflow-x-auto bg-muted p-1 gap-1 h-auto flex-wrap">
-            {sections.filter(section => {
-              const templateSections = TEMPLATE_SECTIONS[formData.template as keyof typeof TEMPLATE_SECTIONS] || [];
-              const maxSectionCount = templateSections.length;
-              const sectionMatch = section.name.match(/Section (\d+)/);
-              const sectionNumber = sectionMatch ? parseInt(sectionMatch[1]) : 0;
-              return sectionNumber > 0 && sectionNumber <= maxSectionCount;
-            }).map((section) => (
+            {sections.map((section) => (
               <TabsTrigger 
                 key={section.id} 
                 value={section.id}

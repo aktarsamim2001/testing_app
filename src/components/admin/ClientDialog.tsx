@@ -215,23 +215,27 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     setLoading(true);
     
     try {
+      let result;
       if (client) {
-        await dispatch(updateClientThunk({
+        result = await dispatch(updateClientThunk({
           id: client.id,
           ...formData,
           phone: formData.phone ? `+${formData.phone}` : null,
         }));
-        onOpenChange({ success: "Client updated successfully" });
       } else {
-        await dispatch(createClientThunk({
+        result = await dispatch(createClientThunk({
           ...formData,
           phone: formData.phone ? `+${formData.phone}` : null,
         }));
-        onOpenChange({ success: "Client created successfully" });
       }
+      
+      // Only close dialog on success, keep it open on error
+      if (result?.success) {
+        onOpenChange(false);
+      }
+      // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error: any) {
       console.error('Error submitting client:', error);
-      onOpenChange({ error: error?.message || "Failed to save client" });
     } finally {
       setLoading(false);
     }

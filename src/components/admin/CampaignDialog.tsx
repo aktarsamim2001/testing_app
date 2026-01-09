@@ -156,8 +156,10 @@ export default function CampaignDialog({ open, onOpenChange, campaign }: Campaig
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      // Dialog stays open on error so user can fix and retry
     } else {
       toast({ title: 'Success', description: `Campaign ${campaign ? 'updated' : 'created'} successfully` });
+      // Only close dialog on success
       onOpenChange(false);
     }
     setLoading(false);

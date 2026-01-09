@@ -16,6 +16,11 @@ interface PageBuilderFormProps {
   handleTitleChange: (title: string) => void;
   setFormData: (data: any) => void;
   handleTemplateChange: (template: string) => void;
+  errors?: {
+    title?: string;
+    template?: string;
+    slug?: string;
+  };
 }
 
 const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
@@ -25,6 +30,7 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
   handleTitleChange,
   setFormData,
   handleTemplateChange,
+  errors = {},
 }) => (
   <Card className="p-4">
     <div className="space-y-4">
@@ -38,12 +44,13 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
           value={formData.title}
           onChange={(e) => handleTitleChange(e.target.value)}
           disabled={loading}
-          className="text-sm"
+          className={`text-sm ${errors.title ? 'border-red-500' : ''}`}
         />
+        {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="slug" className="text-sm font-medium">
-          Slug
+          Slug<span className="text-red-500">*</span>
         </Label>
         <Input
           id="slug"
@@ -52,9 +59,10 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
           onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
           disabled={loading || isEditMode}
           readOnly={isEditMode}
-          className="text-sm bg-muted"
+          className={`text-sm bg-muted ${errors.slug ? 'border-red-500' : ''}`}
         />
-        <p className="text-xs text-muted-foreground">Auto-generated from title</p>
+        {errors.slug && <p className="text-xs text-red-500">{errors.slug}</p>}
+        {!errors.slug && <p className="text-xs text-muted-foreground">Auto-generated from title</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="template" className="text-sm font-medium">
@@ -65,7 +73,7 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
           onValueChange={handleTemplateChange}
           disabled={loading || isEditMode}
         >
-          <SelectTrigger id="template" className="text-sm">
+          <SelectTrigger id="template" className={`text-sm ${errors.template ? 'border-red-500' : ''}`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -79,6 +87,7 @@ const PageBuilderForm: React.FC<PageBuilderFormProps> = ({
             <SelectItem value="contact">Contact</SelectItem>
           </SelectContent>
         </Select>
+        {errors.template && <p className="text-xs text-red-500">{errors.template}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="status" className="text-sm font-medium">

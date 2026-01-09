@@ -164,7 +164,7 @@ export default function Section2({
               </Label>
               <Input
                 id={`slide-subtitle-${slide.id}`}
-                placeholder="Enter slide subtitle"
+                placeholder="Enter subtitle"
                 value={slide.subtitle || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { subtitle: e.target.value })
@@ -224,7 +224,7 @@ export default function Section2({
                         <div className="space-y-1">
                           <Label className="text-xs font-medium">Title</Label>
                           <Input
-                            placeholder="e.g., LinkedIn Influencers"
+                            placeholder="LinkedIn Influencers"
                             value={card.title}
                             onChange={(e) =>
                               handleCardChange(slide.id, cardIndex, 'title', e.target.value)
@@ -234,27 +234,27 @@ export default function Section2({
                           />
                         </div>
                       </div>
-                      
+
                       <div className="space-y-1">
-                        <Label className="text-xs font-medium">Description</Label>
+                        <Label className="text-xs font-medium">Subtitle</Label>
                         <Input
-                          placeholder="e.g., $100-300 per post"
-                          value={card.description}
+                          placeholder="Share SAAS insights with your professional network"
+                          value={card.buttonText}
                           onChange={(e) =>
-                            handleCardChange(slide.id, cardIndex, 'description', e.target.value)
+                            handleCardChange(slide.id, cardIndex, 'buttonText', e.target.value)
                           }
                           disabled={loading}
                           className="text-xs"
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">Subtitle/Details</Label>
+                       <div className="space-y-1">
+                        <Label className="text-xs font-medium">Description</Label>
                         <Input
-                          placeholder="e.g., Share SAAS insights with your professional network"
-                          value={card.buttonText}
+                          placeholder="$100-300 per post"
+                          value={card.description}
                           onChange={(e) =>
-                            handleCardChange(slide.id, cardIndex, 'buttonText', e.target.value)
+                            handleCardChange(slide.id, cardIndex, 'description', e.target.value)
                           }
                           disabled={loading}
                           className="text-xs"

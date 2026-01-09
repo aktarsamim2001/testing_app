@@ -42,13 +42,13 @@ export default function Section2({
         <div className="space-y-3">
           {/* Title 1 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 1</Label>
+            <Label className="text-xs font-medium">Badge Title</Label>
             <Input
                value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { title: e.target.value })
               }
-              placeholder="e.g., Our Packages"
+              placeholder="Badge Title"
               className="text-sm"
               disabled={loading}
             />
@@ -56,13 +56,13 @@ export default function Section2({
 
           {/* Title 2 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Title 2</Label>
+            <Label className="text-xs font-medium">Title</Label>
             <Input
               value={section.slides[0]?.subtitle || ''}
               onChange={(e) =>
                 updateSlide(section.id, section.slides[0].id, { subtitle: e.target.value })
               }
-              placeholder="e.g., Choose your plan"
+              placeholder="Title"
               className="text-sm"
               disabled={loading}
             />
@@ -191,14 +191,14 @@ export default function Section2({
                           </p>
                         </label>
                       </div>
-                      {card.icon && (
+                      {/* {card.icon && (
                         <p className="text-xs text-muted-foreground">Selected: {card.icon}</p>
-                      )}
+                      )} */}
                     </div>
 
                     {/* Title 1 */}
                     <div className="space-y-1">
-                      <Label className="text-xs font-medium">Title 1</Label>
+                      <Label className="text-xs font-medium">Channel Title</Label>
                       <Input
                         value={card.title || ''}
                         onChange={(e) => {
@@ -211,7 +211,7 @@ export default function Section2({
                             cards: updatedCards,
                           } as any);
                         }}
-                        placeholder="e.g., Starter Plan"
+                        placeholder="Channel title"
                         className="text-sm"
                         disabled={loading}
                       />
@@ -240,7 +240,7 @@ export default function Section2({
 
                     {/* Description */}
                     <div className="space-y-1">
-                      <Label className="text-xs font-medium">Description</Label>
+                      <Label className="text-xs font-medium">Channel Description</Label>
                       <Textarea
                         value={card.description || ''}
                         onChange={(e) => {
@@ -253,7 +253,7 @@ export default function Section2({
                             cards: updatedCards,
                           } as any);
                         }}
-                        placeholder="Card description..."
+                        placeholder="Channel description"
                         className="w-full text-xs border rounded p-2 min-h-16 font-sans"
                         disabled={loading}
                       />
@@ -274,7 +274,7 @@ export default function Section2({
                             cards: updatedCards,
                           } as any);
                         }}
-                        placeholder="e.g., Learn More"
+                        placeholder="Button Text"
                         className="text-sm"
                         disabled={loading}
                       />
@@ -295,7 +295,7 @@ export default function Section2({
                             cards: updatedCards,
                           } as any);
                         }}
-                        placeholder="e.g., /pricing or https://example.com"
+                        placeholder="/example"
                         className="text-sm"
                         disabled={loading}
                       />

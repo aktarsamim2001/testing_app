@@ -152,7 +152,7 @@ export default function Section2({
               </Label>
               <Textarea
                 id={`slide-description-${slide.id}`}
-                placeholder="Enter slide description"
+                placeholder="Enter description"
                 value={slide.description || ''}
                 onChange={(e) =>
                   updateSlide(section.id, slide.id, { description: e.target.value })
