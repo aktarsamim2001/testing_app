@@ -200,7 +200,7 @@ export default function Section2({
             </div>
 
             {/* Contact Cards Section */}
-            <div className="space-y-3 border-t pt-4">
+            {/* <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Contact Methods</Label>
                 <Button
@@ -220,7 +220,6 @@ export default function Section2({
                 {((slide as any).cards || []).map((card: CardItem, cardIndex: number) => (
                   <Card key={cardIndex} className="p-3 bg-muted/50">
                     <div className="space-y-2">
-                      {/* Contact Type Title */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Contact Type</Label>
                         <Input
@@ -234,7 +233,6 @@ export default function Section2({
                         />
                       </div>
 
-                      {/* Contact Value/Details */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Contact Details</Label>
                         <Input
@@ -248,7 +246,6 @@ export default function Section2({
                         />
                       </div>
 
-                      {/* Icon Upload */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium">Icon</Label>
                         <Input
@@ -257,7 +254,6 @@ export default function Section2({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              // Instead of base64, just set a fake path for now
                               handleCardChange(slide.id, cardIndex, { icon: `/uploads/icons/${file.name}` });
                             }
                           }}
@@ -284,7 +280,7 @@ export default function Section2({
                   </Card>
                 ))}
               </div>
-            </div>
+            </div>  */}
 
             {/* What to Expect Section */}
             <div className="space-y-3 border-t pt-4">

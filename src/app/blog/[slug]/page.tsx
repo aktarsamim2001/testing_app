@@ -86,6 +86,16 @@ export default function BlogPostPage() {
         <article className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* Title and Meta */}
           <div className="px-6 sm:px-10 pt-8 pb-6">
+            {
+              post.category && (
+                <Badge 
+                  variant="outline"
+                  className="bg-orange-500 text-white px-3 py-1"
+                >
+                  {post.category}
+                </Badge>
+              )
+            }
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
               {post.title}
             </h1>
@@ -254,7 +264,7 @@ export default function BlogPostPage() {
                   <Badge 
                     key={idx} 
                     variant="secondary" 
-                    className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1"
+                    className="px-3 py-1"
                   >
                     {tag}
                   </Badge>

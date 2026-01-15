@@ -70,18 +70,9 @@ export default function Section3({
     const slide = section.slides.find(s => s.id === slideId);
     if (!slide) return;
 
-    const updatedCards = [...(slide.cards || [])];
-    if (!updatedCards[cardIndex]) {
-      updatedCards[cardIndex] = {
-        id: `card-${Date.now()}`,
-        icon: '',
-        title: '',
-        description: '',
-        buttonText: '',
-        buttonUrl: '',
-      };
-    }
-    updatedCards[cardIndex][field] = value;
+    const updatedCards = (slide.cards || []).map((c, i) =>
+      i === cardIndex ? { ...c, [field]: value } : c
+    );
     updateSlide(section.id, slideId, { cards: updatedCards });
   };
 

@@ -64,7 +64,7 @@ const Services = ({data}) => {
                       </div>
                     </div>
                     <Badge variant="outline" className="text-lg py-1 px-3">
-                      ${service.price}/month
+                      Starting at ${service.price}/month
                     </Badge>
                   </div>
                 </CardHeader>
@@ -174,7 +174,7 @@ const Services = ({data}) => {
                   </div>
                   <Link href="/contact?source=services">
                     <Button size="lg" className="bg-gradient-primary shadow-medium">
-                      Get {fullService.name}
+                      Start {fullService.name}
                       <ArrowRight className="ml-2 w-5 h-5" />
                     </Button>
                   </Link>

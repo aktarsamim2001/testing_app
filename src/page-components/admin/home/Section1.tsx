@@ -222,10 +222,9 @@ export default function Section1({
                           accept="image/*"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              const updatedStats = [
-                                ...((section.slides[0] as any)?.stats || []),
-                              ];
-                              updatedStats[index].icon = `/uploads/icons/${e.target.files[0].name}`;
+                              const updatedStats = ((section.slides[0] as any)?.stats || []).map((s: any, i: number) =>
+                                i === index ? { ...s, icon: `/uploads/icons/${e.target.files[0].name}` } : s
+                              );
                               updateSlide(section.id, section.slides[0].id, {
                                 ...section.slides[0],
                                 stats: updatedStats,
@@ -252,10 +251,9 @@ export default function Section1({
                       <Input
                         value={stat.number || ''}
                         onChange={(e) => {
-                          const updatedStats = [
-                            ...((section.slides[0] as any)?.stats || []),
-                          ];
-                          updatedStats[index].number = e.target.value;
+                          const updatedStats = ((section.slides[0] as any)?.stats || []).map((s: any, i: number) =>
+                            i === index ? { ...s, number: e.target.value } : s
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             stats: updatedStats,
@@ -272,10 +270,9 @@ export default function Section1({
                       <Input
                         value={stat.label || ''}
                         onChange={(e) => {
-                          const updatedStats = [
-                            ...((section.slides[0] as any)?.stats || []),
-                          ];
-                          updatedStats[index].label = e.target.value;
+                          const updatedStats = ((section.slides[0] as any)?.stats || []).map((s: any, i: number) =>
+                            i === index ? { ...s, label: e.target.value } : s
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             stats: updatedStats,
@@ -293,10 +290,9 @@ export default function Section1({
                         type="number"
                         value={stat.test || ''}
                         onChange={(e) => {
-                          const updatedStats = [
-                            ...((section.slides[0] as any)?.stats || []),
-                          ];
-                          updatedStats[index].test = e.target.value;
+                          const updatedStats = ((section.slides[0] as any)?.stats || []).map((s: any, i: number) =>
+                            i === index ? { ...s, test: e.target.value } : s
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             stats: updatedStats,

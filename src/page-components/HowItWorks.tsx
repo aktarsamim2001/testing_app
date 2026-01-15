@@ -66,7 +66,7 @@ const HowItWorks = ({data}) => {
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
               {section1.title || "Our Process"}
             </Badge>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               {section1.subtitle || "From Strategy to Scale in 5 Simple Steps"}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">

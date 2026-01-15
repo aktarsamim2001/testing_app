@@ -130,18 +130,6 @@ export default function Section1({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {/* {removeSlide && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeSlide(section.id, slide.id)}
-              disabled={loading}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )} */}
           <CardContent className="space-y-4">
             {/* Slide Title */}
             <div className="space-y-2">

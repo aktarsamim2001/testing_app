@@ -63,24 +63,28 @@ export default function SubscriptionBuilder({ subscriptionId, editData }: Props)
 
   const [features, setFeatures] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (isEditMode && editData) {
-      setForm({
-        flag: editData.flag || "Normal",
-        name: editData.name || "",
-        partnerships: editData.partnerships || "",
-        price: editData.price || "",
-        description: editData.description || "",
-        popular: String(editData.popular ?? "0"),
-        status: String(editData.status ?? 1),
-      });
-      setFeatures(
-        Array.isArray(editData.features)
-          ? editData.features
-          : []
-      );
-    }
-  }, [isEditMode, editData]);
+useEffect(() => {
+  if (isEditMode && editData) {
+    setForm({
+      flag: editData.flag || "Normal",
+      name: editData.name || "",
+      partnerships: editData.partnerships || "",
+      price: editData.price || "",
+      description: editData.description || "",
+      popular: String(editData.popular ?? "0"),
+      status: String(editData.status ?? 1),
+    });
+    
+    // Fix: Extract the title from feature objects
+    setFeatures(
+      Array.isArray(editData.features)
+        ? editData.features.map((feature: any) => 
+            typeof feature === 'string' ? feature : feature.title || ''
+          )
+        : []
+    );
+  }
+}, [isEditMode, editData]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

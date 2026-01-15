@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Check, ArrowRight, Zap } from "lucide-react";
 
-const Pricing = ({data}) => {
+const Pricing = ({ data }) => {
   console.log("🟢 [Pricing] Component rendering with data:", data);
-  
+
   // Safely extract content sections from API data
   const contentData = data?.content?.[0];
   const section1 = contentData?.section1?.[0];
   const section2 = contentData?.section2?.[0];
   const section3 = contentData?.section3?.[0];
   const section4 = contentData?.section4?.[0];
-  
+
   // Separate subscriptions into normal plans and add-ons
   const allSubscriptions = data?.subscriptions || [];
   const plans = allSubscriptions.filter((plan: any) => plan.flag === "Normal");
@@ -49,11 +49,11 @@ const Pricing = ({data}) => {
       {/* Pricing Cards */}
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex flex-wrap justify-center gap-4">
             {plans.map((plan: any, index: number) => (
               <Card
                 key={index}
-                className={`relative shadow-soft hover:shadow-large transition-all flex flex-col h-full min-h-[520px] ${
+                className={`relative shadow-soft hover:shadow-large transition-all flex flex-col w-full md:w-[420px] min-h-[520px] ${
                   plan.popular ? "border-2 border-primary shadow-large" : ""
                 }`}
               >
@@ -92,15 +92,18 @@ const Pricing = ({data}) => {
                 </CardHeader>
                 <CardContent className="flex flex-col flex-grow">
                   <ul className="space-y-3">
-                    {plan.features && Array.isArray(plan.features) && plan.features.map((feature: any, idx: number) => {
-                      const featureText = typeof feature === "string" ? feature : feature.title;
-                      return (
-                        <li key={idx} className="flex items-start gap-2">
-                          <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{featureText}</span>
-                        </li>
-                      );
-                    })}
+                    {plan.features &&
+                      Array.isArray(plan.features) &&
+                      plan.features.map((feature: any, idx: number) => {
+                        const featureText =
+                          typeof feature === "string" ? feature : feature.title;
+                        return (
+                          <li key={idx} className="flex items-start gap-2">
+                            <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-sm">{featureText}</span>
+                          </li>
+                        );
+                      })}
                   </ul>
                   <div className="mt-auto pt-5">
                     <Link href="/contact?source=pricing" className="block">
@@ -112,7 +115,7 @@ const Pricing = ({data}) => {
                         }`}
                         variant={plan.popular ? "default" : "outline"}
                       >
-                        Get Started
+                        Start with {plan.name}
                         <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
                     </Link>
@@ -129,9 +132,7 @@ const Pricing = ({data}) => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">
-                {section2?.title}
-              </h2>
+              <h2 className="text-3xl font-bold mb-4">{section2?.title}</h2>
               <p className="text-lg text-muted-foreground">
                 {section2?.subtitle}
               </p>
@@ -155,12 +156,12 @@ const Pricing = ({data}) => {
                       </div>
                       <div className="flex flex-col items-center gap-4">
                         <Link href="/contact?source=pricing">
-                        <Button className="whitespace-nowrap" size="lg">
-                          Learn More
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                         <p className="text-2xl font-bold text-primary">
+                          <Button className="whitespace-nowrap" size="lg">
+                            Learn More
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <p className="text-2xl font-bold text-primary">
                           ${addOn.price}/month
                         </p>
                       </div>
@@ -185,9 +186,7 @@ const Pricing = ({data}) => {
               {section3?.titles?.map((faq: any, index: number) => (
                 <Card key={index} className="shadow-soft">
                   <CardContent className="pt-6">
-                    <h3 className="text-xl font-semibold mb-2">
-                      {faq.text}
-                    </h3>
+                    <h3 className="text-xl font-semibold mb-2">{faq.text}</h3>
                     <p className="text-sm text-muted-foreground">
                       {faq.answer}
                     </p>

@@ -57,7 +57,7 @@ const ForCreators = ({data}) => {
                 {section1.button1Text || 'Start Earning Today'}
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto">
+            <Button href={section1.button2Url || '/auth?type=creator'} size="lg" variant="outline" className="text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto">
               {section1.button2Text || 'See How It Works'}
             </Button>
           </div>

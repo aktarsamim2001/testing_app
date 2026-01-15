@@ -171,19 +171,14 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     }
   }, [pageId, isEditMode, dispatch]);
 
-  // Pre-fill form and sections for edit mode, only when selectedPage is available
   useEffect(() => {
-    // Wait for loading to complete and selectedPage to be populated
     if (isEditMode && !selectedPageLoading && selectedPage) {
-      // DEBUG: Log the selectedPage and its content to diagnose pre-fill issues
-      // eslint-disable-next-line no-console
-      console.log('DEBUG selectedPage:', selectedPage);
-      // eslint-disable-next-line no-console
-      console.log('DEBUG selectedPage.content:', selectedPage.content);
+      // Always use underscores for template key internally
+      const templateKey = (selectedPage.template || 'home').replace(/-/g, '_');
       setFormData({
         title: selectedPage.title || '',
         slug: selectedPage.slug || '',
-        template: selectedPage.template || 'home',
+        template: templateKey,
         status: selectedPage.status === 1 ? 'active' : 'inactive',
       });
       setSeoData({
@@ -193,53 +188,48 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
         keywords: selectedPage.meta_keywords || '',
         image: selectedPage.meta_feature_image || '',
       });
+
       // Parse sections from API data
       let apiSections = [];
-      // API returns data in the 'data' field (array with one object containing sections)
+      // Support both 'content' and 'data' fields from API
       let contentData = selectedPage.content;
-      
-      // eslint-disable-next-line no-console
-      console.log('DEBUG selectedPage template:', selectedPage.template);
-      // eslint-disable-next-line no-console
-      console.log('DEBUG contentData:', contentData);
-      
-      // Normalize template name (API might return with dashes, we use underscores)
-      const templateKey = selectedPage.template?.replace(/-/g, '_') || 'home';
-      
-      if (Array.isArray(contentData) && contentData.length > 0) {
+      if (typeof contentData === 'undefined' && Array.isArray(selectedPage.data)) {
+        contentData = selectedPage.data;
+      }
+      const templateSections = TEMPLATE_SECTIONS[templateKey] || [];
+
+      if (Array.isArray(contentData) && contentData.length > 0 && typeof contentData[0] === 'object') {
         const sectionObj = contentData[0];
-        const templateSections = TEMPLATE_SECTIONS[templateKey] || [];
-        // eslint-disable-next-line no-console
-        console.log('DEBUG sectionObj:', sectionObj);
-        // eslint-disable-next-line no-console
-        console.log('DEBUG templateSections:', templateSections);
+        // Try to match by id or type, not just order
         apiSections = templateSections.map((section, idx) => {
-          const key = `section${idx + 1}`;
-          const slidesFromApi = sectionObj[key];
-          
-          // eslint-disable-next-line no-console
-          console.log(`DEBUG ${key}:`, slidesFromApi);
-          
-          const slides = Array.isArray(slidesFromApi) 
+          let slidesFromApi = sectionObj[`section${idx + 1}`];
+          if (!slidesFromApi) {
+            for (const key in sectionObj) {
+              if (Array.isArray(sectionObj[key]) && sectionObj[key].length > 0) {
+                const first = sectionObj[key][0];
+                if ((first.type && first.type === section.type) || (first.id && first.id === section.id)) {
+                  slidesFromApi = sectionObj[key];
+                  break;
+                }
+              }
+            }
+          }
+          const slides = Array.isArray(slidesFromApi)
             ? slidesFromApi.map((slide, i) => ({
                 ...slide,
                 id: slide.id || `slide-${i}`,
                 order: i,
-              })) 
+              }))
             : [];
-          
           return {
             ...section,
             slides,
           };
         });
       } else {
-        // eslint-disable-next-line no-console
-        console.log('DEBUG no content, using default template:', templateKey);
-        apiSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS[templateKey] || TEMPLATE_SECTIONS.home));
+        // If no content, use default template sections
+        apiSections = JSON.parse(JSON.stringify(templateSections.length ? templateSections : TEMPLATE_SECTIONS.home));
       }
-      // eslint-disable-next-line no-console
-      console.log('DEBUG final apiSections:', apiSections);
       setSections(apiSections);
       setActiveSection(apiSections[0]?.id || 'hero');
     }
@@ -302,7 +292,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
         if (section.id === sectionId) {
           const newSlide: SlideData = {
             id: `slide-${Date.now()}`,
-            title: `Slide ${section.slides.length + 1}`,
+            title: '',
             content: '',
             order: section.slides.length,
           };

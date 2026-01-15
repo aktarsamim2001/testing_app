@@ -171,10 +171,9 @@ export default function Section2({
                           accept="image/*"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              const updatedCards = [
-                                ...((section.slides[0] as any)?.cards || []),
-                              ];
-                              updatedCards[index].icon = `/uploads/icons/${e.target.files[0].name}`;
+                              const updatedCards = ((section.slides[0] as any)?.cards || []).map((c: any, i: number) =>
+                                i === index ? { ...c, icon: `/uploads/icons/${e.target.files[0].name}` } : c
+                              );
                               updateSlide(section.id, section.slides[0].id, {
                                 ...section.slides[0],
                                 cards: updatedCards,
@@ -202,10 +201,9 @@ export default function Section2({
                       <Input
                         value={card.title || ''}
                         onChange={(e) => {
-                          const updatedCards = [
-                            ...((section.slides[0] as any)?.cards || []),
-                          ];
-                          updatedCards[index].title = e.target.value;
+                          const updatedCards = ((section.slides[0] as any)?.cards || []).map((c: any, i: number) =>
+                            i === index ? { ...c, title: e.target.value } : c
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             cards: updatedCards,
@@ -244,10 +242,9 @@ export default function Section2({
                       <Textarea
                         value={card.description || ''}
                         onChange={(e) => {
-                          const updatedCards = [
-                            ...((section.slides[0] as any)?.cards || []),
-                          ];
-                          updatedCards[index].description = e.target.value;
+                          const updatedCards = ((section.slides[0] as any)?.cards || []).map((c: any, i: number) =>
+                            i === index ? { ...c, description: e.target.value } : c
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             cards: updatedCards,
@@ -265,10 +262,9 @@ export default function Section2({
                       <Input
                         value={card.buttonText || ''}
                         onChange={(e) => {
-                          const updatedCards = [
-                            ...((section.slides[0] as any)?.cards || []),
-                          ];
-                          updatedCards[index].buttonText = e.target.value;
+                          const updatedCards = ((section.slides[0] as any)?.cards || []).map((c: any, i: number) =>
+                            i === index ? { ...c, buttonText: e.target.value } : c
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             cards: updatedCards,
@@ -286,10 +282,9 @@ export default function Section2({
                       <Input
                         value={card.buttonUrl || ''}
                         onChange={(e) => {
-                          const updatedCards = [
-                            ...((section.slides[0] as any)?.cards || []),
-                          ];
-                          updatedCards[index].buttonUrl = e.target.value;
+                          const updatedCards = ((section.slides[0] as any)?.cards || []).map((c: any, i: number) =>
+                            i === index ? { ...c, buttonUrl: e.target.value } : c
+                          );
                           updateSlide(section.id, section.slides[0].id, {
                             ...section.slides[0],
                             cards: updatedCards,

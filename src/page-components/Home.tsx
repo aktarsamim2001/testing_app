@@ -176,10 +176,10 @@ const Home = ({ data }: HomeProps) => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-12 md:mb-16">
             <Badge className="mb-3 sm:mb-4 bg-secondary/10 text-secondary border-secondary/20 text-xs sm:text-sm">
-              {section2?.subtitle || "Three Powerful Channels"}
+              {section2?.title || "Three Powerful Channels"}
             </Badge>
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
-              {section2?.title || "Multi-Channel Partnership Strategy"}
+              {section2?.subtitle || "Multi-Channel Partnership Strategy"}
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               {section2?.description || "We orchestrate campaigns across the most effective channels for B2B SaaS growth"}
@@ -216,10 +216,10 @@ const Home = ({ data }: HomeProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
               <div>
                 <Badge className="mb-3 sm:mb-4 bg-accent/10 text-accent border-accent/20 text-xs sm:text-sm">
-                  {section3?.subtitle || "Why PartnerScale"}
+                  {section3?.title || "Why PartnerScale"}
                 </Badge>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
-                  {section3?.title || "The Partnership Platform Built for SaaS Growth"}
+                  {section3?.subtitle || "The Partnership Platform Built for SaaS Growth"}
                 </h2>
                 <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">
                   {section3?.description || "We don't just connect you with influencers—we build strategic partnerships that align with your growth goals and target audience."}

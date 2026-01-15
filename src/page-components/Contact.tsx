@@ -66,11 +66,11 @@ const Contact = ({ data }) => {
       newErrors.email = "Enter a valid email address.";
     if (!formData.company.trim())
       newErrors.company = "Company Name is required.";
-    if (!formData.website.trim()) newErrors.website = "Website is required.";
-    else if (!/^https?:\/\/.+\..+/.test(formData.website))
+    // Website is now optional, so only validate if not empty
+    if (formData.website.trim() && !/^https?:\/\/.+\..+/.test(formData.website))
       newErrors.website = "Enter a valid website URL.";
     if (!formData.service) newErrors.service = "Service Interest is required.";
-    if (!formData.budget) newErrors.budget = "Monthly Budget is required.";
+    // Budget is now optional, so no validation
     if (!formData.message.trim())
       newErrors.message = "Please tell us about your goals.";
     setErrors(newErrors);
@@ -134,8 +134,7 @@ const Contact = ({ data }) => {
         updated.company = !value.trim() ? "Company Name is required." : "";
       }
       if (field === "website") {
-        if (!value.trim()) updated.website = "Website is required.";
-        else if (!/^https?:\/\/.+\..+/.test(value))
+        if (value.trim() && !/^https?:\/\/.+\..+/.test(value))
           updated.website = "Enter a valid website URL.";
         else updated.website = "";
       }
@@ -143,7 +142,7 @@ const Contact = ({ data }) => {
         updated.service = !value ? "Service Interest is required." : "";
       }
       if (field === "budget") {
-        updated.budget = !value ? "Monthly Budget is required." : "";
+        updated.budget = "";
       }
       if (field === "message") {
         updated.message = !value.trim()
@@ -229,7 +228,7 @@ const Contact = ({ data }) => {
                             <MapPin className="w-5 h-5 text-primary" />
                           </div>
                           <div>
-                            <p className="font-semibold mb-1">Address</p>
+                            <p className="font-semibold mb-1">Office</p>
                             <p className="text-sm text-muted-foreground">
                               {frontSettings.address}
                             </p>
@@ -243,9 +242,9 @@ const Contact = ({ data }) => {
 
               <Card className="shadow-soft bg-gradient-primary/5 border-primary/20">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">
+                  <h2 className="text-2xl font-bold mb-4">
                     {section2?.expectTitle}
-                  </h3>
+                  </h2>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {section2?.titles?.map((item: any, index: number) => (
                       <li key={index}>• {item.text}</li>
@@ -322,7 +321,7 @@ const Contact = ({ data }) => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="website">
-                          Website <span className="text-red-500">*</span>
+                          Website
                         </Label>
                         <Input
                           id="website"
@@ -382,7 +381,7 @@ const Contact = ({ data }) => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="budget">
-                          Monthly Budget <span className="text-red-500">*</span>
+                          Monthly Budget
                         </Label>
                         <Select
                           value={formData.budget}
@@ -394,13 +393,13 @@ const Contact = ({ data }) => {
                             <SelectValue placeholder="Select budget range" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="starter">
+                            <SelectItem value=" $2,500 - $5,000">
                               $2,500 - $5,000
                             </SelectItem>
-                            <SelectItem value="growth">
+                            <SelectItem value="$5,000 - $10,000">
                               $5,000 - $10,000
                             </SelectItem>
-                            <SelectItem value="enterprise">$10,000+</SelectItem>
+                            <SelectItem value="$10,000+">$10,000+</SelectItem>
                             <SelectItem value="flexible">Flexible</SelectItem>
                           </SelectContent>
                         </Select>

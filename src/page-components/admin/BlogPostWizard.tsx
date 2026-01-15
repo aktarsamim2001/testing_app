@@ -11,6 +11,7 @@ import {
   selectSelectedBlog,
   selectSelectedBlogLoading,
   fetchBlogs,
+  clearSelectedBlog, // Add this action if available, or create it
 } from "@/store/slices/blogs";
 import { selectAuthors, fetchAuthors } from "@/store/slices/authors";
 import { selectBlogCategories, fetchBlogCategories } from "@/store/slices/blog-categories";
@@ -21,7 +22,6 @@ import TagsInput from "@/components/ui/TagsInput";
 import { Textarea } from "@/components/ui/textarea";
 import ReactSelect from "@/components/ui/ReactSelect";
 import dynamic from "next/dynamic";
-// Dynamically import TiptapEditor to avoid SSR issues
 const TiptapEditor = dynamic(() => import("@/components/ui/TiptapEditor"), {
   ssr: false,
 });
@@ -62,7 +62,6 @@ export default function BlogPostWizard() {
   const selectedBlogLoading = useSelector((state: RootState) => selectSelectedBlogLoading(state));
   const authors = useSelector((state: RootState) => selectAuthors(state));
   const blogCategories = useSelector((state: RootState) => selectBlogCategories(state));
-  const editingBlog = editId ? allBlogs.find((b) => b.id === editId) : null;
 
   const initialFormData = {
     title: "",
@@ -71,7 +70,7 @@ export default function BlogPostWizard() {
     description: "",
     image: "",
     status: "Draft",
-    tags: "", // will be handled as array in UI, string for backend
+    tags: "",
     meta_title: "",
     meta_description: "",
     author_id: "",
@@ -105,44 +104,59 @@ export default function BlogPostWizard() {
     dispatch(fetchBlogCategories(1, 100) as any);
   }, [dispatch]);
 
+  // Clear selected blog when component unmounts or when switching to create mode
+  useEffect(() => {
+    return () => {
+      // Cleanup: clear selected blog when component unmounts
+      // If you have a clearSelectedBlog action, dispatch it here
+      // dispatch(clearSelectedBlog());
+    };
+  }, []);
+
+  // Fetch blog details only when editId exists
   useEffect(() => {
     if (editId) {
       dispatch(fetchBlogDetailsThunk(editId) as any);
     }
   }, [editId, dispatch]);
 
-  // Reset form state when switching between create and edit mode
+  // Reset or populate form based on editId
   useEffect(() => {
-    const blogToUse = selectedBlog || editingBlog;
-    if (blogToUse) {
-      setFormData({
-        title: blogToUse.title,
-        slug: blogToUse.slug,
-        excerpt: blogToUse.excerpt,
-        description: blogToUse.description,
-        image: blogToUse.image,
-        status: blogToUse.status,
-        tags: blogToUse.tags,
-        meta_title: blogToUse.meta_title,
-        meta_description: blogToUse.meta_description,
-        author_id: blogToUse.author_id,
-        category_id: blogToUse.category_id || "",
-        estimated_reading_time: blogToUse.estimated_reading_time,
-        meta_author: blogToUse.meta_author,
-        meta_keywords: blogToUse.meta_keywords,
-      });
-      setImagePreview(blogToUse.image);
-      if (blogToUse.faq) {
-        setFaqs(blogToUse.faq.map((f, i) => ({ ...f, order_index: i })));
-      }
-    } else {
+    // If no editId, reset to initial state (Create mode)
+    if (!editId) {
       setFormData(initialFormData);
       setImagePreview("");
       setFaqs([]);
       setImageFile(null);
+      setStep(1);
+      return;
     }
-    setStep(1);
-  }, [selectedBlog, editingBlog]);
+
+    // If editId exists and we have the blog data (Edit mode)
+    if (editId && selectedBlog && selectedBlog.id === editId) {
+      setFormData({
+        title: selectedBlog.title,
+        slug: selectedBlog.slug,
+        excerpt: selectedBlog.excerpt,
+        description: selectedBlog.description,
+        image: selectedBlog.image,
+        status: selectedBlog.status,
+        tags: selectedBlog.tags,
+        meta_title: selectedBlog.meta_title,
+        meta_description: selectedBlog.meta_description,
+        author_id: selectedBlog.author_id,
+        category_id: selectedBlog.category_id || "",
+        estimated_reading_time: selectedBlog.estimated_reading_time,
+        meta_author: selectedBlog.meta_author,
+        meta_keywords: selectedBlog.meta_keywords,
+      });
+      setImagePreview(selectedBlog.image);
+      if (selectedBlog.faq) {
+        setFaqs(selectedBlog.faq.map((f, i) => ({ ...f, order_index: i })));
+      }
+      setStep(1);
+    }
+  }, [editId, selectedBlog]);
 
   const generateSlug = (title: string) => {
     return title
@@ -168,13 +182,8 @@ export default function BlogPostWizard() {
 
   console.log("[BlogPostWizard] Rendered", { step, editId });
 
-  // S3 upload temporarily disabled, just use file path
   const uploadImage = async () => {
     if (!imageFile) return formData.image;
-    // S3 upload disabled, just use file path
-    // const s3Url = await uploadToS3(imageFile, "development/blog");
-    // setFormData((prev) => ({ ...prev, image: s3Url }));
-    // return s3Url;
     return `development/blog/${imageFile.name}`;
   };
 
@@ -212,10 +221,9 @@ export default function BlogPostWizard() {
       const slug = formData.slug || generateSlug(formData.title);
       let imageUrl = formData.image;
       if (imageFile) {
-        imageUrl = await uploadImage(); // will just set file path for now
+        imageUrl = await uploadImage();
       }
       
-      // Format tags as comma-separated string
       let tagsString = "";
       if (typeof formData.tags === "string") {
         tagsString = formData.tags;
@@ -244,9 +252,10 @@ export default function BlogPostWizard() {
             ? new Date().toISOString()
             : null,
       };
-      if (editingBlog?.id) {
+      
+      if (editId) {
         await dispatch(
-          updateBlogThunk({ ...postData, id: editingBlog.id }) as any
+          updateBlogThunk({ ...postData, id: editId }) as any
         );
         toast.success("Blog post updated successfully");
       } else {
@@ -269,14 +278,13 @@ export default function BlogPostWizard() {
     }
   };
 
-  // Stepper validation for Next button
   const handleNextStep = () => {
     const newErrors: typeof errors = {};
     if (step === 1) {
       if (!formData.title.trim()) newErrors.title = "Title is required.";
       if (!formData.author_id) newErrors.author_id = "Author is required.";
       if (!formData.category_id) newErrors.category_id = "Category is required.";
-      if (!imagePreview && !editingBlog) newErrors.image = "Blog image is required.";
+      if (!imagePreview) newErrors.image = "Blog image is required.";
       if (!formData.excerpt.trim()) newErrors.excerpt = "Excerpt is required.";
     }
     if (step === 2) {
@@ -406,8 +414,8 @@ export default function BlogPostWizard() {
                         ? generateSlug(formData.title)
                         : "auto-generated-from-title"
                     }
-                    readOnly={!!editingBlog}
-                    disabled={!!editingBlog}
+                    readOnly={!!editId}
+                    disabled={!!editId}
                   />
                 </div>
 
@@ -794,10 +802,10 @@ export default function BlogPostWizard() {
                 <Button onClick={handleSubmit} disabled={isSubmitting}>
                   <Save className="w-4 h-4 mr-2" />
                   {isSubmitting
-                    ? editingBlog
+                    ? editId
                       ? "Updating..."
                       : "Creating..."
-                    : editingBlog
+                    : editId
                     ? "Update Post"
                     : "Create Post"}
                 </Button>
