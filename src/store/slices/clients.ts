@@ -18,6 +18,8 @@ interface ClientsState {
   pagination: PaginationState;
   status: Status;
   error: string | null;
+  selectedClient: Client | null;
+  selectedClientLoading: boolean;
 }
 
 const initialState: ClientsState = {
@@ -31,6 +33,8 @@ const initialState: ClientsState = {
   },
   status: "idle",
   error: null,
+  selectedClient: null,
+  selectedClientLoading: false,
 };
 
 const clientsSlice = createSlice({
@@ -53,10 +57,16 @@ const clientsSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedClient(state, action: PayloadAction<Client | null>) {
+      state.selectedClient = action.payload;
+    },
+    setSelectedClientLoading(state, action: PayloadAction<boolean>) {
+      state.selectedClientLoading = action.payload;
+    },
   },
 });
 
-export const { setClients, setClientsLoading, setClientsError, setPage } = clientsSlice.actions;
+export const { setClients, setClientsLoading, setClientsError, setPage, setSelectedClient, setSelectedClientLoading } = clientsSlice.actions;
 
 export default clientsSlice.reducer;
 
@@ -87,6 +97,24 @@ export const fetchClients = (page = 1, limit = 10, search = "") => async (dispat
     return { error: message };
   } finally {
     dispatch(setClientsLoading(false));
+  }
+};
+
+// Thunk to fetch single client details
+export const fetchClientDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedClientLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchClientDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedClient(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load client details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedClientLoading(false));
   }
 };
 
@@ -178,3 +206,5 @@ export const selectClients = (state: RootState) => state.clients.data;
 export const selectClientsPagination = (state: RootState) => state.clients.pagination;
 export const selectClientsLoading = (state: RootState) => state.clients.status === "loading";
 export const selectClientsError = (state: RootState) => state.clients.error;
+export const selectSelectedClient = (state: RootState) => state.clients.selectedClient;
+export const selectSelectedClientLoading = (state: RootState) => state.clients.selectedClientLoading;

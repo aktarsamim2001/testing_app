@@ -7,6 +7,10 @@ import {
   createBlogThunk,
   updateBlogThunk,
   selectBlogs,
+  fetchBlogDetailsThunk,
+  selectSelectedBlog,
+  selectSelectedBlogLoading,
+  fetchBlogs,
 } from "@/store/slices/blogs";
 import { selectAuthors, fetchAuthors } from "@/store/slices/authors";
 import { selectBlogCategories, fetchBlogCategories } from "@/store/slices/blog-categories";
@@ -54,6 +58,8 @@ export default function BlogPostWizard() {
   const dispatch = useDispatch<AppDispatch>();
 
   const allBlogs = useSelector((state: RootState) => selectBlogs(state));
+  const selectedBlog = useSelector((state: RootState) => selectSelectedBlog(state));
+  const selectedBlogLoading = useSelector((state: RootState) => selectSelectedBlogLoading(state));
   const authors = useSelector((state: RootState) => selectAuthors(state));
   const blogCategories = useSelector((state: RootState) => selectBlogCategories(state));
   const editingBlog = editId ? allBlogs.find((b) => b.id === editId) : null;
@@ -99,28 +105,35 @@ export default function BlogPostWizard() {
     dispatch(fetchBlogCategories(1, 100) as any);
   }, [dispatch]);
 
+  useEffect(() => {
+    if (editId) {
+      dispatch(fetchBlogDetailsThunk(editId) as any);
+    }
+  }, [editId, dispatch]);
+
   // Reset form state when switching between create and edit mode
   useEffect(() => {
-    if (editingBlog) {
+    const blogToUse = selectedBlog || editingBlog;
+    if (blogToUse) {
       setFormData({
-        title: editingBlog.title,
-        slug: editingBlog.slug,
-        excerpt: editingBlog.excerpt,
-        description: editingBlog.description,
-        image: editingBlog.image,
-        status: editingBlog.status,
-        tags: editingBlog.tags,
-        meta_title: editingBlog.meta_title,
-        meta_description: editingBlog.meta_description,
-        author_id: editingBlog.author_id,
-        category_id: editingBlog.category_id || "",
-        estimated_reading_time: editingBlog.estimated_reading_time,
-        meta_author: editingBlog.meta_author,
-        meta_keywords: editingBlog.meta_keywords,
+        title: blogToUse.title,
+        slug: blogToUse.slug,
+        excerpt: blogToUse.excerpt,
+        description: blogToUse.description,
+        image: blogToUse.image,
+        status: blogToUse.status,
+        tags: blogToUse.tags,
+        meta_title: blogToUse.meta_title,
+        meta_description: blogToUse.meta_description,
+        author_id: blogToUse.author_id,
+        category_id: blogToUse.category_id || "",
+        estimated_reading_time: blogToUse.estimated_reading_time,
+        meta_author: blogToUse.meta_author,
+        meta_keywords: blogToUse.meta_keywords,
       });
-      setImagePreview(editingBlog.image);
-      if (editingBlog.faq) {
-        setFaqs(editingBlog.faq.map((f, i) => ({ ...f, order_index: i })));
+      setImagePreview(blogToUse.image);
+      if (blogToUse.faq) {
+        setFaqs(blogToUse.faq.map((f, i) => ({ ...f, order_index: i })));
       }
     } else {
       setFormData(initialFormData);
@@ -129,7 +142,7 @@ export default function BlogPostWizard() {
       setImageFile(null);
     }
     setStep(1);
-  }, [editingBlog]);
+  }, [selectedBlog, editingBlog]);
 
   const generateSlug = (title: string) => {
     return title
@@ -240,6 +253,7 @@ export default function BlogPostWizard() {
         await dispatch(createBlogThunk(postData) as any);
         toast.success("Blog post created successfully");
       }
+      dispatch(fetchBlogs(1, 10, "") as any);
       setFormData(initialFormData);
       setImagePreview("");
       setFaqs([]);
@@ -299,9 +313,15 @@ export default function BlogPostWizard() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Create Blog Post</h1>
+            <h1 className="text-3xl font-bold">
+              {editId ? "Edit Blog Post" : "Create Blog Post"}
+            </h1>
             <p className="text-muted-foreground">
-              Follow the wizard to create a complete blog post
+              {selectedBlogLoading
+                ? "Loading blog details..."
+                : editId
+                ? "Update your blog post"
+                : "Follow the wizard to create a complete blog post"}
             </p>
           </div>
           <Button

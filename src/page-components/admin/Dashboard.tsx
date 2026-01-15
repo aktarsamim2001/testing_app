@@ -72,7 +72,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Phase 3: Advanced Features - Complete ✓</CardTitle>
             <CardDescription>
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </AdminLayout>
   );

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Zap, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useFrontendMenus } from "@/hooks/useFrontendMenus";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,9 @@ const Navigation = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [userDashboardPath, setUserDashboardPath] = useState('/');
+  
+  // Fetch frontend menus from API
+  const { headerMenu, isLoading: menuLoading } = useFrontendMenus();
 
   const isActive = (path: string) => pathname === path;
 
@@ -33,15 +37,14 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "For Creators", path: "/creators" },
-    { name: "Services", path: "/services" },
-    { name: "How It Works", path: "/how-it-works" },
-    { name: "Pricing", path: "/pricing" },
-    { name: "Blog", path: "/blog" },
-    { name: "About", path: "/about" },
-  ];
+  // Use API menu items - filter out null/empty URLs
+  const navLinks = (headerMenu?.items || [])
+    .filter(item => item.url && item.url.trim())
+    .map(item => ({
+      name: item.title,
+      path: item.url === '/home' ? '/' : item.url,
+      target: item.target_set
+    }));
 
   // Don't show this Navigation on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
@@ -69,7 +72,8 @@ const Navigation = () => {
             {navLinks.map((link) => (
               <Link
                 key={link.path}
-                href={link.path}
+                href={link.path || '#'}
+                target={link.target}
                 className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
                   isActive(link.path) ? "text-primary" : "text-foreground"
                 }`}
@@ -129,7 +133,8 @@ const Navigation = () => {
             {navLinks.map((link) => (
               <Link
                 key={link.path}
-                href={link.path}
+                href={link.path || '#'}
+                target={link.target}
                 className={`block py-2 sm:py-3 text-sm font-medium transition-colors hover:text-primary ${
                   isActive(link.path) ? "text-primary" : "text-foreground"
                 }`}

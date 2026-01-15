@@ -48,6 +48,8 @@ interface ServicesState {
   pagination: PaginationState;
   status: Status;
   error: string | null;
+  selectedService: Service | null;
+  selectedServiceLoading: boolean;
 }
 
 const initialState: ServicesState = {
@@ -60,6 +62,8 @@ const initialState: ServicesState = {
   },
   status: "idle",
   error: null,
+  selectedService: null,
+  selectedServiceLoading: false,
 };
 
 const servicesSlice = createSlice({
@@ -82,10 +86,16 @@ const servicesSlice = createSlice({
     setServiceNumber(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedService(state, action: PayloadAction<Service | null>) {
+      state.selectedService = action.payload;
+    },
+    setSelectedServiceLoading(state, action: PayloadAction<boolean>) {
+      state.selectedServiceLoading = action.payload;
+    },
   },
 });
 
-export const { setServices, setServicesLoading, setServicesError, setServiceNumber } = servicesSlice.actions;
+export const { setServices, setServicesLoading, setServicesError, setServiceNumber, setSelectedService, setSelectedServiceLoading } = servicesSlice.actions;
 
 export default servicesSlice.reducer;
 
@@ -255,8 +265,28 @@ export const servicesSliceWithAsyncReducers = createSlice({
   },
 });
 
+// Thunk: fetch service details
+export const fetchServiceDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedServiceLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchServiceDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedService(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load service details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedServiceLoading(false));
+  }
+};
+
 // Selectors
 export const selectServices = (state: RootState) => state.services.data;
 export const selectServicesPagination = (state: RootState) => state.services.pagination;
 export const selectServicesLoading = (state: RootState) => state.services.status === "loading";
 export const selectServicesError = (state: RootState) => state.services.error;
+export const selectSelectedService = (state: RootState) => state.services.selectedService;
+export const selectSelectedServiceLoading = (state: RootState) => state.services.selectedServiceLoading;

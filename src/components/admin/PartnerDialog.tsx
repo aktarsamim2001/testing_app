@@ -24,6 +24,10 @@ import { fetchCategories, createCategoryThunk } from "@/store/slices/categorySli
 import {
   createPartnerThunk,
   updatePartnerThunk,
+  fetchPartnerDetailsThunk,
+  selectSelectedPartner,
+  selectSelectedPartnerLoading,
+  fetchPartners,
 } from "@/store/slices/partners";
 
 // Use the Partner type from the store to ensure consistency
@@ -41,6 +45,8 @@ export default function PartnerDialog({
   partner,
 }: PartnerDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const selectedPartner = useSelector((state: RootState) => selectSelectedPartner(state));
+  const selectedPartnerLoading = useSelector((state: RootState) => selectSelectedPartnerLoading(state));
   const categoryList = useSelector((state: RootState) => state.categories.data);
   
   // Fetch categories on mount
@@ -85,37 +91,12 @@ export default function PartnerDialog({
   useEffect(() => {
     // Always clear errors when dialog opens or partner changes
     setErrors({});
-    if (partner) {
-      // Convert category IDs to names
-      let categoryNames: string[] = [];
-      if (partner.categories) {
-        if (Array.isArray(partner.categories)) {
-          // Categories is an array of objects
-          categoryNames = partner.categories.map((c: any) =>
-            typeof c === "string" ? c : c && c.name ? c.name : String(c.id ?? "")
-          );
-        } else if (typeof partner.categories === "string" && partner.categories) {
-          // Categories is a comma-separated string of IDs
-          const categoryIds = partner.categories.split(/,\s*/).filter(Boolean);
-          categoryNames = categoryIds.map((id) => {
-            const category = categoryList.find((c) => c.id === id);
-            return category ? category.name : id;
-          });
-        }
-      }
-
-      setFormData({
-        name: partner.name || "",
-        email: partner.email || "",
-        channel_type: partner.channel_type || "blogger",
-        platform_handle: partner.platform_handle || "",
-        follower_count: partner.follower_count?.toString() || "",
-        engagement_rate: partner.engagement_rate?.toString() || "",
-        categories: categoryNames,
-        notes: partner.notes || "",
-        status: partner.status ?? 0,
-      });
-    } else {
+    
+    // If dialog is open and in edit mode (partner has id), fetch full details
+    if (open && partner?.id) {
+      dispatch(fetchPartnerDetailsThunk(partner.id));
+    } else if (open) {
+      // Create mode - reset form
       setFormData({
         name: "",
         email: "",
@@ -128,7 +109,42 @@ export default function PartnerDialog({
         status: 0,
       });
     }
-  }, [partner, open]);
+  }, [partner?.id, open, dispatch]);
+
+  // Populate form from selectedPartner when details are fetched
+  useEffect(() => {
+    if (selectedPartner && partner?.id) {
+      // Convert category IDs to names
+      let categoryNames: string[] = [];
+      if (selectedPartner.categories) {
+        if (Array.isArray(selectedPartner.categories)) {
+          // Categories is an array of objects
+          categoryNames = selectedPartner.categories.map((c: any) =>
+            typeof c === "string" ? c : c && c.name ? c.name : String(c.id ?? "")
+          );
+        } else if (typeof selectedPartner.categories === "string" && selectedPartner.categories) {
+          // Categories is a comma-separated string of IDs
+          const categoryIds = selectedPartner.categories.split(/,\s*/).filter(Boolean);
+          categoryNames = categoryIds.map((id) => {
+            const category = categoryList.find((c) => c.id === id);
+            return category ? category.name : id;
+          });
+        }
+      }
+
+      setFormData({
+        name: selectedPartner.name || "",
+        email: selectedPartner.email || "",
+        channel_type: selectedPartner.channel_type || "blogger",
+        platform_handle: selectedPartner.platform_handle || "",
+        follower_count: selectedPartner.follower_count?.toString() || "",
+        engagement_rate: selectedPartner.engagement_rate?.toString() || "",
+        categories: categoryNames,
+        notes: selectedPartner.notes || "",
+        status: selectedPartner.status ?? 0,
+      });
+    }
+  }, [selectedPartner, partner?.id, categoryList]);
 
   const validate = () => {
     const newErrors: typeof errors = {};
@@ -247,20 +263,25 @@ export default function PartnerDialog({
       };
 
       let result;
-      if (partner) {
+      if (partner?.id) {
         result = await dispatch(
           updatePartnerThunk({
             id: partner.id,
             ...payload,
           })
         );
+        
+        // Close dialog after successful update
+        if (result?.success) {
+          onOpenChange(false);
+        }
       } else {
         result = await dispatch(createPartnerThunk(payload));
-      }
-      
-      // Only close dialog on success, keep it open on error
-      if (result?.success) {
-        onOpenChange(false);
+        
+        // Close dialog after successful create
+        if (result?.success) {
+          onOpenChange(false);
+        }
       }
       // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error) {
@@ -278,9 +299,7 @@ export default function PartnerDialog({
             {partner ? "Edit Partner" : "Add New Partner"}
           </DialogTitle>
           <DialogDescription>
-            {partner
-              ? "Update partner information"
-              : "Add a new influencer or content creator"}
+            {partner ? (selectedPartnerLoading ? 'Loading partner details...' : 'Update partner information') : "Add a new influencer or content creator"}
           </DialogDescription>
         </DialogHeader>
 

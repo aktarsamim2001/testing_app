@@ -31,13 +31,16 @@ interface PaginationState {
 
 interface SubscriptionsState {
   data: Subscription[];
+  selectedSubscription: Subscription | null;
   pagination: PaginationState;
   status: Status;
+  selectedStatus: Status;
   error: string | null;
 }
 
 const initialState: SubscriptionsState = {
   data: [],
+  selectedSubscription: null,
   pagination: {
     currentPage: 1,
     perPage: 10,
@@ -45,6 +48,7 @@ const initialState: SubscriptionsState = {
     totalRecords: 0,
   },
   status: "idle",
+  selectedStatus: "idle",
   error: null,
 };
 
@@ -68,10 +72,17 @@ const subscriptionsSlice = createSlice({
     setSubscriptionNumber(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedSubscription(state, action: PayloadAction<Subscription | null>) {
+      state.selectedSubscription = action.payload;
+      state.selectedStatus = "succeeded";
+    },
+    setSelectedSubscriptionLoading(state, action: PayloadAction<boolean>) {
+      state.selectedStatus = action.payload ? "loading" : "idle";
+    },
   },
 });
 
-export const { setSubscriptions, setSubscriptionsLoading, setSubscriptionsError, setSubscriptionNumber } = subscriptionsSlice.actions;
+export const { setSubscriptions, setSubscriptionsLoading, setSubscriptionsError, setSubscriptionNumber, setSelectedSubscription, setSelectedSubscriptionLoading } = subscriptionsSlice.actions;
 
 export default subscriptionsSlice.reducer;
 
@@ -99,6 +110,25 @@ export const fetchSubscriptions = (page = 1, limit = 10, search = "") => async (
     toast({ title: 'Error', description: message, variant: 'destructive' });
   } finally {
     dispatch(setSubscriptionsLoading(false));
+  }
+};
+
+// Thunk: fetch subscription details
+export const fetchSubscriptionDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedSubscriptionLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchSubscriptionDetails(id, token);
+    const body = response.data;
+    // Handle the response data - API returns data object or the item directly
+    const subscriptionData = body?.data || body;
+    dispatch(setSelectedSubscription(subscriptionData));
+    return subscriptionData;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load subscription details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+  } finally {
+    dispatch(setSelectedSubscriptionLoading(false));
   }
 };
 
@@ -241,3 +271,5 @@ export const selectSubscriptions = (state: RootState) => state.subscriptions.dat
 export const selectSubscriptionsPagination = (state: RootState) => state.subscriptions.pagination;
 export const selectSubscriptionsLoading = (state: RootState) => state.subscriptions.status === "loading";
 export const selectSubscriptionsError = (state: RootState) => state.subscriptions.error;
+export const selectSelectedSubscription = (state: RootState) => state.subscriptions.selectedSubscription;
+export const selectSelectedSubscriptionLoading = (state: RootState) => state.subscriptions.selectedStatus === "loading";

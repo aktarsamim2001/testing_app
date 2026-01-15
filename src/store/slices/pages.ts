@@ -56,6 +56,8 @@ interface PagesState {
   pagination: PaginationState;
   status: Status;
   error: string | null;
+  selectedPage: Page | null;
+  selectedPageLoading: boolean;
 }
 
 const initialState: PagesState = {
@@ -68,6 +70,8 @@ const initialState: PagesState = {
   },
   status: "idle",
   error: null,
+  selectedPage: null,
+  selectedPageLoading: false,
 };
 
 const pagesSlice = createSlice({
@@ -90,19 +94,23 @@ const pagesSlice = createSlice({
     setPageNumber(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedPage(state, action: PayloadAction<Page | null>) {
+      state.selectedPage = action.payload;
+    },
+    setSelectedPageLoading(state, action: PayloadAction<boolean>) {
+      state.selectedPageLoading = action.payload;
+    },
   },
 });
 
-export const { setPages, setPagesLoading, setPagesError, setPageNumber } = pagesSlice.actions;
-
-export default pagesSlice.reducer;
+export const { setPages, setPagesLoading, setPagesError, setPageNumber, setSelectedPage, setSelectedPageLoading } = pagesSlice.actions;
 
 // Thunk to fetch pages list
-export const fetchPages = (page = 1, limit = 10) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const fetchPages = (page = 1, limit = 10, search = '') => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setPagesLoading(true));
   const token = getState().auth.authToken;
   try {
-    const response = await service.getAdminPagesList(page, limit, token);
+    const response = await service.getAdminPagesList(page, limit, search, token);
     const body = response.data;
     dispatch(
       setPages({
@@ -187,6 +195,31 @@ export const deletePageThunk = createAsyncThunk<
   }
 );
 
+// Thunk: fetch page details
+export const fetchPageDetailsThunk = createAsyncThunk<
+  Page,
+  string,
+  { state: RootState; rejectValue: string }
+>(
+  'pages/fetchPageDetails',
+  async (id, { dispatch, getState, rejectWithValue }) => {
+    dispatch(setSelectedPageLoading(true));
+    const token = getState().auth.authToken;
+    try {
+      const response = await service.fetchPageDetailsAdmin(id, token);
+      const page = response.data?.data || response.data;
+      dispatch(setSelectedPage(page));
+      return page;
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || "Failed to load page details";
+      toast({ title: 'Error', description: message, variant: 'destructive' });
+      return rejectWithValue(message);
+    } finally {
+      dispatch(setSelectedPageLoading(false));
+    }
+  }
+);
+
 // Add extra reducers for async thunks
 // This will handle loading states automatically
 export const pagesSliceWithAsyncReducers = createSlice({
@@ -208,6 +241,12 @@ export const pagesSliceWithAsyncReducers = createSlice({
     },
     setPageNumber(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
+    },
+    setSelectedPage(state, action: PayloadAction<Page | null>) {
+      state.selectedPage = action.payload;
+    },
+    setSelectedPageLoading(state, action: PayloadAction<boolean>) {
+      state.selectedPageLoading = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -257,3 +296,7 @@ export const selectPages = (state: RootState) => state.pages.data;
 export const selectPagesPagination = (state: RootState) => state.pages.pagination;
 export const selectPagesLoading = (state: RootState) => state.pages.status === "loading";
 export const selectPagesError = (state: RootState) => state.pages.error;
+export const selectSelectedPage = (state: RootState) => state.pages.selectedPage;
+export const selectSelectedPageLoading = (state: RootState) => state.pages.selectedPageLoading;
+
+export default pagesSliceWithAsyncReducers.reducer;

@@ -81,6 +81,9 @@ import {
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsPagination,
+  fetchCampaignDetailsThunk,
+  selectSelectedCampaign,
+  selectSelectedCampaignLoading,
 } from "@/store/slices/campaigns";
 import { fetchClients, selectClients } from "@/store/slices/clients";
 
@@ -108,6 +111,8 @@ export default function Campaigns() {
   const dataLoading = useSelector((state: RootState) =>
     selectCampaignsLoading(state)
   );
+  const selectedCampaign = useSelector((state: RootState) => selectSelectedCampaign(state));
+  const selectedCampaignLoading = useSelector((state: RootState) => selectSelectedCampaignLoading(state));
   const pagination = useSelector((state: RootState) =>
     selectCampaignsPagination(state)
   );
@@ -158,6 +163,35 @@ export default function Campaigns() {
       setErrors({});
     }
   }, [dialogOpen]);
+
+  // Fetch campaign details when editing
+  useEffect(() => {
+    if (dialogOpen && editingCampaign?.id) {
+      dispatch(fetchCampaignDetailsThunk(editingCampaign.id) as any);
+    }
+  }, [editingCampaign?.id, dialogOpen, dispatch]);
+
+  // Populate form from selectedCampaign when details are fetched
+  useEffect(() => {
+    if (selectedCampaign && editingCampaign?.id) {
+      let budgetValue = "";
+      if (selectedCampaign.budget !== null && selectedCampaign.budget !== undefined) {
+        const cleanBudget = String(selectedCampaign.budget).replace(/[^\d.]/g, "");
+        budgetValue = cleanBudget;
+      }
+
+      setFormData({
+        name: selectedCampaign.name || "",
+        client_id: selectedCampaign.client_id || "",
+        campaign_type: selectedCampaign.campaign_type || "blogger_outreach",
+        status: selectedCampaign.status || "Planning",
+        budget: budgetValue,
+        start_date: selectedCampaign.start_date || "",
+        end_date: selectedCampaign.end_date || "",
+        description: (selectedCampaign as any).description || "",
+      });
+    }
+  }, [selectedCampaign, editingCampaign?.id]);
 
   useEffect(() => {
     dispatch(
@@ -221,26 +255,8 @@ export default function Campaigns() {
 
   const handleEdit = (campaign: CampaignItem) => {
     setEditingCampaign(campaign);
-
-    // Clean budget value - remove any formatting and convert to plain number string
-    let budgetValue = "";
-    if (campaign.budget !== null && campaign.budget !== undefined) {
-      // Remove any currency symbols, commas, and other non-numeric characters except decimal point
-      const cleanBudget = String(campaign.budget).replace(/[^\d.]/g, "");
-      budgetValue = cleanBudget;
-    }
-
-    setFormData({
-      name: campaign.name || "",
-      client_id: campaign.client_id || "",
-      campaign_type: campaign.campaign_type || "blogger_outreach",
-      status: campaign.status || "Planning",
-      budget: budgetValue, // Use the cleaned budget value
-      start_date: campaign.start_date || "",
-      end_date: campaign.end_date || "",
-      description: (campaign as any).description || "",
-    });
     setDialogOpen(true);
+    // Details will be fetched by useEffect when dialogOpen changes
   };
 
   const handleDialogClose = () => {
@@ -569,13 +585,13 @@ export default function Campaigns() {
               </DialogTitle>
               <DialogDescription>
                 {editingCampaign
-                  ? "Update campaign details"
+                  ? (selectedCampaignLoading ? "Loading campaign details..." : "Update campaign details")
                   : "Create a new marketing campaign"}
               </DialogDescription>
             </DialogHeader>
 
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 const newErrors: typeof errors = {};
                 if (!formData.name.trim())
@@ -602,18 +618,23 @@ export default function Campaigns() {
                   campaign_goals: "",
                   target_audience: "",
                 };
+                let result;
                 if (editingCampaign?.id) {
-                  dispatch(
+                  result = await dispatch(
                     updateCampaignThunk({
                       ...payload,
                       id: editingCampaign.id,
                     }) as any
                   );
                 } else {
-                  dispatch(createCampaignThunk(payload) as any);
+                  result = await dispatch(createCampaignThunk(payload) as any);
                 }
-                setDialogOpen(false);
-                resetForm();
+                
+                // Close dialog only after successful submission
+                if (result?.success) {
+                  setDialogOpen(false);
+                  resetForm();
+                }
               }}
               className="space-y-4"
             >

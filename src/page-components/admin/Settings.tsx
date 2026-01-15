@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [copyright, setCopyright] = useState("");
   const [information, setInformation] = useState("");
+  const [address, setAddress] = useState("");
   const [socialIcons, setSocialIcons] = useState<SocialIcon[]>([]);
 
   // Fetch settings on mount
@@ -114,6 +115,7 @@ export default function SettingsPage() {
       fav_icon: favicon?.url || "",
       phone,
       email,
+      address,
       head_scripts: headScript,
       body_scripts: bodyScript,
       footer_scripts: footerScript,
@@ -267,6 +269,17 @@ export default function SettingsPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter email address"
+                      className="bg-background w-full"
+                    />
+                  </FormField>
+                </div>
+                <div className="mt-3 w-full">
+                  <FormField label="Address" required>
+                    <Input
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Enter address"
                       className="bg-background w-full"
                     />
                   </FormField>

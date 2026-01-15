@@ -257,11 +257,7 @@ export default function Section3({
                               onChange={(e) => {
                                 if (e.target.files?.[0]) {
                                   const file = e.target.files[0];
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    handleCardChange(slide.id, cardIndex, 'icon', reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
+                                  handleCardChange(slide.id, cardIndex, 'icon', `/uploads/icons/${file.name}`);
                                 }
                               }}
                               disabled={loading}

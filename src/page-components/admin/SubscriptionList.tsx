@@ -39,7 +39,6 @@ const SubscriptionList: React.FC = () => {
     dispatch(fetchSubscriptions(pagination.currentPage, pagination.perPage, debouncedSearch) as any);
   }, [dispatch, pagination.currentPage, pagination.perPage, debouncedSearch]);
 
-  // Debounce search input and reset page to 1 when a new search is started
   useEffect(() => {
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);

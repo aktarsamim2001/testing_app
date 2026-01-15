@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useLoadingStatus, useAuthError } from '@/hooks/useRedux';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { loginUser } from '@/store/slices/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,11 +21,21 @@ const signInSchema = z.object({
 });
 
 export default function AdminAuth() {
+  const { user } = useAuth();
+  const { isAdmin, loading } = useUserRole();
+    const router = useRouter();
+
+    // If already logged in as admin, redirect to dashboard
+    useEffect(() => {
+      if (!loading && user && isAdmin) {
+        router.push('/admin');
+      }
+    }, [user, isAdmin, loading, router]);
   const dispatch = useAppDispatch();
   const loadingStatus = useLoadingStatus();
   const error = useAuthError();
   const { toast } = useToast();
-  const router = useRouter();
+  // ...existing code...
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

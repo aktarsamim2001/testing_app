@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
-import { createPageThunk, updatePageThunk, fetchPages, selectPagesLoading, selectPages } from '@/store/slices/pages';
+import { createPageThunk, updatePageThunk, fetchPages, selectPagesLoading, selectPages, fetchPageDetailsThunk, selectSelectedPage, selectSelectedPageLoading } from '@/store/slices/pages';
 import type { PageUpdatePayload } from '@/store/slices/pages';
 
 interface SectionData {
@@ -69,7 +69,7 @@ const TEMPLATE_SECTIONS: Record<string, SectionData[]> = {
   services: [
     { id: 'hero', name: 'Services Header', type: 'hero', slides: [] },
   ],
-  'how-it-works': [
+  how_it_works: [
     { id: 'hero', name: 'Header', type: 'hero', slides: [] },
     { id: 'channels', name: 'Steps', type: 'channels', slides: [] },
     { id: 'features', name: 'Process', type: 'features', slides: [] },
@@ -116,6 +116,8 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
   // Redux state
   const loading = useAppSelector(selectPagesLoading);
   const allPages = useAppSelector((state) => (typeof selectPages === 'function' ? selectPages(state) : []));
+  const selectedPage = useAppSelector(selectSelectedPage);
+  const selectedPageLoading = useAppSelector(selectSelectedPageLoading);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -162,51 +164,86 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, dispatch]);
 
-  // Pre-fill form and sections for edit mode, only when editingPage is available
+  // Fetch page details when in edit mode
   useEffect(() => {
-    if (isEditMode && editingPage) {
-      // DEBUG: Log the editingPage and its content to diagnose pre-fill issues
+    if (isEditMode && pageId) {
+      dispatch(fetchPageDetailsThunk(pageId) as any);
+    }
+  }, [pageId, isEditMode, dispatch]);
+
+  // Pre-fill form and sections for edit mode, only when selectedPage is available
+  useEffect(() => {
+    // Wait for loading to complete and selectedPage to be populated
+    if (isEditMode && !selectedPageLoading && selectedPage) {
+      // DEBUG: Log the selectedPage and its content to diagnose pre-fill issues
       // eslint-disable-next-line no-console
-      console.log('DEBUG editingPage:', editingPage);
+      console.log('DEBUG selectedPage:', selectedPage);
       // eslint-disable-next-line no-console
-      console.log('DEBUG editingPage.content:', editingPage.content);
+      console.log('DEBUG selectedPage.content:', selectedPage.content);
       setFormData({
-        title: editingPage.title || '',
-        slug: editingPage.slug || '',
-        template: editingPage.template || 'home',
-        status: editingPage.status === 1 ? 'active' : 'inactive',
+        title: selectedPage.title || '',
+        slug: selectedPage.slug || '',
+        template: selectedPage.template || 'home',
+        status: selectedPage.status === 1 ? 'active' : 'inactive',
       });
       setSeoData({
-        title: editingPage.meta_title || '',
-        author: editingPage.meta_author || '',
-        description: editingPage.meta_description || '',
-        keywords: editingPage.meta_keywords || '',
-        image: editingPage.meta_feature_image || '',
+        title: selectedPage.meta_title || '',
+        author: selectedPage.meta_author || '',
+        description: selectedPage.meta_description || '',
+        keywords: selectedPage.meta_keywords || '',
+        image: selectedPage.meta_feature_image || '',
       });
       // Parse sections from API data
       let apiSections = [];
-      // Use .content (API) instead of .data for edit mode
-          if (Array.isArray(editingPage.content) && editingPage.content.length > 0) {
-        const sectionObj = editingPage.content[0];
-        const templateSections = TEMPLATE_SECTIONS[editingPage.template] || [];
+      // API returns data in the 'data' field (array with one object containing sections)
+      let contentData = selectedPage.content;
+      
+      // eslint-disable-next-line no-console
+      console.log('DEBUG selectedPage template:', selectedPage.template);
+      // eslint-disable-next-line no-console
+      console.log('DEBUG contentData:', contentData);
+      
+      // Normalize template name (API might return with dashes, we use underscores)
+      const templateKey = selectedPage.template?.replace(/-/g, '_') || 'home';
+      
+      if (Array.isArray(contentData) && contentData.length > 0) {
+        const sectionObj = contentData[0];
+        const templateSections = TEMPLATE_SECTIONS[templateKey] || [];
+        // eslint-disable-next-line no-console
+        console.log('DEBUG sectionObj:', sectionObj);
+        // eslint-disable-next-line no-console
+        console.log('DEBUG templateSections:', templateSections);
         apiSections = templateSections.map((section, idx) => {
           const key = `section${idx + 1}`;
+          const slidesFromApi = sectionObj[key];
+          
+          // eslint-disable-next-line no-console
+          console.log(`DEBUG ${key}:`, slidesFromApi);
+          
+          const slides = Array.isArray(slidesFromApi) 
+            ? slidesFromApi.map((slide, i) => ({
+                ...slide,
+                id: slide.id || `slide-${i}`,
+                order: i,
+              })) 
+            : [];
+          
           return {
             ...section,
-            slides: Array.isArray(sectionObj[key]) ? sectionObj[key].map((slide, i) => ({
-              ...slide,
-              id: slide.id || `slide-${i}`,
-              order: i,
-            })) : [],
+            slides,
           };
         });
       } else {
-        apiSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS[editingPage.template] || TEMPLATE_SECTIONS.home));
+        // eslint-disable-next-line no-console
+        console.log('DEBUG no content, using default template:', templateKey);
+        apiSections = JSON.parse(JSON.stringify(TEMPLATE_SECTIONS[templateKey] || TEMPLATE_SECTIONS.home));
       }
+      // eslint-disable-next-line no-console
+      console.log('DEBUG final apiSections:', apiSections);
       setSections(apiSections);
       setActiveSection(apiSections[0]?.id || 'hero');
     }
-  }, [isEditMode, editingPage]);
+  }, [isEditMode, selectedPageLoading, selectedPage]);
 
   // Only initialize default sections for create mode, and only on first mount
   useEffect(() => {
@@ -219,22 +256,25 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
   }, []);
 
   const handleTemplateChange = (newTemplate: string) => {
+    // Normalize template name: convert underscores to dashes for consistency
+    const normalizedTemplate = newTemplate.replace(/_/g, '-');
+    
     // Check if this template is already used more than once
-    const usedCount = allPages.filter((p: any) => p.template === newTemplate).length;
+    const usedCount = allPages.filter((p: any) => p.template === normalizedTemplate).length;
     if (usedCount > 0) {
       toast({
         title: 'Template already used',
-        description: `The "${newTemplate}" template has already been used.`,
+        description: `The "${normalizedTemplate}" template has already been used.`,
         variant: 'destructive',
       });
       return; // Prevent selection
     }
     setFormData({
       ...formData,
-      template: newTemplate,
+      template: normalizedTemplate,
     });
     const newSections = JSON.parse(
-      JSON.stringify(TEMPLATE_SECTIONS[newTemplate as keyof typeof TEMPLATE_SECTIONS] || [])
+      JSON.stringify(TEMPLATE_SECTIONS[normalizedTemplate as keyof typeof TEMPLATE_SECTIONS] || [])
     );
     setSections(newSections);
     setActiveSection(newSections[0]?.id || 'hero');
@@ -430,6 +470,7 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
 
       if ((isEditMode && updatePageThunk.fulfilled.match(resultAction)) ||
           (!isEditMode && createPageThunk.fulfilled.match(resultAction))) {
+        dispatch(fetchPages(1, 10) as any);
         router.push('/admin/pages');
       } else if ((isEditMode && updatePageThunk.rejected.match(resultAction)) ||
                  (!isEditMode && createPageThunk.rejected.match(resultAction))) {
@@ -455,7 +496,9 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
               {isEditMode ? 'Edit Page' : 'Create Pages'}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isEditMode
+              {selectedPageLoading
+                ? 'Loading page details...'
+                : isEditMode
                 ? 'Update your page details and sections'
                 : 'Create a new page by selecting a template and configuring sections'}
             </p>

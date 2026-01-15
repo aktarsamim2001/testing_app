@@ -36,6 +36,9 @@ import {
   fetchServices,
   selectServicesLoading,
   selectServices,
+  fetchServiceDetailsThunk,
+  selectSelectedService,
+  selectSelectedServiceLoading,
 } from "@/store/slices/services";
 import type { ServicePayload, ServiceUpdateRequest } from "@/store/slices/services";
 import CategoriesInput from "@/components/ui/CategoriesInput";
@@ -48,6 +51,8 @@ export default function ServiceBuilder({ pageId }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const dispatch = useAppDispatch();
+  const selectedService = useAppSelector(selectSelectedService);
+  const selectedServiceLoading = useAppSelector(selectSelectedServiceLoading);
   const loading = useAppSelector(selectServicesLoading);
   const allServices = useAppSelector((state) =>
     typeof selectServices === "function" ? selectServices(state) : []
@@ -124,6 +129,12 @@ export default function ServiceBuilder({ pageId }: Props) {
   }, [isEditMode, editingService]);
 
   useEffect(() => {
+    if (isEditMode && pageId) {
+      dispatch(fetchServiceDetailsThunk(pageId) as any);
+    }
+  }, [pageId, isEditMode, dispatch]);
+
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
@@ -133,6 +144,41 @@ export default function ServiceBuilder({ pageId }: Props) {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    if (selectedService && isEditMode && pageId) {
+      setForm({
+        flag: selectedService.flag || "Service",
+        name: selectedService.name || "",
+        image: selectedService.image || "",
+        short_description: selectedService.short_description || "",
+        description: selectedService.description || "",
+        price: selectedService.price?.toString() || "",
+        discount_price: selectedService.discount_price?.toString() || "",
+        service_ids: selectedService.service_ids || "",
+        status: String(selectedService.status ?? 1),
+      });
+      setWhatIncluded(
+        Array.isArray(selectedService.what_included)
+          ? selectedService.what_included.map((i: any) => i.title || i)
+          : []
+      );
+      setKeyBenefits(
+        Array.isArray(selectedService.key_benefits)
+          ? selectedService.key_benefits.map((i: any) => i.title || i)
+          : []
+      );
+      setAdditionalBenefits(
+        Array.isArray(selectedService.additional_benefits)
+          ? selectedService.additional_benefits.map((i: any) => i.title || i)
+          : []
+      );
+      if (selectedService.service_ids) {
+        const ids = selectedService.service_ids.split(",").map((id: string) => id.trim());
+        setSelectedServiceIds(ids);
+      }
+    }
+  }, [selectedService, pageId, isEditMode]);
 
   const generateSlug = (title: string) =>
     title
@@ -279,6 +325,7 @@ export default function ServiceBuilder({ pageId }: Props) {
         variant: "success",
       });
 
+      dispatch(fetchServices(1, 100) as any);
       router.push("/admin/services");
     } catch (err) {
       console.error(err);
@@ -290,15 +337,10 @@ export default function ServiceBuilder({ pageId }: Props) {
     }
   };
 
-  const handleCancel = () => {
-    if (hasUnsavedChanges) {
-      const confirmed = window.confirm(
-        "You have unsaved changes. Are you sure you want to leave?"
-      );
-      if (!confirmed) return;
-    }
-    router.push("/admin/services");
-  };
+const handleCancel = () => {
+  router.push("/admin/services");
+};
+
 
   const isService = form.flag === "Service";
   const isFullService = form.flag === "Full_Service";
@@ -313,7 +355,9 @@ export default function ServiceBuilder({ pageId }: Props) {
               {isEditMode ? "Edit Service" : "Create New Service"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isEditMode
+              {selectedServiceLoading
+                ? "Loading service details..."
+                : isEditMode
                 ? "Update your service details below"
                 : "Add a new service to your offerings"}
             </p>

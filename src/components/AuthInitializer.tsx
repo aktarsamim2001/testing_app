@@ -9,12 +9,10 @@ export function AuthInitializer() {
   const authState = useAuthState();
 
   useEffect(() => {
-    console.log('AuthInitializer: dispatch initializeAuth');
     dispatch(initializeAuth());
   }, [dispatch]);
 
   useEffect(() => {
-    console.log('Auth state after init', authState);
   }, [authState]);
 
   return null;

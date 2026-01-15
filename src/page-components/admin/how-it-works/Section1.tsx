@@ -81,6 +81,8 @@ export default function Section1({
         buttonText: '',
         buttonUrl: '',
       };
+    } else {
+      updatedCards[cardIndex] = { ...updatedCards[cardIndex] };
     }
     updatedCards[cardIndex][field] = value;
     updateSlide(section.id, slideId, { cards: updatedCards });
@@ -128,7 +130,7 @@ export default function Section1({
       ) : (
         section.slides.map((slide, slideIndex) => (
         <Card key={slide.id} className="p-4 relative">
-          {removeSlide && (
+          {/* {removeSlide && (
             <Button
               type="button"
               variant="ghost"
@@ -139,7 +141,7 @@ export default function Section1({
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          )}
+          )} */}
           <CardContent className="space-y-4">
             {/* Slide Title */}
             <div className="space-y-2">

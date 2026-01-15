@@ -1,5 +1,3 @@
-
-
 import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "./slices/auth";
@@ -16,9 +14,17 @@ import pagesReducer from "./slices/pages";
 import servicesReducer from "./slices/services";
 import subscriptionsReducer from "./slices/subscriptions";
 import settingsReducer from "./slices/settings";
+import enquiriesReducer from "./slices/enquiries";
+import enquiryDetailsReducer from "./slices/enquiryDetails";
 import adminDashboardReducer from "./slices/adminDashboard";
 import menusReducer from "./slices/menus";
 import menuItemsReducer from "./slices/menuItems";
+import frontendMenusReducer from "./slices/frontendMenus";
+import cmsPageReducer from "./slices/cmsPage";
+import frontSettingsReducer from "./slices/frontSettingsSlice";
+import frontEnquiryReducer from "./slices/frontEnquirySlice";
+import frontBlogReducer from "./slices/frontBlogSlice";
+import blogDetailsReducer from "./slices/blogDetailsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -36,9 +42,17 @@ export const store = configureStore({
     services: servicesReducer,
     subscriptions: subscriptionsReducer,
     settings: settingsReducer,
+    enquiries: enquiriesReducer,
+    enquiryDetails: enquiryDetailsReducer,
     adminDashboard: adminDashboardReducer,
     menus: menusReducer,
     menuItems: menuItemsReducer,
+    frontendMenus: frontendMenusReducer,
+    frontSettings: frontSettingsReducer,
+    cmsPage: cmsPageReducer,
+    frontEnquiry: frontEnquiryReducer,
+    frontBlog: frontBlogReducer,
+    blogDetails: blogDetailsReducer,
   },
 });
 

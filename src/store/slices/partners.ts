@@ -26,6 +26,8 @@ interface PartnersState {
   };
   status: "idle" | "loading" | "error";
   error: string | null;
+  selectedPartner: Partner | null;
+  selectedPartnerLoading: boolean;
 }
 
 const initialState: PartnersState = {
@@ -38,6 +40,8 @@ const initialState: PartnersState = {
   },
   status: "idle",
   error: null,
+  selectedPartner: null,
+  selectedPartnerLoading: false,
 };
 
 const partnersSlice = createSlice({
@@ -59,10 +63,16 @@ const partnersSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedPartner(state, action: PayloadAction<Partner | null>) {
+      state.selectedPartner = action.payload;
+    },
+    setSelectedPartnerLoading(state, action: PayloadAction<boolean>) {
+      state.selectedPartnerLoading = action.payload;
+    },
   },
 });
 
-export const { setPartners, setPartnersLoading, setPartnersError, setPage } = partnersSlice.actions;
+export const { setPartners, setPartnersLoading, setPartnersError, setPage, setSelectedPartner, setSelectedPartnerLoading } = partnersSlice.actions;
 
 export default partnersSlice.reducer;
 
@@ -93,6 +103,24 @@ export const fetchPartners = (page = 1, limit = 10, search = "") => async (dispa
     return { error: message };
   } finally {
     dispatch(setPartnersLoading(false));
+  }
+};
+
+// Thunk to fetch single partner details
+export const fetchPartnerDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedPartnerLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchPartnerDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedPartner(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load partner details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedPartnerLoading(false));
   }
 };
 
@@ -188,3 +216,5 @@ export const selectPartners = (state: RootState) => state.partners.data;
 export const selectPartnersPagination = (state: RootState) => state.partners.pagination;
 export const selectPartnersLoading = (state: RootState) => state.partners.status === "loading";
 export const selectPartnersError = (state: RootState) => state.partners.error;
+export const selectSelectedPartner = (state: RootState) => state.partners.selectedPartner;
+export const selectSelectedPartnerLoading = (state: RootState) => state.partners.selectedPartnerLoading;

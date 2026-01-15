@@ -6,93 +6,20 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Check, ArrowRight, Zap } from "lucide-react";
 
-const Pricing = () => {
-  const plans = [
-    {
-      name: "Starter",
-      partnerships: "1-5",
-      price: "499",
-      description:
-        "Perfect for early-stage SaaS companies testing partnership marketing",
-      features: [
-        "1-5 active partnerships",
-        "All three channels included",
-        "Basic performance reporting",
-        "Email support",
-        "Self-service dashboard",
-        "Content approval process",
-      ],
-      cta: "Start with Starter",
-      popular: false,
-    },
-    {
-      name: "Growth",
-      partnerships: "6-15",
-      price: "1,299",
-      description:
-        "Ideal for growing SaaS companies ready to scale partnerships",
-      features: [
-        "6-15 active partnerships",
-        "All three channels included",
-        "Advanced analytics & reporting",
-        "Priority support",
-        "Monthly strategy call",
-        "A/B testing & optimization",
-        "Dedicated account manager",
-        "Custom campaign briefs",
-      ],
-      cta: "Choose Growth",
-      popular: true,
-    },
-    {
-      name: "Scale",
-      partnerships: "16-30",
-      price: "2,499",
-      description:
-        "Complete solution for established SaaS companies seeking maximum impact",
-      features: [
-        "16-30 active partnerships",
-        "All three channels included",
-        "Real-time dashboard & analytics",
-        "Priority support",
-        "Bi-weekly strategy sessions",
-        "Multi-variate testing",
-        "Dedicated team of specialists",
-        "Custom integrations",
-        "Monthly business reviews",
-      ],
-      cta: "Choose Scale",
-      popular: false,
-    },
-    {
-      name: "Enterprise",
-      partnerships: "31+",
-      price: "Custom",
-      description: "Tailored solutions for high-volume partnership programs",
-      features: [
-        "31+ active partnerships",
-        "All three channels included",
-        "White-label dashboard",
-        "24/7 priority support",
-        "Weekly strategy sessions",
-        "API access & integrations",
-        "Dedicated success team",
-        "Custom contract terms",
-        "Quarterly business reviews",
-      ],
-      cta: "Contact Sales",
-      popular: false,
-    },
-  ];
-
-  const addOns = [
-    {
-      name: "Fully Managed Partnerships",
-      price: "$2,499/month",
-      description:
-        "Let our team handle everything from partner outreach to campaign execution and reporting",
-    },
-  ];
+const Pricing = ({data}) => {
+  console.log("🟢 [Pricing] Component rendering with data:", data);
+  
+  // Safely extract content sections from API data
+  const contentData = data?.content?.[0];
+  const section1 = contentData?.section1?.[0];
+  const section2 = contentData?.section2?.[0];
+  const section3 = contentData?.section3?.[0];
+  const section4 = contentData?.section4?.[0];
+  
+  // Separate subscriptions into normal plans and add-ons
+  const allSubscriptions = data?.subscriptions || [];
+  const plans = allSubscriptions.filter((plan: any) => plan.flag === "Normal");
+  const addOns = allSubscriptions.filter((plan: any) => plan.flag === "AddOn");
 
   return (
     <div className="min-h-screen">
@@ -101,18 +28,20 @@ const Pricing = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              Transparent Pricing
+              {section1?.title}
             </Badge>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-              Flexible Pricing That Scales With You
+              {section1?.subtitle}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Pay based on the number of active partnerships you manage. All
-              plans include a one-time onboarding fee of $500.
+              {section1?.button1Text}
             </p>
             <Badge className="bg-accent/10 text-accent border-accent/20 text-base px-4 py-2">
-              One-time onboarding fee: $500
+              {section1?.button2Text}
             </Badge>
+            <p className="text-base md:text-sm text-muted-foreground mt-10 max-w-2xl mx-auto">
+              {section1?.description}
+            </p>
           </div>
         </div>
       </section>
@@ -121,7 +50,7 @@ const Pricing = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {plans.map((plan, index) => (
+            {plans.map((plan: any, index: number) => (
               <Card
                 key={index}
                 className={`relative shadow-soft hover:shadow-large transition-all flex flex-col h-full min-h-[520px] ${
@@ -163,15 +92,18 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent className="flex flex-col flex-grow">
                   <ul className="space-y-3">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
+                    {plan.features && Array.isArray(plan.features) && plan.features.map((feature: any, idx: number) => {
+                      const featureText = typeof feature === "string" ? feature : feature.title;
+                      return (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{featureText}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <div className="mt-auto pt-5">
-                    <Link href="/contact" className="block">
+                    <Link href="/contact?source=pricing" className="block">
                       <Button
                         className={`w-full ${
                           plan.popular
@@ -180,7 +112,7 @@ const Pricing = () => {
                         }`}
                         variant={plan.popular ? "default" : "outline"}
                       >
-                        {plan.cta}
+                        Get Started
                         <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
                     </Link>
@@ -198,16 +130,15 @@ const Pricing = () => {
           <div className="">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">
-                Premium Add-on Service
+                {section2?.title}
               </h2>
               <p className="text-lg text-muted-foreground">
-                Want us to handle everything? Upgrade to our fully managed
-                service
+                {section2?.subtitle}
               </p>
             </div>
 
             <div className="">
-              {addOns.map((addOn, index) => (
+              {addOns.map((addOn: any, index: number) => (
                 <Card
                   key={index}
                   className="shadow-large border-2 border-primary/20 hover:border-primary/40 transition-all"
@@ -223,14 +154,14 @@ const Pricing = () => {
                         </p>
                       </div>
                       <div className="flex flex-col items-center gap-4">
-                        <Link href="/contact">
+                        <Link href="/contact?source=pricing">
                         <Button className="whitespace-nowrap" size="lg">
                           Learn More
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </Link>
                          <p className="text-2xl font-bold text-primary">
-                          {addOn.price}
+                          ${addOn.price}/month
                         </p>
                       </div>
                     </div>
@@ -247,86 +178,42 @@ const Pricing = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="">
             <h2 className="text-3xl font-bold mb-8 text-center">
-              Common Questions
+              {section3?.title}
             </h2>
 
             <div className="space-y-6">
-              <Card className="shadow-soft">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">
-                    Can I switch plans later?
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Absolutely! You can upgrade or downgrade at any time.
-                    Changes take effect at your next billing cycle.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-soft">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">
-                    What's your cancellation policy?
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    No long-term contracts. You can cancel anytime with 30 days
-                    notice. We'll wrap up active campaigns professionally.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-soft">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">
-                    Do you offer custom enterprise packages?
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Yes! For companies with unique needs or larger budgets, we
-                    create fully customized solutions. Contact us to discuss.
-                  </p>
-                </CardContent>
-              </Card>
+              {section3?.titles?.map((faq: any, index: number) => (
+                <Card key={index} className="shadow-soft">
+                  <CardContent className="pt-6">
+                    <h3 className="text-xl font-semibold mb-2">
+                      {faq.text}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {faq.answer}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
       </section>
-
-      {/* CTA */}
-      {/* <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <Card className="max-w-3xl mx-auto shadow-large overflow-hidden">
-            <div className="bg-gradient-primary p-12 text-center text-primary-foreground">
-              <h2 className="text-3xl font-bold mb-4">
-                Not Sure Which Plan is Right?
-              </h2>
-              <p className="text-lg mb-8 opacity-90">
-                Schedule a free consultation and we'll help you choose the perfect plan for your goals
-              </p>
-              <Link href="/contact">
-                <Button size="lg" variant="secondary" className="shadow-medium">
-                  Talk to Our Team
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-      </section> */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
-            Not Sure Which Plan is Right?
+            {section4?.title}
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Schedule a free consultation and we'll help you choose the perfect
-            plan for your goals
+            {section4?.description}
           </p>
-          <Link href="/contact">
-            <Button size="lg" variant="secondary" className="shadow-medium">
-              Talk to Our Team
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
+          {section4?.button1Url && (
+            <Link href={section4.button1Url}>
+              <Button size="lg" variant="secondary" className="shadow-medium">
+                {section4.button1Text}
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
     </div>

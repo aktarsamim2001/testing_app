@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { AppDispatch } from '@/store';
-import { createAuthorThunk, updateAuthorThunk } from '@/store/slices/authors';
+import type { AppDispatch, RootState } from '@/store';
+import { createAuthorThunk, updateAuthorThunk, fetchAuthorDetailsThunk, selectSelectedAuthor, selectSelectedAuthorLoading, fetchAuthors } from '@/store/slices/authors';
 // import { uploadAuthorImage } from '@/services/s3-upload';
 import toast from 'react-hot-toast';
 
@@ -25,6 +25,8 @@ interface AuthorDialogProps {
 
 export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const selectedAuthor = useSelector((state: RootState) => selectSelectedAuthor(state));
+  const selectedAuthorLoading = useSelector((state: RootState) => selectSelectedAuthorLoading(state));
   const [formData, setFormData] = useState({
     name: '',
     about: ''
@@ -40,14 +42,12 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
 
   useEffect(() => {
     setErrors({});
-    if (author) {
-      setFormData({
-        name: author.name || '',
-        about: author.about || ''
-      });
-      setImagePreview(author.image || '');
-      setImageFile(null);
-    } else {
+    
+    // If dialog is open and in edit mode (author has id), fetch full details
+    if (open && author?.id) {
+      dispatch(fetchAuthorDetailsThunk(author.id));
+    } else if (open) {
+      // Create mode - reset form
       setFormData({
         name: '',
         about: ''
@@ -55,7 +55,19 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
       setImagePreview('');
       setImageFile(null);
     }
-  }, [author, open]);
+  }, [author?.id, open, dispatch]);
+
+  // Populate form from selectedAuthor when details are fetched
+  useEffect(() => {
+    if (selectedAuthor && author?.id) {
+      setFormData({
+        name: selectedAuthor.name || '',
+        about: selectedAuthor.about || ''
+      });
+      setImagePreview(selectedAuthor.image || '');
+      setImageFile(null);
+    }
+  }, [selectedAuthor, author?.id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,7 +108,7 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
 
     try {
       let result;
-      if (author) {
+      if (author?.id) {
         // Update author
         const payload: any = {
           id: author.id,
@@ -117,6 +129,11 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
         }
 
         result = await dispatch(updateAuthorThunk(payload));
+        
+        // Refresh the author list after update and close dialog
+        dispatch(fetchAuthors(1, 10, ''));
+        toast.success('Author updated successfully!');
+        onOpenChange(false);
       } else {
         // Create author
         let imageUrl: string = '';
@@ -134,15 +151,15 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
           image: imageUrl,
           about: formData.about || null
         }));
-      }
-      
-      // Only close dialog on success, keep it open on error
-      if (result?.success) {
+        
+        // Refresh the author list after create and close dialog
+        dispatch(fetchAuthors(1, 10, ''));
+        toast.success('Author created successfully!');
         onOpenChange(false);
       }
-      // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error) {
       console.error('Error submitting author:', error);
+      toast.error('An error occurred while submitting the form.');
     } finally {
       setLoading(false);
     }
@@ -166,7 +183,7 @@ export default function AuthorDialog({ open, onOpenChange, author }: AuthorDialo
         <DialogHeader>
           <DialogTitle>{author ? 'Edit Author' : 'Add New Author'}</DialogTitle>
           <DialogDescription>
-            {author ? 'Update author information' : 'Add a new content author'}
+            {author ? (selectedAuthorLoading ? 'Loading author details...' : 'Update author information') : 'Add a new content author'}
           </DialogDescription>
         </DialogHeader>
 

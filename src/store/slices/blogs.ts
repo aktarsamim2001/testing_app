@@ -40,6 +40,8 @@ interface BlogsState {
   };
   status: "idle" | "loading" | "error";
   error: string | null;
+  selectedBlog: Blog | null;
+  selectedBlogLoading: boolean;
 }
 
 const initialState: BlogsState = {
@@ -52,6 +54,8 @@ const initialState: BlogsState = {
   },
   status: "idle",
   error: null,
+  selectedBlog: null,
+  selectedBlogLoading: false,
 };
 
 const blogsSlice = createSlice({
@@ -73,10 +77,16 @@ const blogsSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedBlog(state, action: PayloadAction<Blog | null>) {
+      state.selectedBlog = action.payload;
+    },
+    setSelectedBlogLoading(state, action: PayloadAction<boolean>) {
+      state.selectedBlogLoading = action.payload;
+    },
   },
 });
 
-export const { setBlogs, setBlogsLoading, setBlogsError, setPage } = blogsSlice.actions;
+export const { setBlogs, setBlogsLoading, setBlogsError, setPage, setSelectedBlog, setSelectedBlogLoading } = blogsSlice.actions;
 
 export default blogsSlice.reducer;
 
@@ -165,8 +175,28 @@ export const deleteBlogThunk = (id: string) => async (dispatch: AppDispatch, get
   }
 };
 
+// Thunk: fetch blog details
+export const fetchBlogDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedBlogLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchBlogDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedBlog(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load blog details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedBlogLoading(false));
+  }
+};
+
 // Selectors
 export const selectBlogs = (state: RootState) => state.blogs.data;
 export const selectBlogsPagination = (state: RootState) => state.blogs.pagination;
 export const selectBlogsLoading = (state: RootState) => state.blogs.status === "loading";
 export const selectBlogsError = (state: RootState) => state.blogs.error;
+export const selectSelectedBlog = (state: RootState) => state.blogs.selectedBlog;
+export const selectSelectedBlogLoading = (state: RootState) => state.blogs.selectedBlogLoading;

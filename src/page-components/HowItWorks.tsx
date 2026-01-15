@@ -17,93 +17,45 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-const HowItWorks = () => {
-  const steps = [
-    {
-      icon: Search,
-      title: "Discovery & Strategy",
-      description:
-        "We start by understanding your SaaS product, target audience, and growth goals through an in-depth consultation.",
-      details: [
-        "Competitor analysis",
-        "Audience research",
-        "Channel selection",
-        "KPI definition",
-      ],
-      timeline: "Week 1",
-    },
-    {
-      icon: UserPlus,
-      title: "Partner Identification",
-      description:
-        "Our team identifies and vets the most relevant influencers, bloggers, and creators aligned with your brand and audience.",
-      details: [
-        "Influencer database search",
-        "Audience match scoring",
-        "Authenticity verification",
-        "Reach & engagement analysis",
-      ],
-      timeline: "Week 2",
-    },
-    {
-      icon: FileText,
-      title: "Campaign Development",
-      description:
-        "We create compelling campaign briefs, negotiate partnerships, and develop content guidelines that resonate with your message.",
-      details: [
-        "Campaign brief creation",
-        "Partnership negotiations",
-        "Content guidelines",
-        "Timeline scheduling",
-      ],
-      timeline: "Week 3",
-    },
-    {
-      icon: Rocket,
-      title: "Launch & Execution",
-      description:
-        "Your campaigns go live across chosen channels with real-time monitoring and optimization for maximum impact.",
-      details: [
-        "Multi-channel coordination",
-        "Content approval process",
-        "Launch optimization",
-        "Real-time monitoring",
-      ],
-      timeline: "Week 4+",
-    },
-    {
-      icon: BarChart3,
-      title: "Tracking & Optimization",
-      description:
-        "Continuous performance tracking with data-driven insights and optimization to improve ROI throughout the campaign.",
-      details: [
-        "Performance dashboards",
-        "A/B testing",
-        "Conversion tracking",
-        "Monthly reports",
-      ],
-      timeline: "Ongoing",
-    },
-  ];
+const HowItWorks = ({data}) => {
+  console.log("🟢 [HowItWorks] Component rendering with data:", data);
+  
+  // Map icons for steps
+  const iconMap = {
+    0: Search,
+    1: UserPlus,
+    2: FileText,
+    3: Rocket,
+    4: BarChart3,
+  };
 
-  const advantages = [
-    {
-      icon: Clock,
-      title: "Fast Time to Market",
-      description: "Launch your first campaign within 30 days of onboarding",
-    },
-    {
-      icon: Shield,
-      title: "Risk Mitigation",
-      description: "We vet all partners and ensure brand safety throughout",
-    },
-    {
-      icon: TrendingUp,
-      title: "Scalable Growth",
-      description:
-        "Start small and scale as you see results - no long-term lock-in",
-    },
-  ];
+  const iconMapAdvantages = {
+    0: Clock,
+    1: Shield,
+    2: TrendingUp,
+  };
+
+  // Extract section data
+  const section1 = data?.content?.[0]?.section1?.[0] || {};
+  const section2 = data?.content?.[0]?.section2 || [];
+  const section3 = data?.content?.[0]?.section3?.[0] || {};
+  const section4 = data?.content?.[0]?.section4?.[0] || {};
+
+  // Build steps from section2 data
+  const steps = section2.map((item, index) => ({
+    icon: iconMap[index] || Search,
+    title: item.title || "",
+    description: item.description || "",
+    details: item.titles?.map((t) => t.text) || [],
+    timeline: item.button1Text || "",
+  }));
+
+  // Build advantages from section3 cards
+  const advantages = section3.cards?.map((card, index) => ({
+    icon: iconMapAdvantages[index] || Clock,
+    title: card.title || "",
+    description: card.description || "",
+  })) || [];
 
   return (
     <div className="min-h-screen">
@@ -112,15 +64,14 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              Our Process
+              {section1.title || "Our Process"}
             </Badge>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-              From Strategy to Scale in 5 Simple Steps
+              {section1.subtitle || "From Strategy to Scale in 5 Simple Steps"}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              A proven methodology that turns partnership opportunities into
-              measurable growth. Transparent, data-driven, and designed for SaaS
-              companies.
+              {section1.description ||
+                "A proven methodology that turns partnership opportunities into measurable growth. Transparent, data-driven, and designed for SaaS companies."}
             </p>
           </div>
         </div>
@@ -184,9 +135,12 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Our Process Works</h2>
+              <h2 className="text-3xl font-bold mb-4">
+                {section3.title || "Why Our Process Works"}
+              </h2>
               <p className="text-lg text-muted-foreground">
-                Built on years of experience scaling SaaS companies
+                {section3.subtitle ||
+                  "Built on years of experience scaling SaaS companies"}
               </p>
             </div>
 
@@ -215,26 +169,26 @@ const HowItWorks = () => {
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
-            Ready to Get Started?
+            {section4.title || "Ready to Get Started?"}
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Schedule a free consultation to discuss your growth goals and see
-            how we can help
+            {section4.subtitle ||
+              "Schedule a free consultation to discuss your growth goals and see how we can help"}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact">
+            <Link href={section4.button1Url || "/contact"}>
               <Button size="lg" variant="secondary" className="shadow-medium">
-                Schedule Consultation
+                {section4.button1Text || "Schedule Consultation"}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/pricing">
+            <Link href={section4.button2Url || "/pricing"}>
               <Button
                 size="lg"
                 variant="outline"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20"
               >
-                View Pricing
+                {section4.button2Text || "View Pricing"}
               </Button>
             </Link>
           </div>

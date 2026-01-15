@@ -217,11 +217,7 @@ export default function Section2({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      updateSlide(section.id, slide.id, { image: reader.result as string });
-                    };
-                    reader.readAsDataURL(file);
+                    updateSlide(section.id, slide.id, { image: `/uploads/icons/${file.name}` });
                   }
                 }}
                 disabled={loading}
@@ -229,7 +225,7 @@ export default function Section2({
               />
               {slide.image && (
                 <div className="mt-2">
-                  <img src={slide.image} alt="Icon preview" className="h-20 w-20 object-cover rounded" />
+                  <p className="text-xs text-green-600">✓ Icon set</p>
                 </div>
               )}
             </div>

@@ -65,6 +65,8 @@ import {
   deleteMenuItemThunk,
   reorderMenuItemsThunk,
   setMenuItemsPageNumber,
+  fetchMenuItemDetailsThunk,
+  selectMenuItemDetails,
 } from "@/store/slices/menuItems";
 import { fetchMenus, selectMenus, updateMenuThunk } from "@/store/slices/menus";
 import { fetchPages, selectPages } from "@/store/slices/pages";
@@ -80,6 +82,7 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
   const itemsLoading = useAppSelector(selectMenuItemsLoading);
   const reduxMenus = useAppSelector(selectMenus);
   const reduxPages = useAppSelector(selectPages);
+  const menuItemDetails = useAppSelector(selectMenuItemDetails);
 
   // Local state
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -143,10 +146,13 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
     }
   }, [reduxMenus, menuId]);
 
-  // Sync with Redux
+  // Sync with Redux and filter by current menuId
   useEffect(() => {
-    setMenuItems((reduxMenuItems as any[]) || []);
-  }, [reduxMenuItems]);
+    const filteredItems = (reduxMenuItems as any[])?.filter(
+      (item) => String(item.menu_id) === String(menuId)
+    ) || [];
+    setMenuItems(filteredItems);
+  }, [reduxMenuItems, menuId]);
 
   // Debounce search
   useEffect(() => {
@@ -183,6 +189,8 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
 
     if (newType === "page" && newPageId) {
       payload.slug = String(newPageId);
+    } else if (newType === "custom" && newCustomValue.trim()) {
+      payload.url = newCustomValue.trim();
     }
 
     await dispatch(createMenuItemThunk(payload) as any);
@@ -212,17 +220,34 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
 
   const handleEditItem = (item: any) => {
     setEditingItem(item);
-    setEditTitle(item.title);
+    // Populate form immediately with item data
+    setEditTitle(item.title || "");
     setEditTarget(item.target_set || "_self");
     setEditType(item.type || "page");
     setEditPageId(item.slug || "");
     setEditStatus(item.status === 0 || item.status === "0" ? "0" : "1");
-    setEditCustomValue(item.custom_value || "");
+    setEditCustomValue(item.url || "");
+    
+    setDialogOpen(true);
     dispatch(fetchPages(1, 100) as any);
     setDialogMode("edit");
     setErrors({});
-    setDialogOpen(true);
+    
+    // Fetch details API to get latest data
+    dispatch(fetchMenuItemDetailsThunk(item.id) as any);
   };
+
+  // Update form when API details are loaded
+  useEffect(() => {
+    if (menuItemDetails && dialogMode === "edit" && editingItem) {
+      setEditTitle(menuItemDetails.title || "");
+      setEditTarget(menuItemDetails.target_set || "_self");
+      setEditType(menuItemDetails.type || "page");
+      setEditPageId(menuItemDetails.slug || "");
+      setEditStatus(menuItemDetails.status === 0 || menuItemDetails.status === "0" ? "0" : "1");
+      setEditCustomValue(menuItemDetails.url || "");
+    }
+  }, [menuItemDetails]);
 
   const handleSaveEdit = async () => {
     if (!validateDialogForm()) return false;
@@ -238,6 +263,8 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
 
     if (editType === "page" && editPageId) {
       payload.slug = String(editPageId);
+    } else if (editType === "custom" && editCustomValue.trim()) {
+      payload.url = String(editCustomValue.trim());
     }
 
     await dispatch(updateMenuItemThunk(payload) as any);

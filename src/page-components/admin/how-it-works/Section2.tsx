@@ -172,11 +172,7 @@ export default function Section2({
                   onChange={(e) => {
                     if (e.target.files?.[0]) {
                       const file = e.target.files[0];
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        updateSlide(section.id, slide.id, { image: reader.result as string });
-                      };
-                      reader.readAsDataURL(file);
+                      updateSlide(section.id, slide.id, { image: `/uploads/icons/${file.name}` });
                     }
                   }}
                   disabled={loading}

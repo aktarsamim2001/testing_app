@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { AppDispatch } from '@/store';
-import { createClientThunk, updateClientThunk } from '@/store/slices/clients';
-import { useDispatch } from 'react-redux';
+import type { AppDispatch, RootState } from '@/store';
+import { createClientThunk, updateClientThunk, fetchClientDetailsThunk, selectSelectedClient, selectSelectedClientLoading, fetchClients } from '@/store/slices/clients';
+import { useDispatch, useSelector } from 'react-redux';
 
 interface Client {
   id: string;
@@ -30,6 +30,8 @@ interface ClientDialogProps {
 
 export default function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const selectedClient = useSelector((state: RootState) => selectSelectedClient(state));
+  const selectedClientLoading = useSelector((state: RootState) => selectSelectedClientLoading(state));
   const [formData, setFormData] = useState({
     company_name: '',
     name: '',
@@ -51,17 +53,12 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
 
   useEffect(() => {
     setErrors({});
-    if (client) {
-      setFormData({
-        company_name: client.company_name || '',
-        name: client.name || '',
-        email: client.email || '',
-        phone: client.phone || '',
-        website: client.website || '',
-        status: client.status ?? 2,
-        notes: client.notes || '',
-      });
-    } else {
+    
+    // If dialog is open and in edit mode (client has id), fetch full details
+    if (open && client?.id) {
+      dispatch(fetchClientDetailsThunk(client.id));
+    } else if (open) {
+      // Create mode - reset form
       setFormData({
         company_name: '',
         name: '',
@@ -72,7 +69,22 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
         notes: '',
       });
     }
-  }, [client, open]);
+  }, [client?.id, open, dispatch]);
+
+  // Populate form from selectedClient when details are fetched
+  useEffect(() => {
+    if (selectedClient && client?.id) {
+      setFormData({
+        company_name: selectedClient.company_name || '',
+        name: selectedClient.name || '',
+        email: selectedClient.email || '',
+        phone: selectedClient.phone || '',
+        website: selectedClient.website || '',
+        status: selectedClient.status ?? 2,
+        notes: selectedClient.notes || '',
+      });
+    }
+  }, [selectedClient, client?.id]);
 
   const validatePhoneNumber = (phone: string, countryData: any): { valid: boolean; error?: string } => {
     if (!phone || !phone.trim()) {
@@ -216,22 +228,30 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
     
     try {
       let result;
-      if (client) {
+      // Prepare phone number - PhoneInput already includes +, so don't add it again
+      const phoneValue = formData.phone ? (formData.phone.startsWith('+') ? formData.phone : `+${formData.phone}`) : null;
+      
+      if (client?.id) {
         result = await dispatch(updateClientThunk({
           id: client.id,
           ...formData,
-          phone: formData.phone ? `+${formData.phone}` : null,
+          phone: phoneValue,
         }));
+        
+        // Close dialog and refresh list after successful update
+        if (result?.success) {
+          onOpenChange(false);
+        }
       } else {
         result = await dispatch(createClientThunk({
           ...formData,
-          phone: formData.phone ? `+${formData.phone}` : null,
+          phone: phoneValue,
         }));
-      }
-      
-      // Only close dialog on success, keep it open on error
-      if (result?.success) {
-        onOpenChange(false);
+        
+        // Close dialog and refresh list after successful create
+        if (result?.success) {
+          onOpenChange(false);
+        }
       }
       // If there's an error, the Redux thunk will show a toast and dialog stays open
     } catch (error: any) {
@@ -247,7 +267,7 @@ export default function ClientDialog({ open, onOpenChange, client }: ClientDialo
         <DialogHeader>
           <DialogTitle>{client ? 'Edit Client' : 'Add New Client'}</DialogTitle>
           <DialogDescription>
-            {client ? 'Update client information' : 'Add a new SAAS company client'}
+            {client ? (selectedClientLoading ? 'Loading client details...' : 'Update client information') : 'Add a new SAAS company client'}
           </DialogDescription>
         </DialogHeader>
         <style>{`

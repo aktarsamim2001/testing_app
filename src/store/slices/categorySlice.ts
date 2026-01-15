@@ -20,6 +20,8 @@ interface CategoryState {
   };
   status: "idle" | "loading" | "error";
   error: string | null;
+  selectedCategory: Category | null;
+  selectedCategoryLoading: boolean;
 }
 
 const initialState: CategoryState = {
@@ -32,6 +34,8 @@ const initialState: CategoryState = {
   },
   status: "idle",
   error: null,
+  selectedCategory: null,
+  selectedCategoryLoading: false,
 };
 
 const categorySlice = createSlice({
@@ -53,10 +57,16 @@ const categorySlice = createSlice({
     setCategoryPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedCategory(state, action: PayloadAction<Category | null>) {
+      state.selectedCategory = action.payload;
+    },
+    setSelectedCategoryLoading(state, action: PayloadAction<boolean>) {
+      state.selectedCategoryLoading = action.payload;
+    },
   },
 });
 
-export const { setCategories, setCategoriesLoading, setCategoriesError, setCategoryPage } = categorySlice.actions;
+export const { setCategories, setCategoriesLoading, setCategoriesError, setCategoryPage, setSelectedCategory, setSelectedCategoryLoading } = categorySlice.actions;
 
 export default categorySlice.reducer;
 
@@ -86,6 +96,24 @@ export const fetchCategories = (page = 1, limit = 10, search = "") => async (dis
     return { error: message };
   } finally {
     dispatch(setCategoriesLoading(false));
+  }
+};
+
+// Thunk to fetch single category details
+export const fetchCategoryDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedCategoryLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchCategoryDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedCategory(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load category details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedCategoryLoading(false));
   }
 };
 
@@ -154,3 +182,11 @@ export const deleteCategoryThunk = (id: string) => async (dispatch: AppDispatch,
     dispatch(setCategoriesLoading(false));
   }
 };
+
+// Selectors
+export const selectCategories = (state: RootState) => state.categories.data;
+export const selectCategoriesPagination = (state: RootState) => state.categories.pagination;
+export const selectCategoriesLoading = (state: RootState) => state.categories.status === "loading";
+export const selectCategoriesError = (state: RootState) => state.categories.error;
+export const selectSelectedCategory = (state: RootState) => state.categories.selectedCategory;
+export const selectSelectedCategoryLoading = (state: RootState) => state.categories.selectedCategoryLoading;

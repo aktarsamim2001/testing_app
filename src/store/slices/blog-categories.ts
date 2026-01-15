@@ -18,6 +18,8 @@ interface BlogCategoriesState {
   pagination: PaginationState;
   status: Status;
   error: string | null;
+  selectedBlogCategory: BlogCategory | null;
+  selectedBlogCategoryLoading: boolean;
 }
 
 const initialState: BlogCategoriesState = {
@@ -31,6 +33,8 @@ const initialState: BlogCategoriesState = {
   },
   status: "idle",
   error: null,
+  selectedBlogCategory: null,
+  selectedBlogCategoryLoading: false,
 };
 
 const blogCategoriesSlice = createSlice({
@@ -53,10 +57,16 @@ const blogCategoriesSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedBlogCategory(state, action: PayloadAction<BlogCategory | null>) {
+      state.selectedBlogCategory = action.payload;
+    },
+    setSelectedBlogCategoryLoading(state, action: PayloadAction<boolean>) {
+      state.selectedBlogCategoryLoading = action.payload;
+    },
   },
 });
 
-export const { setBlogCategories, setBlogCategoriesLoading, setBlogCategoriesError, setPage } = blogCategoriesSlice.actions;
+export const { setBlogCategories, setBlogCategoriesLoading, setBlogCategoriesError, setPage, setSelectedBlogCategory, setSelectedBlogCategoryLoading } = blogCategoriesSlice.actions;
 
 export default blogCategoriesSlice.reducer;
 
@@ -170,8 +180,28 @@ export const deleteBlogCategoryThunk = (id: string) => async (dispatch: AppDispa
   }
 };
 
+// Thunk to fetch single blog category details
+export const fetchBlogCategoryDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedBlogCategoryLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchBlogCategoryDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedBlogCategory(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load blog category details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedBlogCategoryLoading(false));
+  }
+};
+
 // Selectors
 export const selectBlogCategories = (state: RootState) => state.blogCategories.data;
 export const selectBlogCategoriesPagination = (state: RootState) => state.blogCategories.pagination;
 export const selectBlogCategoriesLoading = (state: RootState) => state.blogCategories.status === "loading";
 export const selectBlogCategoriesError = (state: RootState) => state.blogCategories.error;
+export const selectSelectedBlogCategory = (state: RootState) => state.blogCategories.selectedBlogCategory;
+export const selectSelectedBlogCategoryLoading = (state: RootState) => state.blogCategories.selectedBlogCategoryLoading;

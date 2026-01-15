@@ -9,75 +9,15 @@ import {
   TrendingUp, Users, Target, Zap, ArrowRight 
 } from "lucide-react";
 
-const Services = () => {
-  const services = [
-    {
-      icon: FileText,
-      title: "Blogger Outreach",
-      tagline: "Build Authority Through Content",
-      description: "Connect with influential bloggers and content creators in your niche to amplify your brand message and drive targeted traffic.",
-      features: [
-        "Targeted blogger identification & vetting",
-        "Relationship building & negotiation",
-        "Content collaboration management",
-        "Guest post & sponsored content",
-        "Backlink strategy & SEO benefits",
-        "Performance tracking & reporting",
-      ],
-      benefits: [
-        "Boost domain authority",
-        "Drive referral traffic",
-        "Build brand credibility",
-        "Improve SEO rankings",
-      ],
-      pricing: "Starting at $2,499/mo",
-      color: "primary",
-    },
-    {
-      icon: Linkedin,
-      title: "LinkedIn Influencer Marketing",
-      tagline: "Reach Decision Makers Where They Are",
-      description: "Partner with LinkedIn thought leaders and industry experts to reach B2B decision-makers and drive high-quality leads.",
-      features: [
-        "B2B influencer identification",
-        "Thought leadership partnerships",
-        "Sponsored content campaigns",
-        "Employee advocacy programs",
-        "Lead generation tracking",
-        "Account-based marketing (ABM)",
-      ],
-      benefits: [
-        "Access C-level executives",
-        "Generate qualified leads",
-        "Build professional credibility",
-        "Shorten sales cycles",
-      ],
-      pricing: "Starting at $3,499/mo",
-      color: "secondary",
-    },
-    {
-      icon: Youtube,
-      title: "YouTube Campaign Management",
-      tagline: "Engage Through Video Storytelling",
-      description: "Collaborate with YouTube creators to produce authentic video content that educates, entertains, and converts viewers into customers.",
-      features: [
-        "Creator discovery & vetting",
-        "Campaign strategy & scripting",
-        "Sponsorship negotiations",
-        "Product integration guidelines",
-        "Video performance analytics",
-        "Conversion optimization",
-      ],
-      benefits: [
-        "Massive reach potential",
-        "Higher engagement rates",
-        "Trust through authenticity",
-        "Long-term content value",
-      ],
-      pricing: "Starting at $4,999/mo",
-      color: "accent",
-    },
-  ];
+const Services = ({data}) => {
+  
+  // Safely extract content sections from API data
+  const contentData = data?.content?.[0];
+  const section1 = contentData?.section1?.[0];
+  
+  // Separate services by flag
+  const regularServices = data?.services?.filter((service: any) => service.flag === "Service") || [];
+  const fullServices = data?.services?.filter((service: any) => service.flag === "Full_Service") || [];
 
   return (
     <div className="min-h-screen">
@@ -86,14 +26,13 @@ const Services = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              Our Services
+              {section1?.title}
             </Badge>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-              Multi-Channel Partnership Solutions
+              {section1?.subtitle}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Choose the channels that align with your growth goals, or leverage all three 
-              for maximum impact. Each service is designed to scale with your business.
+              {section1?.description}
             </p>
           </div>
         </div>
@@ -103,22 +42,29 @@ const Services = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="space-y-12">
-            {services.map((service, index) => (
+            {regularServices.map((service: any, index: number) => {
+              // Icon mapping based on service index
+              const iconMap = [FileText, Linkedin, Youtube];
+              const ServiceIcon = iconMap[index % iconMap.length];
+              const colors = ["primary", "secondary", "accent"];
+              const color = colors[index % colors.length];
+              
+              return (
               <Card key={index} className="shadow-medium hover:shadow-large transition-all overflow-hidden">
-                <div className={`h-2 bg-gradient-${service.color}`} />
+                <div className={`h-2 bg-gradient-${color}`} />
                 <CardHeader>
                   <div className="flex items-start justify-between flex-wrap gap-4">
                     <div className="flex items-start gap-4">
-                      <div className={`p-3 bg-${service.color}/10 rounded-xl`}>
-                        <service.icon className={`w-8 h-8 text-${service.color}`} />
+                      <div className={`p-3 bg-${color}/10 rounded-xl`}>
+                        <ServiceIcon className={`w-8 h-8 text-${color}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-3xl mb-2">{service.title}</CardTitle>
-                        <p className="text-muted-foreground font-medium">{service.tagline}</p>
+                        <CardTitle className="text-3xl mb-2">{service.name}</CardTitle>
+                        <p className="text-muted-foreground font-medium">{service.short_description}</p>
                       </div>
                     </div>
                     <Badge variant="outline" className="text-lg py-1 px-3">
-                      {service.pricing}
+                      ${service.price}/month
                     </Badge>
                   </div>
                 </CardHeader>
@@ -132,10 +78,10 @@ const Services = () => {
                         What's Included
                       </h4>
                       <ul className="space-y-2">
-                        {service.features.map((feature, idx) => (
+                        {service.what_included && Array.isArray(service.what_included) && service.what_included.map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
                             <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                            <span>{feature}</span>
+                            <span>{typeof item === "string" ? item : item.title}</span>
                           </li>
                         ))}
                       </ul>
@@ -147,10 +93,10 @@ const Services = () => {
                         Key Benefits
                       </h4>
                       <div className="space-y-3">
-                        {service.benefits.map((benefit, idx) => (
+                        {service.key_benefits && Array.isArray(service.key_benefits) && service.key_benefits.map((benefit: any, idx: number) => (
                           <div key={idx} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                             <Target className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-medium">{benefit}</span>
+                            <span className="text-sm font-medium">{typeof benefit === "string" ? benefit : benefit.title}</span>
                           </div>
                         ))}
                       </div>
@@ -159,9 +105,9 @@ const Services = () => {
 
                   <div className="pt-4">
                     <div className="w-full">
-                      <Link href="/contact" className="block">
+                      <Link href="/contact?source=services" className="block">
                         <Button className="bg-gradient-primary w-full sm:w-auto">
-                          Get Started with {service.title}
+                          Get Started with {service.name}
                           <ArrowRight className="ml-2 w-4 h-4" />
                         </Button>
                       </Link>
@@ -169,7 +115,8 @@ const Services = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         </div>
       </section>
@@ -177,69 +124,64 @@ const Services = () => {
       {/* Full Service Option */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6">
-          <Card className=" shadow-large">
-            <CardContent className="p-12">
-              <div className="text-center mb-8">
-                <Badge className="mb-4 bg-gradient-primary text-primary-foreground border-0">
-                  Recommended
-                </Badge>
-                <h2 className="text-3xl font-bold mb-4">Full-Service Partnership Suite</h2>
-                <p className="text-xl text-muted-foreground">
-                  Maximize your growth with an integrated multi-channel strategy
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center p-6 bg-background rounded-xl">
-                  <FileText className="w-8 h-8 text-primary mx-auto mb-3" />
-                  <p className="font-semibold">Blogger Outreach</p>
-                </div>
-                <div className="text-center p-6 bg-background rounded-xl">
-                  <Linkedin className="w-8 h-8 text-secondary mx-auto mb-3" />
-                  <p className="font-semibold">LinkedIn Marketing</p>
-                </div>
-                <div className="text-center p-6 bg-background rounded-xl">
-                  <Youtube className="w-8 h-8 text-accent mx-auto mb-3" />
-                  <p className="font-semibold">YouTube Campaigns</p>
-                </div>
-              </div>
-
-              <div className="bg-gradient-primary/5 border border-primary/20 rounded-xl p-6 mb-8">
-                <h3 className="font-semibold mb-4">Additional Benefits:</h3>
-                <ul className="grid md:grid-cols-2 gap-3">
-                  {[
-                    "Unified reporting dashboard",
-                    "Cross-channel synergy",
-                    "Priority support",
-                    "Quarterly strategy reviews",
-                    "Custom audience insights",
-                    "20% cost savings vs individual",
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="text-center">
-                <div className="mb-4">
-                  <span className="text-3xl font-bold">$8,999</span>
-                  <span className="text-muted-foreground">/month</span>
-                  <Badge className="ml-3 bg-accent/10 text-accent border-accent/20">
-                    Save $1,998/mo
+          {fullServices.map((fullService: any, index: number) => (
+            <Card key={index} className=" shadow-large">
+              <CardContent className="p-12">
+                <div className="text-center mb-8">
+                  <Badge className="mb-4 bg-gradient-primary text-primary-foreground border-0">
+                    Recommended
                   </Badge>
+                  <h2 className="text-3xl font-bold mb-4">{fullService.name}</h2>
+                  <p className="text-xl text-muted-foreground">
+                    {fullService.short_description}
+                  </p>
                 </div>
-                <Link href="/contact">
-                  <Button size="lg" className="bg-gradient-primary shadow-medium">
-                    Start Full-Service Package
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  {regularServices.slice(0, 3).map((service: any, idx: number) => {
+                    const iconMap = [FileText, Linkedin, Youtube];
+                    const ServiceIcon = iconMap[idx % iconMap.length];
+                    return (
+                      <div key={idx} className="text-center p-6 bg-background rounded-xl">
+                        <ServiceIcon className="w-8 h-8 text-primary mx-auto mb-3" />
+                        <p className="font-semibold">{service.name}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="bg-gradient-primary/5 border border-primary/20 rounded-xl p-6 mb-8">
+                  <h3 className="font-semibold mb-4">Additional Benefits:</h3>
+                  <ul className="grid md:grid-cols-2 gap-3">
+                    {fullService.additional_benefits && Array.isArray(fullService.additional_benefits) && fullService.additional_benefits.map((benefit: any, idx: number) => (
+                      <li key={idx} className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>{typeof benefit === "string" ? benefit : benefit.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="text-center">
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">${fullService.price}</span>
+                    <span className="text-muted-foreground">/month</span>
+                    {fullService.discount_price && (
+                      <Badge className="ml-3 bg-accent/10 text-accent border-accent/20">
+                        Save ${(fullService.price - fullService.discount_price) * 12}/year
+                      </Badge>
+                    )}
+                  </div>
+                  <Link href="/contact?source=services">
+                    <Button size="lg" className="bg-gradient-primary shadow-medium">
+                      Get {fullService.name}
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
     </div>

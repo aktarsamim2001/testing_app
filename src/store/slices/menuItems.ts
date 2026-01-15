@@ -11,6 +11,7 @@ interface MenuItem {
   type: string;
   title: string;
   slug?: string;
+  url?: string;
   target_set?: string;
   status: number;
 }
@@ -84,9 +85,46 @@ const menuItemsSlice = createSlice({
       state.error = null;
     },
   },
+  extraReducers: (builder) => {
+    // Handle menuItemDetails state using addMatcher for string action types
+    builder.addMatcher(
+      (action): action is { type: string; payload: any } => action.type === 'menuItemDetails/setMenuItemDetails',
+      (state: any, action) => {
+        if (!state.menuItemDetails) {
+          state.menuItemDetails = { data: null, status: 'idle', error: null };
+        }
+        state.menuItemDetails.data = action.payload;
+        state.menuItemDetails.status = 'succeeded';
+      }
+    );
+    builder.addMatcher(
+      (action): action is { type: string; payload: any } => action.type === 'menuItemDetails/setMenuItemDetailsLoading',
+      (state: any, action) => {
+        if (!state.menuItemDetails) {
+          state.menuItemDetails = { data: null, status: 'idle', error: null };
+        }
+        state.menuItemDetails.status = action.payload ? 'loading' : 'idle';
+      }
+    );
+    builder.addMatcher(
+      (action): action is { type: string; payload: any } => action.type === 'menuItemDetails/setMenuItemDetailsError',
+      (state: any, action) => {
+        if (!state.menuItemDetails) {
+          state.menuItemDetails = { data: null, status: 'idle', error: null };
+        }
+        state.menuItemDetails.error = action.payload;
+        state.menuItemDetails.status = 'failed';
+      }
+    );
+  },
 });
 
 export const { setMenuItems, setMenuItemsLoading, setMenuItemsError, setCurrentMenuId, setMenuItemsPageNumber, setMenuItemsPerPage, reorderMenuItems: reorderMenuItemsAction } = menuItemsSlice.actions;
+
+// Action creators for menu item details (manually created since they're in extraReducers)
+export const setMenuItemDetails = (data: any) => ({ type: 'menuItemDetails/setMenuItemDetails', payload: data });
+export const setMenuItemDetailsLoading = (loading: boolean) => ({ type: 'menuItemDetails/setMenuItemDetailsLoading', payload: loading });
+export const setMenuItemDetailsError = (error: string | null) => ({ type: 'menuItemDetails/setMenuItemDetailsError', payload: error });
 
 export default menuItemsSlice.reducer;
 
@@ -118,7 +156,7 @@ export const fetchMenuItems = (menuId: string | number, page = 1, limit = 10, se
 };
 
 // Thunk to create menu item
-export const createMenuItemThunk = (payload: { menu_id: string | number; type: string; title: string; slug?: string; target_set?: string; status: string | number }) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const createMenuItemThunk = (payload: { menu_id: string | number; type: string; title: string; slug?: string; url?: string; target_set?: string; status: string | number }) => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setMenuItemsLoading(true));
   const token = getState().auth.authToken;
   try {
@@ -144,7 +182,7 @@ export const createMenuItemThunk = (payload: { menu_id: string | number; type: s
 };
 
 // Thunk to update menu item
-export const updateMenuItemThunk = (payload: { id: string | number; type?: string; title?: string; slug?: string; target_set?: string; status?: string | number }) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const updateMenuItemThunk = (payload: { id: string | number; type?: string; title?: string; slug?: string; url?: string; target_set?: string; status?: string | number }) => async (dispatch: AppDispatch, getState: () => RootState) => {
   dispatch(setMenuItemsLoading(true));
   const token = getState().auth.authToken;
   try {
@@ -239,3 +277,31 @@ export const selectMenuItems = (state: RootState) => state.menuItems.data;
 export const selectMenuItemsLoading = (state: RootState) => state.menuItems.status === "loading";
 export const selectCurrentMenuId = (state: RootState) => state.menuItems.currentMenuId;
 export const selectMenuItemsPagination = (state: RootState) => (state.menuItems as any).pagination as PaginationState;
+
+// Thunk to fetch menu item details
+export const fetchMenuItemDetailsThunk = (id: string | number) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setMenuItemDetailsLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchMenuItemDetails(id, token);
+    const body = response.data;
+    
+    // Handle the response data - API returns data object or the item directly
+    const itemData = body?.data || body;
+    
+    dispatch(setMenuItemDetails(itemData));
+    return { success: true, data: itemData };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load menu item details";
+    dispatch(setMenuItemDetailsError(message));
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setMenuItemDetailsLoading(false));
+  }
+};
+
+// Details Selectors
+export const selectMenuItemDetails = (state: RootState) => (state as any).menuItemDetails?.data ?? null;
+export const selectMenuItemDetailsLoading = (state: RootState) => (state as any).menuItemDetails?.status === "loading";
+export const selectMenuItemDetailsError = (state: RootState) => (state as any).menuItemDetails?.error;

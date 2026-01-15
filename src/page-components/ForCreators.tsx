@@ -5,86 +5,40 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { DollarSign, TrendingUp, Clock, Users, CheckCircle, Linkedin, Youtube, FileText } from "lucide-react";
 
-const ForCreators = () => {
-  const stats = [
-    {
-      icon: DollarSign,
-      value: "$100+",
-      label: "Per LinkedIn Post",
-      description: "Minimum guaranteed earnings"
-    },
-    {
-      icon: TrendingUp,
-      value: "$1,500",
-      label: "Monthly Potential",
-      description: "For just a few hours of work"
-    },
-    {
-      icon: Clock,
-      value: "2-3 hrs",
-      label: "Per Week",
-      description: "Flexible time commitment"
-    },
-    {
-      icon: Users,
-      value: "500+",
-      label: "Active Campaigns",
-      description: "Choose what fits you"
-    }
-  ];
+const ForCreators = ({data}) => {
+  // Extract sections from API data
+  const content = data?.content?.[0] || {};
+  const section1 = content.section1?.[0] || {};
+  const section2 = content.section2?.[0] || {};
+  const section3 = content.section3?.[0] || {};
+  const section4 = content.section4?.[0] || {};
+  const section5 = content.section5?.[0] || {};
 
-  const channels = [
-    {
-      icon: Linkedin,
-      name: "LinkedIn Influencers",
-      earnings: "$100-300 per post",
-      description: "Share SAAS insights with your professional network"
-    },
-    {
-      icon: Youtube,
-      name: "YouTube Creators",
-      earnings: "$200-500 per video",
-      description: "Create product reviews and tutorials"
-    },
-    {
-      icon: FileText,
-      name: "Bloggers",
-      earnings: "$150-400 per article",
-      description: "Write detailed reviews and guides"
-    }
-  ];
+  // Map stats from section1 cards
+  const stats = (section1.cards || []).map(card => ({
+    icon: DollarSign,
+    value: card.title,
+    label: card.description,
+    description: card.buttonText
+  }));
 
-  const benefits = [
-    "Choose campaigns that align with your audience",
-    "Flexible schedule - work on your own time",
-    "Get paid quickly and reliably",
-    "Access to exclusive SAAS partnerships",
-    "Build your portfolio with quality brands",
-    "No minimum follower requirements to start"
-  ];
+  // Map channels from section2 cards
+  const channels = (section2.cards || []).map(card => ({
+    icon: Linkedin,
+    name: card.title,
+    earnings: card.buttonText,
+    description: card.description
+  }));
 
-  const howItWorks = [
-    {
-      step: "1",
-      title: "Create Your Profile",
-      description: "Sign up and showcase your channel, audience, and expertise"
-    },
-    {
-      step: "2",
-      title: "Browse Campaigns",
-      description: "Find SAAS campaigns that match your niche and interests"
-    },
-    {
-      step: "3",
-      title: "Create Content",
-      description: "Produce authentic content for your audience"
-    },
-    {
-      step: "4",
-      title: "Get Paid",
-      description: "Receive payments directly to your account"
-    }
-  ];
+  // Map benefits from section4 titles
+  const benefits = (section4.titles || []).map(title => title.text);
+
+  // Map how it works from section3 cards
+  const howItWorks = (section3.cards || []).map((card, idx) => ({
+    step: card.icon || String(idx + 1),
+    title: card.title,
+    description: card.description
+  }));
 
   return (
     <div className="min-h-screen">
@@ -92,21 +46,19 @@ const ForCreators = () => {
       <section className=" pt-16 sm:pt-24 pb-16 sm:pb-20 bg-gradient-subtle">
         <div className="container mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-            Turn Your Influence Into Income
+            {section1.title || 'Turn Your Influence Into Income'}
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Join PartnerScale and earn <span className="text-accent font-bold">$100+ per post</span> promoting 
-            quality SAAS products to your audience. Make up to <span className="text-accent font-bold">$1,500/month</span> with 
-            just a few hours of work!
+            <span dangerouslySetInnerHTML={{ __html: section1.subtitle || "" }} />
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link href="/auth?type=creator" className="w-full sm:w-auto">
+            <Link href={section1.button1Url || '/auth?type=creator'} className="w-full sm:w-auto">
               <Button size="lg" className="bg-gradient-primary shadow-medium hover:shadow-large text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto">
-                Start Earning Today
+                {section1.button1Text || 'Start Earning Today'}
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto">
-              See How It Works
+              {section1.button2Text || 'See How It Works'}
             </Button>
           </div>
         </div>
@@ -138,9 +90,9 @@ const ForCreators = () => {
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
         <div className="container mx-auto">
           <div className="text-center mb-10 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">Choose Your Channel</h2>
+            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{section2.title}</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
-              Multiple ways to monetize your influence
+              {section2.subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -166,9 +118,9 @@ const ForCreators = () => {
       <section className="py-12 sm:py-20 px-4 sm:px-6">
         <div className="container mx-auto">
           <div className="text-center mb-10 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">How It Works</h2>
+            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{section3.title}</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
-              Start earning in 4 simple steps
+              {section3.subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -194,9 +146,9 @@ const ForCreators = () => {
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-10 sm:mb-12">
-            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">Why Join PartnerScale?</h2>
+            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{section4.title}</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
-              Everything you need to succeed as a creator
+              {section4.subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -214,15 +166,14 @@ const ForCreators = () => {
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-primary">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground">
-            Ready to Start Earning?
+            {section5.title}
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Join hundreds of creators already earning consistent income through SAAS partnerships. 
-            Sign up today and get access to exclusive campaigns!
+            {section5.subtitle}
           </p>
-          <Link href="/auth?type=creator">
+          <Link href={section5.button1Url || '/creator'}>
             <Button size="lg" variant="secondary" className="text-base sm:text-lg h-10 sm:h-12 px-6 sm:px-8 shadow-large">
-              Create Your Creator Account
+              {section5.button1Text || 'Create Your Creator Account'}
             </Button>
           </Link>
         </div>

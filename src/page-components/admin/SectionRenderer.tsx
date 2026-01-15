@@ -30,16 +30,20 @@ import Section1Contact from './contact/Section1';
 import Section2Contact from './contact/Section2';
 import Section1Blog from './blog/Section1';
 
+
 const SectionRenderer = ({ section, formData, loading, updateSlide, addSlide, removeSlide }: any) => {
+  // Normalize template name to underscores for consistent matching
+  const template = (formData.template || '').replace(/-/g, '_');
+
   // Home
-  if (formData.template === 'home') {
+  if (template === 'home') {
     if (section.type === 'hero') return <Section1Home section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} />;
     if (section.type === 'channels') return <Section2Home section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} />;
     if (section.type === 'stats') return <Section4Home section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} showButton={section.name !== 'Section 3'} />;
     return <Section3Home section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} showButton={section.name !== 'Section 3'} />;
   }
   // Creators
-  if (formData.template === 'creators') {
+  if (template === 'creators') {
     if (section.id === 'hero') return <Section1Creators section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2Creators section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'features') return <Section3Creators section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
@@ -47,14 +51,14 @@ const SectionRenderer = ({ section, formData, loading, updateSlide, addSlide, re
     return <Section5Creators section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
   }
   // Services
-  if (formData.template === 'services') {
+  if (template === 'services') {
     if (section.id === 'hero') return <Section1Services section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2Services section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'features') return <Section3Services section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     return null;
   }
   // How It Works
-  if (formData.template === 'how-it-works') {
+  if (template === 'how_it_works') {
     if (section.id === 'hero') return <Section1HowItWorks section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2HowItWorks section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'features') return <Section3HowItWorks section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
@@ -62,7 +66,7 @@ const SectionRenderer = ({ section, formData, loading, updateSlide, addSlide, re
     return null;
   }
   // Pricing
-  if (formData.template === 'pricing') {
+  if (template === 'pricing') {
     if (section.id === 'hero') return <Section1Pricing section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2Pricing section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'features') return <Section3Pricing section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
@@ -71,7 +75,7 @@ const SectionRenderer = ({ section, formData, loading, updateSlide, addSlide, re
     return null;
   }
   // About
-  if (formData.template === 'about') {
+  if (template === 'about') {
     if (section.id === 'hero') return <Section1About section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2About section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'features') return <Section3About section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
@@ -81,13 +85,13 @@ const SectionRenderer = ({ section, formData, loading, updateSlide, addSlide, re
     return null;
   }
   // Contact
-  if (formData.template === 'contact') {
+  if (template === 'contact') {
     if (section.id === 'hero') return <Section1Contact section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     if (section.id === 'channels') return <Section2Contact section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     return null;
   }
   // Blog
-  if (formData.template === 'blog') {
+  if (template === 'blog') {
     if (section.id === 'hero') return <Section1Blog section={section} loading={loading} updateSlide={updateSlide} addSlide={addSlide} removeSlide={removeSlide} />;
     return null;
   }

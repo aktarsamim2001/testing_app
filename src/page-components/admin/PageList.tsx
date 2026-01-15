@@ -34,10 +34,28 @@ const PageList = () => {
   const loading = useSelector(selectPagesLoading);
   const pagination = useSelector(selectPagesPagination);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimeout = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]);
 
   useEffect(() => {
-    dispatch(fetchPages(pagination.currentPage, pagination.perPage));
-  }, [dispatch, pagination.currentPage, pagination.perPage]);
+    dispatch(fetchPages(pagination.currentPage, pagination.perPage, debouncedSearch));
+  }, [dispatch, pagination.currentPage, pagination.perPage, debouncedSearch]);
 
   return (
     <AdminLayout>
@@ -58,12 +76,17 @@ const PageList = () => {
                 <CardTitle>All Pages</CardTitle>
                 <CardDescription>View and manage site pages</CardDescription>
               </div>
-                {/* <Input
+                <Input
                   id="page-search"
+                  value={search}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    // Optionally reset to first page on search
+                    // dispatch(fetchPages(1, pagination.perPage, e.target.value));
+                  }}
                   placeholder="Search"
                   className="focus:ring-2 focus:ring-orange-500 sm:max-w-xs"
-                  // Add search logic if needed
-                /> */}
+                />
             </div>
           </CardHeader>
           <CardContent>

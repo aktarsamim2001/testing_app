@@ -1,3 +1,18 @@
+// Fetch enquiry details by id
+export async function fetchEnquiryDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/enquiry/details", { id }, { headers: headers as Record<string, string> });
+}
+// Fetch admin enquiries list
+export async function getAdminEnquiriesList(page = 1, limit = 10, search = '', token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  return axios.get(rootUrl + "api/web/admin/enquiry/list", {
+    params: { page, limit, ...(search ? { search } : {}) },
+    headers: headers as Record<string, string>,
+  });
+}
 // Delete a page
 export async function deletePage(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
@@ -14,11 +29,13 @@ export async function updatePage(payload: PageUpdatePayload, token?: string | nu
   return axios.post(rootUrl + "api/web/admin/page/update", payload, { headers: headers as Record<string, string> });
 }
 // Fetch admin page list
-export async function getAdminPagesList(page = 1, limit = 10, token?: string | null): Promise<any> {
+export async function getAdminPagesList(page = 1, limit = 10, search = '', token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  const params: any = { page, limit };
+  if (typeof search === 'string' && search.trim() !== '') params.search = search.trim();
   return axios.get(rootUrl + "api/web/admin/page/list", {
-    params: { page, limit },
+    params,
     headers: headers as Record<string, string>,
   });
 }
@@ -53,6 +70,14 @@ export async function createPage(payload: PageCreatePayload, token?: string | nu
   }
   return axios.post(rootUrl + "api/web/admin/page/create", payload, { headers });
 }
+
+// Fetch admin page details
+export async function fetchPageDetailsAdmin(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/page/details", { id }, { headers: headers as Record<string, string> });
+}
+
 // Fetch available partners for campaign assignment
 export async function fetchCampaignPartnerListAPI(page = 1, limit = 100): Promise<any> {
   const headers = await authHeader();
@@ -125,12 +150,50 @@ export async function deleteMenuItem(id: string | number, token?: string | null)
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/menu/item/delete", { id }, { headers: headers as Record<string, string> });
 }
+// Fetch menu item details
+export async function fetchMenuItemDetails(id: string | number, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/menu/item/details", { id }, { headers: headers as Record<string, string> });
+}
 
 // Reorder menu items
 export async function reorderMenuItems(payload: { item_id: Array<string | number> }, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/menu/item/reorder", payload, { headers: headers as Record<string, string> });
+}
+
+// ==================== FRONTEND MENU APIs ====================
+
+export async function fetchFrontendMenuList(): Promise<any> {
+  return axios.get(rootUrl + "api/web/front/menu/list");
+}
+
+export async function fetchFrontSettings(): Promise<any> {
+  return axios.get(rootUrl + "api/web/front/setting");
+}
+
+// ==================== CMS PAGE APIs ====================
+
+export async function fetchPageDetails(slug: string): Promise<any> {
+  // No authentication required for frontend pages
+  
+  try {
+    const response = await axios.get(rootUrl + "api/web/front/page/details", {
+      params: { slug },
+    });    
+    return response;
+  } catch (error: any) {
+    console.error("❌ [fetchPageDetails] Status:", error.response?.status);
+    console.error("❌ [fetchPageDetails] Response:", error.response?.data);
+    throw error;
+  }
+}
+
+// Fetch blog details by slug
+export async function frontBlogDetails(slug: string) {
+  return axios.get(rootUrl + 'api/web/front/blog/details', { params: { slug } });
 }
 
 import axios from "axios";
@@ -265,6 +328,15 @@ async function deleteClient(id: string, token?: string | null): Promise<any> {
   return axios.post(rootUrl + "api/web/admin/client/delete", { id }, { headers: headers as Record<string, string> });
 }
 
+async function fetchClientDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/client/details", { id }, { headers: headers as Record<string, string> });
+}
+
+
 // ==================== PARTNER APIs ====================
 
 export interface PartnerListResponse {
@@ -343,6 +415,14 @@ async function deletePartner(id: string, token?: string | null): Promise<any> {
   return axios.post(rootUrl + "api/web/admin/partner/delete", { id }, { headers: headers as Record<string, string> });
 }
 
+async function fetchPartnerDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/partner/details", { id }, { headers: headers as Record<string, string> });
+}
+
 // ==================== AUTHOR APIs ====================
 // ==================== CATEGORY APIs ====================
 
@@ -394,6 +474,17 @@ async function deleteCategory(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/category/delete", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchCategoryDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.get(rootUrl + "api/web/admin/category/details", {
+    params: { id },
+    headers: headers as Record<string, string>,
+  });
 }
 
 // ==================== BLOG CATEGORY APIs ====================
@@ -458,6 +549,14 @@ async function deleteBlogCategory(id: string, token?: string | null): Promise<an
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/blog-category/delete", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchBlogCategoryDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/blog-category/details", { id }, { headers: headers as Record<string, string> });
 }
 
 export interface AuthorListResponse {
@@ -538,6 +637,14 @@ async function deleteAuthor(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/blog-author/delete", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchAuthorDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/blog-author/details", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== BLOG APIs ====================
@@ -650,12 +757,10 @@ async function updateBlog(payload: BlogUpdatePayload, token?: string | null): Pr
     sanitizedPayload.estimated_reading_time = sanitizedPayload.estimated_reading_time.replace(/[^\d.]/g, "");
   }
   try {
-    console.log("updateBlog payload:", sanitizedPayload);
     return await axios.post(rootUrl + "api/web/admin/blog/update", sanitizedPayload, { headers: headers as Record<string, string> });
   } catch (error: any) {
     console.log("updateBlog error status:", error.response?.status);
     console.log("updateBlog error data:", error.response?.data);
-    console.log("updateBlog error message:", error.message);
     throw error;
   }
 }
@@ -664,6 +769,14 @@ async function deleteBlog(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/blog/delete", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchBlogDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/blog/details", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== CAMPAIGN APIs ====================
@@ -767,6 +880,14 @@ async function campaignView(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/campaign/view", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchCampaignDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/campaign/details", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== CAMPAIGN PARTNER APIs ====================
@@ -884,10 +1005,8 @@ async function createService(payload: ServiceCreatePayload, token?: string | nul
     }
   }
   
-  console.log('API createService - sending payload:', payload);
   try {
     const response = await axios.post(rootUrl + "api/web/admin/service/create", payload, { headers });
-    console.log('API createService - response:', response);
     return response;
   } catch (error: any) {
     console.error('API createService - error:', {
@@ -921,6 +1040,14 @@ async function deleteService(id: string, token?: string | null): Promise<any> {
   const baseHeaders = await authHeader();
   const headers = token ? { ...baseHeaders, Authorization: `Bearer ${token}` } : baseHeaders;
   return axios.post(rootUrl + "api/web/admin/service/delete", { id }, { headers: headers as Record<string, string> });
+}
+
+async function fetchServiceDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/service/details", { id }, { headers: headers as Record<string, string> });
 }
 
 // ==================== SUBSCRIPTION APIs ====================
@@ -981,6 +1108,14 @@ async function fetchSubscriptions(
   });
 }
 
+async function fetchSubscriptionDetails(id: string, token?: string | null): Promise<any> {
+  const baseHeaders = await authHeader();
+  const headers = token
+    ? { ...baseHeaders, Authorization: `Bearer ${token}` }
+    : baseHeaders;
+  return axios.post(rootUrl + "api/web/admin/subscription/details", { id }, { headers: headers as Record<string, string> });
+}
+
 async function createSubscription(payload: SubscriptionCreatePayload, token?: string | null): Promise<any> {
   const headers: any = {
     "Content-Type": "application/json"
@@ -1021,6 +1156,28 @@ async function deleteSubscription(id: string, token?: string | null): Promise<an
   return axios.post(rootUrl + "api/web/admin/subscription/delete", { id }, { headers: headers as Record<string, string> });
 }
 
+// ==================== CONTACT FORM API ====================
+
+export async function createFrontEnquiry(payload: {
+  source: string;
+  name: string;
+  email: string;
+  company: string;
+  website: string;
+  service_interest: string;
+  monthly_budget: string;
+  description: string;
+}): Promise<any> {
+  return axios.post(rootUrl + "api/web/front/enquiry/create", payload);
+}
+
+// ==================== FRONTEND BLOG APIs ====================
+
+export async function fetchFrontBlogList({ page = 1, limit = 10, category_id }: { page?: number; limit?: number; category_id?: string }) {
+  return axios.get(rootUrl + "api/web/front/blog/list", {
+    params: { page, limit, ...(category_id ? { category_id } : {}) },
+  });
+}
 
 export const service = {
   deletePage,
@@ -1029,38 +1186,48 @@ export const service = {
   register,
   login,
   fetchClients,
+  fetchClientDetails,
   createClient,
   fetchAdminDashboard,
   fetchMenuList,
   fetchMenuItems,
+  fetchMenuItemDetails,
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
   reorderMenuItems,
+  fetchFrontendMenuList,
+  fetchPageDetails,
   fetchCampaignPartnerListAPI,
   updateClient,
   deleteClient,
   fetchPartners,
+  fetchPartnerDetails,
   createPartner,
   updatePartner,
   deletePartner,
-    fetchCategories,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    fetchBlogCategories,
-    createBlogCategory,
-    updateBlogCategory,
-    deleteBlogCategory,
+  fetchCategories,
+  fetchCategoryDetails,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  fetchBlogCategories,
+  fetchBlogCategoryDetails,
+  createBlogCategory,
+  updateBlogCategory,
+  deleteBlogCategory,
   fetchAuthors,
+  fetchAuthorDetails,
   createAuthor,
   updateAuthor,
   deleteAuthor,
   fetchBlogs,
+  fetchBlogDetails,
   createBlog,
   updateBlog,
   deleteBlog,
   fetchCampaigns,
+  fetchCampaignDetails,
   createCampaign,
   updateCampaign,
   deleteCampaign,
@@ -1068,15 +1235,22 @@ export const service = {
   assignPartnerToCampaignAPI,
   removePartnerFromCampaignAPI,
   createPage,
+  fetchPageDetailsAdmin,
   fetchSettings,
   updateSettings,
   fetchServices,
+  fetchServiceDetails,
   createService,
   updateService,
   deleteService,
   fetchSubscriptions,
+  fetchSubscriptionDetails,
   createSubscription,
   updateSubscription,
   deleteSubscription,
   updateMenu,
+  fetchFrontSettings,
+  createFrontEnquiry,
+  fetchFrontBlogList,
+  frontBlogDetails
 };

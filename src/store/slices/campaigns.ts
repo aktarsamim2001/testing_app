@@ -16,6 +16,8 @@ interface CampaignsState {
   };
   status: "idle" | "loading" | "error";
   error: string | null;
+  selectedCampaign: Campaign | null;
+  selectedCampaignLoading: boolean;
 }
 
 const initialState: CampaignsState = {
@@ -29,6 +31,8 @@ const initialState: CampaignsState = {
   },
   status: "idle",
   error: null,
+  selectedCampaign: null,
+  selectedCampaignLoading: false,
 };
 
 const campaignsSlice = createSlice({
@@ -50,10 +54,16 @@ const campaignsSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedCampaign(state, action: PayloadAction<Campaign | null>) {
+      state.selectedCampaign = action.payload;
+    },
+    setSelectedCampaignLoading(state, action: PayloadAction<boolean>) {
+      state.selectedCampaignLoading = action.payload;
+    },
   },
 });
 
-export const { setCampaigns, setCampaignsLoading, setCampaignsError, setPage } = campaignsSlice.actions;
+export const { setCampaigns, setCampaignsLoading, setCampaignsError, setPage, setSelectedCampaign, setSelectedCampaignLoading } = campaignsSlice.actions;
 
 export default campaignsSlice.reducer;
 
@@ -171,8 +181,28 @@ export const fetchCampaignById = (id: string) => async (dispatch: AppDispatch, g
   }
 };
 
+// Thunk to fetch single campaign details
+export const fetchCampaignDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedCampaignLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchCampaignDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedCampaign(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load campaign details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedCampaignLoading(false));
+  }
+};
+
 // Selectors
 export const selectCampaigns = (state: RootState) => state.campaigns.data;
 export const selectCampaignsPagination = (state: RootState) => state.campaigns.pagination;
 export const selectCampaignsLoading = (state: RootState) => state.campaigns.status === "loading";
 export const selectCampaignsError = (state: RootState) => state.campaigns.error;
+export const selectSelectedCampaign = (state: RootState) => state.campaigns.selectedCampaign;
+export const selectSelectedCampaignLoading = (state: RootState) => state.campaigns.selectedCampaignLoading;

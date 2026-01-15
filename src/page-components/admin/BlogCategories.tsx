@@ -67,6 +67,9 @@ import {
   selectBlogCategories,
   selectBlogCategoriesLoading,
   selectBlogCategoriesPagination,
+  fetchBlogCategoryDetailsThunk,
+  selectSelectedBlogCategory,
+  selectSelectedBlogCategoryLoading,
 } from "@/store/slices/blog-categories";
 
 interface BlogCategory {
@@ -84,6 +87,8 @@ export default function BlogCategoriesPage() {
   const blogCategories = useSelector(selectBlogCategories);
   const dataLoading = useSelector(selectBlogCategoriesLoading);
   const pagination = useSelector(selectBlogCategoriesPagination);
+  const selectedBlogCategory = useSelector(selectSelectedBlogCategory);
+  const selectedBlogCategoryLoading = useSelector(selectSelectedBlogCategoryLoading);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BlogCategory | null>(null);
@@ -126,6 +131,12 @@ export default function BlogCategoriesPage() {
 
   // Debounce search input
   useEffect(() => {
+    if (dialogOpen && editingCategory?.id) {
+      dispatch(fetchBlogCategoryDetailsThunk(editingCategory.id));
+    }
+  }, [dialogOpen, editingCategory?.id, dispatch]);
+
+  useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
@@ -138,6 +149,13 @@ export default function BlogCategoriesPage() {
       }
     };
   }, [search]);
+
+  useEffect(() => {
+    if (selectedBlogCategory && editingCategory?.id) {
+      setFormName(selectedBlogCategory.name || "");
+      setFormStatus(String(selectedBlogCategory.status ?? 1));
+    }
+  }, [selectedBlogCategory, editingCategory?.id]);
 
   useEffect(() => {
     if (user && isAdmin) {
@@ -195,6 +213,7 @@ export default function BlogCategoriesPage() {
       setFormErrors({});
       setEditingCategory(null);
       setDialogOpen(false);
+      loadBlogCategories(page, perPage, debouncedSearch);
     } finally {
       setIsSubmitting(false);
     }
@@ -478,7 +497,11 @@ export default function BlogCategoriesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingCategory ? "Edit Blog Category" : "Create Blog Category"}
+                {editingCategory
+                  ? selectedBlogCategoryLoading
+                    ? "Loading Blog Category..."
+                    : "Edit Blog Category"
+                  : "Create Blog Category"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">

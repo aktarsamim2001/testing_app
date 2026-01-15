@@ -22,6 +22,8 @@ interface AuthorsState {
   };
   status: "idle" | "loading" | "error";
   error: string | null;
+  selectedAuthor: Author | null;
+  selectedAuthorLoading: boolean;
 }
 
 const initialState: AuthorsState = {
@@ -34,6 +36,8 @@ const initialState: AuthorsState = {
   },
   status: "idle",
   error: null,
+  selectedAuthor: null,
+  selectedAuthorLoading: false,
 };
 
 const authorsSlice = createSlice({
@@ -55,10 +59,16 @@ const authorsSlice = createSlice({
     setPage(state, action: PayloadAction<number>) {
       state.pagination.currentPage = action.payload;
     },
+    setSelectedAuthor(state, action: PayloadAction<Author | null>) {
+      state.selectedAuthor = action.payload;
+    },
+    setSelectedAuthorLoading(state, action: PayloadAction<boolean>) {
+      state.selectedAuthorLoading = action.payload;
+    },
   },
 });
 
-export const { setAuthors, setAuthorsLoading, setAuthorsError, setPage } = authorsSlice.actions;
+export const { setAuthors, setAuthorsLoading, setAuthorsError, setPage, setSelectedAuthor, setSelectedAuthorLoading } = authorsSlice.actions;
 
 export default authorsSlice.reducer;
 
@@ -162,8 +172,28 @@ export const deleteAuthorThunk = (id: string) => async (dispatch: AppDispatch, g
   }
 };
 
+// Thunk to fetch single author details
+export const fetchAuthorDetailsThunk = (id: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+  dispatch(setSelectedAuthorLoading(true));
+  const token = getState().auth.authToken;
+  try {
+    const response = await service.fetchAuthorDetails(id, token);
+    const body = response.data;
+    dispatch(setSelectedAuthor(body?.data ?? null));
+    return { success: body?.message, data: body?.data };
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || "Failed to load author details";
+    toast({ title: 'Error', description: message, variant: 'destructive' });
+    return { error: message };
+  } finally {
+    dispatch(setSelectedAuthorLoading(false));
+  }
+};
+
 // Selectors
 export const selectAuthors = (state: RootState) => state.authors.data;
 export const selectAuthorsPagination = (state: RootState) => state.authors.pagination;
 export const selectAuthorsLoading = (state: RootState) => state.authors.status === "loading";
 export const selectAuthorsError = (state: RootState) => state.authors.error;
+export const selectSelectedAuthor = (state: RootState) => state.authors.selectedAuthor;
+export const selectSelectedAuthorLoading = (state: RootState) => state.authors.selectedAuthorLoading;

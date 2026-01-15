@@ -139,17 +139,21 @@ const ServiceList: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center p-6">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    {[...Array(4)].map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell><div className="h-4 w-8 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        <TableCell><div className="h-4 w-24 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse ml-auto" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </>
                 ) : services.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center p-6 text-gray-400"
-                    >
+                    <TableCell colSpan={7} className="text-center p-6 text-gray-400">
                       No services found.
                     </TableCell>
                   </TableRow>
