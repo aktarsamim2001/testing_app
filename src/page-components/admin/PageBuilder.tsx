@@ -192,10 +192,15 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
       // Parse sections from API data
       let apiSections = [];
       // Support both 'content' and 'data' fields from API
-      let contentData = selectedPage.content;
-      if (typeof contentData === 'undefined' && Array.isArray(selectedPage.data)) {
-        contentData = selectedPage.data;
+      // Use type assertion to safely access potentially unknown properties
+      const pageData = selectedPage as any;
+      let contentData = pageData.content;
+      
+      // Check if 'data' property exists and is an array
+      if (typeof contentData === 'undefined' && 'data' in pageData && Array.isArray(pageData.data)) {
+        contentData = pageData.data;
       }
+      
       const templateSections = TEMPLATE_SECTIONS[templateKey] || [];
 
       if (Array.isArray(contentData) && contentData.length > 0 && typeof contentData[0] === 'object') {

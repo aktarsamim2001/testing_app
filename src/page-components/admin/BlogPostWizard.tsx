@@ -11,7 +11,6 @@ import {
   selectSelectedBlog,
   selectSelectedBlogLoading,
   fetchBlogs,
-  clearSelectedBlog, // Add this action if available, or create it
 } from "@/store/slices/blogs";
 import { selectAuthors, fetchAuthors } from "@/store/slices/authors";
 import { selectBlogCategories, fetchBlogCategories } from "@/store/slices/blog-categories";
