@@ -41,7 +41,7 @@ export function SocialIconManager({ icons, onAdd, onRemove, onChange }: SocialIc
         <div className="space-y-3">
           {icons.map((icon) => {
             return (
-              <div key={icon.id} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-4 p-4 rounded-lg bg-white shadow-sm border border-gray-200 animate-scale-in w-full">
+              <div key={icon.id} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-10 p-4 rounded-lg bg-white shadow-sm border border-gray-200 animate-scale-in w-full">
                 {/* Name Field */}
                 <div className="flex flex-col gap-2 flex-1 min-w-[120px] w-full md:w-auto">
                   <label className="text-xs text-muted-foreground">Name</label>
@@ -62,11 +62,11 @@ export function SocialIconManager({ icons, onAdd, onRemove, onChange }: SocialIc
                   />
                 </div>
                 {/* Icon Upload and Preview (icon preview to the right of upload button) */}
-                <div className="flex flex-col gap-4 flex-1 min-w-[120px] w-full md:w-auto">
+                <div className="flex flex-col gap-4 flex-1 min-w-[140px] w-full md:w-auto">
                   <label className="text-xs text-muted-foreground">Icon</label>
-                  <div className="flex flex-row items-center gap-3">
+                  <div className="flex flex-row items-center gap-8">
                     <label className="relative inline-block">
-                      <span className="px-3 py-3 bg-orange-500 text-white rounded-md cursor-pointer hover:bg-orange-600 transition text-xs font-medium block text-center">Upload Icon</span>
+                      <span className="px-4 py-3 bg-orange-500 text-white rounded-md cursor-pointer hover:bg-orange-600 transition text-xs font-medium block text-center">Upload Icon</span>
                       <input
                         type="file"
                         accept="image/*"

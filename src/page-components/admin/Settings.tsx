@@ -72,6 +72,7 @@ export default function SettingsPage() {
       setFooterScript(settings.footer_scripts || "");
       setPhone(settings.phone || "");
       setEmail(settings.email || "");
+      setAddress(settings.address || "");
       setCopyright(settings.copy_right || "");
       setInformation(settings.footer_description || "");
       setSocialIcons(
