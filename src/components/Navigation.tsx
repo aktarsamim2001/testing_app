@@ -37,8 +37,13 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  const navLinks = Array.isArray(headerMenu?.items)
-    ? headerMenu.items
+  // Support headerMenu as array or object
+  const headerMenuObj = Array.isArray(headerMenu)
+    ? headerMenu.find(menu => menu.menu_name === "Header Menu")
+    : headerMenu;
+
+  const navLinks = Array.isArray(headerMenuObj?.items)
+    ? headerMenuObj.items
         .filter(item => item.url && item.url.trim())
         .map(item => ({
           name: item.title,

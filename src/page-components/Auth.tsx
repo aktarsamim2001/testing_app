@@ -121,7 +121,7 @@ export default function AdminAuth() {
                 <Shield className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Admin Access</CardTitle>
+                <CardTitle className="text-2xl">Welcome to Influencer Marketing</CardTitle>
                 <CardDescription>Sign in to the admin panel</CardDescription>
               </div>
             </div>
