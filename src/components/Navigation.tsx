@@ -37,15 +37,16 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  // Use API menu items - filter out null/empty URLs
-  const navLinks = (headerMenu?.items || [])
-    .filter(item => item.url && item.url.trim())
-    .map(item => ({
-      name: item.title,
-      path: item.url === '/home' ? '/' : item.url,
-      target: item.target_set
-    }));
-
+  const navLinks = headerMenu?.items 
+    ? headerMenu.items
+        .filter(item => item.url && item.url.trim())
+        .map(item => ({
+          name: item.title,
+          path: item.url === '/home' ? '/' : item.url,
+          target: item.target_set
+        }))
+    : [];
+    
   // Don't show this Navigation on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
                           pathname?.startsWith("/brand") || 
