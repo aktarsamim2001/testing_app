@@ -12,6 +12,8 @@ import CreatorHeader from "@/components/creator/CreatorHeader";
 import CreatorFooter from "@/components/creator/CreatorFooter";
 import { Providers } from "@/components/Providers";
 import "@/index.css";
+import { MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function RootLayout({
   children,
@@ -28,6 +30,8 @@ export default function RootLayout({
   const handleToggleSidebar = () => {
     setIsCollapsed((prev) => !prev);
   };
+
+  const showFloatingButton = !isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage;
 
   return (
     <html lang="en">
@@ -50,6 +54,19 @@ export default function RootLayout({
             {isBrandPage && <BrandFooter />}
             {isCreatorPage && <CreatorFooter />}
             {!isAuthPage && !isAdminPage && !isBrandPage && !isCreatorPage && <Footer />}
+              {/* Floating Get In Touch Button */}
+            {showFloatingButton && (
+              <Link
+                href="https://wa.me/1234567890?text=Hi,%20I%20would%20like%20to%20get%20in%20touch%20with%20PartnerScale"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fixed bottom-6 right-6 bg-primary text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 z-50 group"
+                aria-label="Get in Touch via WhatsApp"
+              >
+                <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Get in Touch</span>
+              </Link>
+            )}
           </div>
         </Providers>
       </body>
