@@ -20,6 +20,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,14 @@ export default function MenuManagementPage() {
   const filteredMenus = (menus ?? []).filter((menu: any) =>
     String(menu.menu_name || menu.name || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  if (menusLoading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

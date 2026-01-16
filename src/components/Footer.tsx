@@ -119,7 +119,7 @@ const Footer = () => {
             )}
             {settingsData?.address && (
               <div className="mt-2 text-sm text-muted-foreground flex items-start gap-2">
-                <MapPin className="w-8 h-8" />
+                <MapPin className="w-4 md:w-8 h-4 md:h-8" />
                 <span>{settingsData.address}</span>
               </div>
             )}

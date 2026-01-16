@@ -126,6 +126,10 @@ export default function MenuDetailPage({ menuId }: MenuDetailPageProps) {
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  // Saving state for dialog
+  const [dialogSaving, setDialogSaving] = useState(false);
+  const [orderSaving, setOrderSaving] = useState(false);
+
   // Fetch menus on mount
   useEffect(() => {
     if (menuId) {
@@ -371,9 +375,14 @@ const handleSaveOrder = async () => {
             </div>
             <Button 
               size="sm" 
-              onClick={handleSaveOrder}
+              onClick={async () => {
+                setOrderSaving(true);
+                await handleSaveOrder();
+                setOrderSaving(false);
+              }}
+              disabled={orderSaving}
             >
-              Save
+              {orderSaving ? "Saving..." : "Save"}
             </Button>
           </CardHeader>
           <CardContent>
@@ -718,17 +727,25 @@ const handleSaveOrder = async () => {
             </DialogClose>
             <Button
               onClick={async () => {
+                setDialogSaving(true);
                 let success = false;
                 if (dialogMode === "create") {
                   success = await handleCreateSave();
                 } else {
                   success = await handleSaveEdit();
                 }
-
+                setDialogSaving(false);
                 if (success) setDialogOpen(false);
               }}
+              disabled={dialogSaving}
             >
-              {dialogMode === "create" ? "Create" : "Save"}
+              {dialogSaving
+                ? dialogMode === "create"
+                  ? "Creating..."
+                  : "Saving..."
+                : dialogMode === "create"
+                ? "Create"
+                : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

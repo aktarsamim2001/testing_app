@@ -167,6 +167,7 @@ export default function EnquiriesPage() {
                   </TableBody>
                 </Table>
                 {/* Pagination Controls */}
+                {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2 sm:gap-4">
                   {(() => {
                     const start = (page - 1) * perPage + 1;
@@ -261,6 +262,7 @@ export default function EnquiriesPage() {
                     </Button>
                   </nav>
                 </div>
+                )}
               </>
             )}
           </CardContent>

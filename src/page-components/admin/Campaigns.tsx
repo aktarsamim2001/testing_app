@@ -119,6 +119,7 @@ export default function Campaigns() {
   const clients = useSelector((state: RootState) => selectClients(state));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<CampaignItem | null>(
     null
   );
@@ -593,6 +594,7 @@ export default function Campaigns() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                setSubmitting(true);
                 const newErrors: typeof errors = {};
                 if (!formData.name.trim())
                   newErrors.name = "Campaign name is required.";
@@ -601,7 +603,10 @@ export default function Campaigns() {
                 if (!formData.campaign_type)
                   newErrors.campaign_type = "Campaign type is required.";
                 setErrors(newErrors);
-                if (Object.keys(newErrors).length > 0) return;
+                if (Object.keys(newErrors).length > 0) {
+                  setSubmitting(false);
+                  return;
+                }
                 // Sanitize budget: remove $ and non-numeric chars, convert to number
                 let sanitizedBudget = formData.budget
                   ? Number(formData.budget.replace(/[^\d.]/g, ""))
@@ -629,12 +634,12 @@ export default function Campaigns() {
                 } else {
                   result = await dispatch(createCampaignThunk(payload) as any);
                 }
-                
                 // Close dialog only after successful submission
                 if (result?.success) {
                   setDialogOpen(false);
                   resetForm();
                 }
+                setSubmitting(false);
               }}
               className="space-y-4"
             >
@@ -833,8 +838,14 @@ export default function Campaigns() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingCampaign ? "Update" : "Create"}
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      {editingCampaign ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    editingCampaign ? "Update" : "Create"
+                  )}
                 </Button>
               </div>
             </form>

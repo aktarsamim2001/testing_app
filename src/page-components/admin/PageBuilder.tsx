@@ -587,12 +587,23 @@ export default function PageBuilder({ pageId }: PageBuilderProps) {
             >
               Cancel
             </Button>
-            {!showSEO && sectionStep < sections.length - 1 ? (
-              <Button type="submit" disabled={loading} className="bg-gradient-primary">
+            {!showSEO && sectionStep < sections.length - 1 && (
+              <Button type="submit" disabled={loading} className="bg-orange-500 hover:bg-orange-600">
                 Continue
               </Button>
-            ) : (
-              <Button type="submit" disabled={loading} className="bg-gradient-primary">
+            )}
+            {!showSEO && sectionStep === sections.length - 1 && (
+              <Button
+                type="button"
+                disabled={loading}
+                className="bg-orange-500 hover:bg-orange-600"
+                onClick={() => setShowSEO(true)}
+              >
+                Continue to SEO
+              </Button>
+            )}
+            {showSEO && (
+              <Button type="submit" disabled={loading} className="bg-orange-500 hover:bg-orange-600">
                 {loading ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save' : 'Create')}
               </Button>
             )}

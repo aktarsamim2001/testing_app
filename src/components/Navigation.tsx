@@ -42,11 +42,11 @@ const Navigation = () => {
         .filter(item => item.url && item.url.trim())
         .map(item => ({
           name: item.title,
-          path: item.url === '/home' ? '/' : item.url,
+          path: item.url,
           target: item.target_set
         }))
     : [];
-    
+
   // Don't show this Navigation on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
                           pathname?.startsWith("/brand") || 

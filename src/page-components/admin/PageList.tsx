@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useRouter } from 'next/navigation';
@@ -57,6 +58,14 @@ const PageList = () => {
     dispatch(fetchPages(pagination.currentPage, pagination.perPage, debouncedSearch));
   }, [dispatch, pagination.currentPage, pagination.perPage, debouncedSearch]);
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -103,9 +112,7 @@ const PageList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={7} className="text-center p-6">Loading...</TableCell></TableRow>
-                ) : pages.length === 0 ? (
+                {pages.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center p-6 text-gray-400">No pages found.</TableCell></TableRow>
                 ) : (
                   pages.map((page: any, idx: number) => (

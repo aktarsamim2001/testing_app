@@ -33,8 +33,8 @@ const menuItems = [
     group: 'CMS',
     icon: FileText,
     items: [
-      { title: 'Menu Management', path: '/admin/menu-management' },
       { title: 'Page Management', path: '/admin/pages' },
+      { title: 'Menu Management', path: '/admin/menu-management' },
     ],
   },
   { title: 'Analytics', path: '/admin/analytics', icon: TrendingUp },

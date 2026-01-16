@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
 import { fetchSubscriptions, deleteSubscriptionThunk, selectSubscriptions, selectSubscriptionsLoading, selectSubscriptionsPagination, setSubscriptionNumber } from '@/store/slices/subscriptions';
@@ -78,6 +79,14 @@ const SubscriptionList: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <AdminPageLoader />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
@@ -121,9 +130,7 @@ const SubscriptionList: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={9} className="text-center p-6">Loading...</TableCell></TableRow>
-                ) : subscriptions.length === 0 ? (
+                {subscriptions.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center p-6 text-gray-400">No subscriptions found.</TableCell></TableRow>
                 ) : (
                   subscriptions.map((sub: any, idx: number) => {
