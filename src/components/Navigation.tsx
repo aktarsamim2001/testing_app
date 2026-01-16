@@ -37,7 +37,7 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  const navLinks = headerMenu?.items 
+  const navLinks = Array.isArray(headerMenu?.items)
     ? headerMenu.items
         .filter(item => item.url && item.url.trim())
         .map(item => ({
