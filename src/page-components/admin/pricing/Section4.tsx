@@ -1,0 +1,217 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2 } from 'lucide-react';
+
+interface SectionData {
+  id: string;
+  name: string;
+  type: string;
+  slides: SlideData[];
+}
+
+interface SlideData {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  subtitle?: string;
+  description?: string;
+  button1Text?: string;
+  button2Text?: string;
+  image?: string;
+  button1Url?: string;
+  button2Url?: string;
+  stats?: Array<{
+    number: string;
+    label: string;
+    icon?: string;
+  }>;
+  cards?: Array<{
+    id: string;
+    icon?: string;
+    title: string;
+    description: string;
+    buttonText: string;
+    buttonUrl: string;
+  }>;
+  features?: Array<{
+    id: string;
+    text: string;
+  }>;
+  titles?: Array<{
+    id: string;
+    text: string;
+  }>;
+}
+
+interface Section4Props {
+  section: SectionData;
+  loading: boolean;
+  updateSlide: (sectionId: string, slideId: string, updates: Partial<SlideData>) => void;
+  addSlide: (sectionId: string) => void;
+  removeSlide?: (sectionId: string, slideId: string) => void;
+  showButton?: boolean;
+}
+
+export default function Section4({
+  section,
+  loading,
+  updateSlide,
+  addSlide,
+  removeSlide,
+  showButton = true,
+}: Section4Props) {
+  interface TitleItem {
+    id: string;
+    text: string;
+    answer?: string;
+  }
+
+  const handleTitleChange = (
+    slideId: string,
+    titleIndex: number,
+    value: string
+  ) => {
+    const slide = section.slides.find(s => s.id === slideId);
+    if (!slide) return;
+
+    const existing = (slide as any).titles || [];
+    const updatedTitles = existing.slice();
+    if (!updatedTitles[titleIndex]) {
+      updatedTitles[titleIndex] = { id: `title-${Date.now()}`, text: value };
+    } else {
+      updatedTitles[titleIndex] = { ...updatedTitles[titleIndex], text: value };
+    }
+    updateSlide(section.id, slideId, { titles: updatedTitles } as any);
+  };
+
+  const addTitle = (slideId: string) => {
+    const slide = section.slides.find(s => s.id === slideId);
+    if (!slide) return;
+
+    const newTitles = [...((slide as any).titles || []), { id: `title-${Date.now()}`, text: '' }];
+    updateSlide(section.id, slideId, { titles: newTitles } as any);
+  };
+
+  const removeTitle = (slideId: string, titleIndex: number) => {
+    const slide = section.slides.find(s => s.id === slideId);
+    if (!slide) return;
+
+    const updatedTitles = (slide as any).titles?.filter((_: any, i: number) => i !== titleIndex) || [];
+    updateSlide(section.id, slideId, { titles: updatedTitles } as any);
+  };
+
+  return (
+    <div className="space-y-4">
+      {section.slides.length === 0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => addSlide(section.id)}
+          disabled={loading}
+          className="w-full"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Initialize Section
+        </Button>
+      ) : (
+        section.slides.map((slide, slideIndex) => (
+        <Card key={slide.id} className="p-4 relative">
+          <CardContent className="space-y-4">
+            {/* Section Title */}
+            <div className="space-y-2">
+              <Label htmlFor={`slide-title-${slide.id}`} className="text-sm font-medium">
+                Section Title
+              </Label>
+              <Input
+                id={`slide-title-${slide.id}`}
+                placeholder="e.g., Common Questions, FAQ"
+                 value={section.slides[0]?.title === 'Slide 1' ? '' : (section.slides[0]?.title || '')}
+                onChange={(e) =>
+                  updateSlide(section.id, slide.id, { title: e.target.value })
+                }
+                disabled={loading}
+                className="text-sm"
+              />
+            </div>
+
+            {/* FAQ Items Section */}
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">FAQ Items</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addTitle(slide.id)}
+                  disabled={loading}
+                  className="text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Question
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {((slide as any).titles || []).map((title: TitleItem, titleIndex: number) => (
+                  <Card key={titleIndex} className="p-3 bg-muted/50">
+                    <div className="space-y-2">
+                      {/* Question */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Question</Label>
+                        <Input
+                          placeholder="e.g., Can I switch plans later?"
+                          value={title.text}
+                          onChange={(e) =>
+                            handleTitleChange(slide.id, titleIndex, e.target.value)
+                          }
+                          disabled={loading}
+                          className="text-xs"
+                        />
+                      </div>
+
+                      {/* Answer */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Answer</Label>
+                        <Textarea
+                          placeholder="e.g., Absolutely! You can upgrade or downgrade at any time. Changes take effect at your next billing cycle."
+                          value={title.answer || ''}
+                          onChange={(e) => {
+                            const existing = (slide as any).titles || [];
+                            const updated = existing.slice();
+                            updated[titleIndex] = { ...updated[titleIndex], answer: e.target.value };
+                            updateSlide(section.id, slide.id, { titles: updated } as any);
+                          }}
+                          disabled={loading}
+                          className="text-xs min-h-[80px]"
+                        />
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTitle(slide.id, titleIndex)}
+                        disabled={loading}
+                        className="text-xs text-red-500 hover:text-red-700 w-full"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Remove Question
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        ))
+      )}
+    </div>
+  );
+}

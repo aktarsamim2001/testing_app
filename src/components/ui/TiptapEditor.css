@@ -1,0 +1,15 @@
+.tiptap-editor {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-height: 300px;
+  background: #fff;
+}
+.tiptap-editor:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px #6366f1;
+}
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 200px;
+}
