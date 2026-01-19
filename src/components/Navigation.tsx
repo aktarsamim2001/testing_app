@@ -16,7 +16,7 @@ const Navigation = () => {
   const { isAdmin, roles } = useUserRole();
   const router = useRouter();
   const pathname = usePathname();
-  // const [userDashboardPath, setUserDashboardPath] = useState('/');
+  const [userDashboardPath, setUserDashboardPath] = useState('/');
   
   // Fetch frontend menus from API
   const { headerMenu, isLoading: menuLoading, isError: menuError } = useFrontendMenus();
