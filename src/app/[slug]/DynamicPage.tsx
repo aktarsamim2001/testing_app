@@ -26,13 +26,6 @@ const DynamicPageClient = () => {
   const { data, isLoading, error, status } = useSelector(
     (state: RootState) => state.cmsPage
   );
-//   console.log("🟢 [DynamicPageClient] Redux state:", { 
-//     hasData: !!data,
-//     template: data?.template,
-//     isLoading, 
-//     error, 
-//     status 
-//   });
 
   const template = data?.template;
 
@@ -44,16 +37,16 @@ const DynamicPageClient = () => {
   }, [dispatch, slug]);
 
   // Loading state
-  // if (isLoading || status === "loading") {
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-  //         <p className="text-muted-foreground">Loading page...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (isLoading || status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading page...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Error state
   if (error || status === "failed") {
