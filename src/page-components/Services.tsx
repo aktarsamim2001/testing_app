@@ -59,11 +59,11 @@ const Services = ({data}) => {
                         <ServiceIcon className={`w-8 h-8 text-${color}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-3xl mb-2">{service.name}</CardTitle>
+                        <CardTitle className="text-xl md:text-3xl mb-2">{service.name}</CardTitle>
                         <p className="text-muted-foreground font-medium">{service.short_description}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-lg py-1 px-3">
+                    <Badge variant="outline" className="text-sm md:text-lg py-1 px-3">
                       Starting at ${service.price}/month
                     </Badge>
                   </div>
@@ -73,7 +73,7 @@ const Services = ({data}) => {
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div>
-                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                      <h4 className="font-semibold text-lg md:text-xl mb-4 flex items-center gap-2">
                         <Zap className="w-5 h-5 text-primary" />
                         What's Included
                       </h4>
@@ -88,7 +88,7 @@ const Services = ({data}) => {
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                      <h4 className="font-semibold mb-4 text-lg md:text-xl flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-primary" />
                         Key Benefits
                       </h4>
@@ -151,7 +151,7 @@ const Services = ({data}) => {
                 </div>
 
                 <div className="bg-gradient-primary/5 border border-primary/20 rounded-xl p-6 mb-8">
-                  <h3 className="font-semibold mb-4">Additional Benefits:</h3>
+                  <h3 className="font-semibold text-lg md:text-xl mb-4">Additional Benefits:</h3>
                   <ul className="grid md:grid-cols-2 gap-3">
                     {fullService.additional_benefits && Array.isArray(fullService.additional_benefits) && fullService.additional_benefits.map((benefit: any, idx: number) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">

@@ -60,7 +60,7 @@ export default function RootLayout({
                 href="https://wa.me/1234567890?text=Hi,%20I%20would%20like%20to%20get%20in%20touch%20with%20PartnerScale"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="fixed bottom-6 right-6 bg-primary text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 z-50 group"
+                className="fixed bottom-4 right-5 bg-primary text-white px-4 md:px-6 py-2 md:py-3  rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 z-50 group"
                 aria-label="Get in Touch via WhatsApp"
               >
                 <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
