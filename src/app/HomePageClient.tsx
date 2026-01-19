@@ -8,6 +8,7 @@ import { fetchCMSPage } from "@/store/slices/cmsPage";
 
 // Import page components
 import Home from "@/page-components/Home";
+import NotFound from "./not-found";
 
 const HomePageClient = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,16 +33,9 @@ const HomePageClient = () => {
     );
   }
 
-  // Error state - show fallback instead of NotFound
+  // Error state - show NotFound
   if (error || status === "failed") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Unable to Load Page</h1>
-          <p className="text-muted-foreground">{error || "An error occurred while loading the home page"}</p>
-        </div>
-      </div>
-    );
+    return <NotFound />;
   }
 
   // No data - show fallback instead of NotFound

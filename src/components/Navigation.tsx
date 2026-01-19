@@ -37,18 +37,19 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  // Support headerMenu as array or object
+  // Support headerMenu as array or object with proper null checks
   const headerMenuObj = Array.isArray(headerMenu)
     ? headerMenu.find(menu => menu.menu_name === "Header Menu")
     : headerMenu;
 
+  // Ensure navLinks is always an array with proper null/undefined checks
   const navLinks = Array.isArray(headerMenuObj?.items)
     ? headerMenuObj.items
-        .filter(item => item.url && item.url.trim())
+        .filter(item => item?.url && item.url.trim())
         .map(item => ({
-          name: item.title,
-          path: item.url,
-          target: item.target_set
+          name: item.title || '',
+          path: item.url || '',
+          target: item.target_set || '_self'
         }))
     : [];
 
@@ -75,7 +76,7 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            {navLinks.map((link) => (
+            {navLinks.length > 0 && navLinks.map((link) => (
               <Link
                 key={link.path}
                 href={link.path || '#'}
@@ -87,6 +88,7 @@ const Navigation = () => {
                 {link.name}
               </Link>
             ))}
+            {/* Commented out auth sections - uncomment when ready to use */}
             {/* {mounted && user && isAdmin && (
               <Link
                 href="/admin"
@@ -136,7 +138,7 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden py-3 sm:py-4 animate-fade-in border-t border-border">
-            {navLinks.map((link) => (
+            {navLinks.length > 0 && navLinks.map((link) => (
               <Link
                 key={link.path}
                 href={link.path || '#'}

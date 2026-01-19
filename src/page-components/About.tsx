@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Target, Users, TrendingUp, Award, ArrowRight, Heart, Lightbulb, Zap, Briefcase, Network, BarChart3 } from "lucide-react";
 
-const About = ({data}) => {
-  console.log("🟢 [About] Component rendering with data:", data);
-  
+const About = ({data}) => {  
   // Safely extract content sections from API data
   const contentData = data?.content?.[0];
   const section1 = contentData?.section1?.[0];
@@ -40,7 +38,7 @@ const About = ({data}) => {
   return (
     <div className="h-full">
       {/* Hero Section */}
-      <section className="bg-gradient-subtle py-16">
+      <section className="bg-gradient-subtle pt-16 sm:pt-24 pb-16 sm:pb-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
