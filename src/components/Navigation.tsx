@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,9 @@ const Navigation = () => {
   const pathname = usePathname();
   const [userDashboardPath, setUserDashboardPath] = useState('/');
   
-  // Fetch frontend menus from API
-  const { headerMenu, isLoading: menuLoading, isError: menuError } = useFrontendMenus();
+  // Fetch frontend menus from API - with default fallback
+  const menuResult = useFrontendMenus() || { headerMenu: null, isLoading: true };
+  const { headerMenu, isLoading } = menuResult;
 
   const isActive = (path: string) => pathname === path;
 
@@ -28,6 +29,8 @@ const Navigation = () => {
   }, []);
 
   useEffect(() => {
+    if (!roles) return;
+    
     if (roles.includes('admin' as any)) {
       setUserDashboardPath('/admin');
     } else if (roles.includes('brand' as any)) {
@@ -37,23 +40,45 @@ const Navigation = () => {
     }
   }, [roles]);
 
-  // Support headerMenu as array or object
-  let headerMenuObj = null;
-  if (Array.isArray(headerMenu)) {
-    headerMenuObj = headerMenu.find(menu => menu?.menu_name === "Header Menu") || null;
-  } else if (headerMenu && typeof headerMenu === "object") {
-    headerMenuObj = headerMenu;
-  }
+  // Use useMemo to prevent recalculation and ensure stability during navigation
+  const navLinks = useMemo(() => {
+    try {
+      // Return empty array if no headerMenu
+      if (!headerMenu) {
+        return [];
+      }
 
-  const navLinks = Array.isArray(headerMenuObj?.items)
-    ? headerMenuObj.items
-        .filter(item => item && item.url && item.url.trim())
+      // Handle array format (API returns array)
+      let headerMenuObj;
+      if (Array.isArray(headerMenu)) {
+        headerMenuObj = headerMenu.find(menu => menu && menu.menu_name === "Header Menu");
+      } else {
+        headerMenuObj = headerMenu;
+      }
+
+      // Ensure we have valid items
+      if (!headerMenuObj || !headerMenuObj.items || !Array.isArray(headerMenuObj.items)) {
+        return [];
+      }
+
+      // Map items to nav links
+      return headerMenuObj.items
+        .filter(item => {
+          return item && 
+                 item.url && 
+                 typeof item.url === 'string' && 
+                 item.url.trim() !== '';
+        })
         .map(item => ({
-          name: item.title,
-          path: item.url,
-          target: item.target_set
-        }))
-    : [];
+          name: item.title || 'Untitled',
+          path: item.url || '#',
+          target: item.target_set || '_self'
+        }));
+    } catch (error) {
+      console.error('Error processing navigation menu:', error);
+      return [];
+    }
+  }, [headerMenu]); // Only recalculate when headerMenu actually changes
 
   // Don't show this Navigation on dashboard pages
   const isDashboardPage = pathname?.startsWith("/admin") || 
@@ -61,30 +86,6 @@ const Navigation = () => {
                           (pathname?.startsWith("/creator") && pathname !== "/creators");
 
   if (isDashboardPage) return null;
-
-  // Loading or error fallback
-  if (menuLoading) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            <span className="animate-pulse text-muted-foreground">Loading menu...</span>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-  if (menuError) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            <span className="text-destructive">Failed to load menu</span>
-          </div>
-        </div>
-      </nav>
-    );
-  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -102,56 +103,18 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            {Array.isArray(navLinks) && navLinks.length > 0 ? (
-              navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  href={link.path || '#'}
-                  target={link.target}
-                  className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.path) ? "text-primary" : "text-foreground"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))
-            ) : (
-              <span className="text-muted-foreground">No menu</span>
-            )}
-            {/* {mounted && user && isAdmin && (
+            {navLinks.map((link, index) => (
               <Link
-                href="/admin"
+                key={link.path || index}
+                href={link.path || '#'}
+                target={link.target}
                 className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/admin") ? "text-primary" : "text-foreground"
+                  isActive(link.path) ? "text-primary" : "text-foreground"
                 }`}
               >
-                Admin
+                {link.name}
               </Link>
-            )} */}
-            {/* {!mounted ? (
-              <Link href="/admin/login">
-                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
-                  Sign In / Sign Up
-                </Button>
-              </Link>
-            ) : user ? (
-              <div className="flex items-center gap-1 lg:gap-2">
-                <Button variant="ghost" size="sm" onClick={() => router.push(userDashboardPath)} className="text-xs lg:text-sm h-8 lg:h-9 px-2 lg:px-3">
-                  <User className="w-3 lg:w-4 h-3 lg:h-4 mr-1 lg:mr-2" />
-                  Dashboard
-                </Button>
-                <Button variant="outline" size="sm" onClick={signOut} className="text-xs lg:text-sm h-8 lg:h-9 px-2 lg:px-3">
-                  <LogOut className="w-3 lg:w-4 h-3 lg:h-4 mr-1 lg:mr-2" />
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              <Link href="/admin/login">
-                <Button size="sm" className="bg-gradient-primary shadow-soft hover:shadow-medium text-xs lg:text-sm">
-                  Sign In / Sign Up
-                </Button>
-              </Link>
-            )} */}
+            ))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -167,9 +130,9 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden py-3 sm:py-4 animate-fade-in border-t border-border">
-            {navLinks?.map((link) => (
+            {navLinks.map((link, index) => (
               <Link
-                key={link.path}
+                key={link.path || index}
                 href={link.path || '#'}
                 target={link.target}
                 className={`block py-2 sm:py-3 text-sm font-medium transition-colors hover:text-primary ${
