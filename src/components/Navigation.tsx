@@ -16,10 +16,10 @@ const Navigation = () => {
   const { isAdmin, roles } = useUserRole();
   const router = useRouter();
   const pathname = usePathname();
-  const [userDashboardPath, setUserDashboardPath] = useState('/');
+  // const [userDashboardPath, setUserDashboardPath] = useState('/');
   
   // Fetch frontend menus from API
-  const { headerMenu, isLoading: menuLoading } = useFrontendMenus();
+  const { headerMenu, isLoading: menuLoading, isError: menuError } = useFrontendMenus();
 
   const isActive = (path: string) => pathname === path;
 
@@ -38,14 +38,17 @@ const Navigation = () => {
   }, [roles]);
 
   // Support headerMenu as array or object
-  const headerMenuObj = Array.isArray(headerMenu)
-    ? headerMenu?.find(menu => menu?.menu_name === "Header Menu")
-    : headerMenu;
+  let headerMenuObj = null;
+  if (Array.isArray(headerMenu)) {
+    headerMenuObj = headerMenu.find(menu => menu?.menu_name === "Header Menu") || null;
+  } else if (headerMenu && typeof headerMenu === "object") {
+    headerMenuObj = headerMenu;
+  }
 
   const navLinks = Array.isArray(headerMenuObj?.items)
     ? headerMenuObj.items
-        ?.filter(item => item.url && item.url.trim())
-        ?.map(item => ({
+        .filter(item => item && item.url && item.url.trim())
+        .map(item => ({
           name: item.title,
           path: item.url,
           target: item.target_set
@@ -58,6 +61,30 @@ const Navigation = () => {
                           (pathname?.startsWith("/creator") && pathname !== "/creators");
 
   if (isDashboardPage) return null;
+
+  // Loading or error fallback
+  if (menuLoading) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <span className="animate-pulse text-muted-foreground">Loading menu...</span>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+  if (menuError) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <span className="text-destructive">Failed to load menu</span>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -75,18 +102,22 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            {navLinks?.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path || '#'}
-                target={link.target}
-                className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.path) ? "text-primary" : "text-foreground"
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {Array.isArray(navLinks) && navLinks.length > 0 ? (
+              navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  href={link.path || '#'}
+                  target={link.target}
+                  className={`text-xs lg:text-sm font-medium transition-colors hover:text-primary ${
+                    isActive(link.path) ? "text-primary" : "text-foreground"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))
+            ) : (
+              <span className="text-muted-foreground">No menu</span>
+            )}
             {/* {mounted && user && isAdmin && (
               <Link
                 href="/admin"
